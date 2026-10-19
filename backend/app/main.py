@@ -1,9 +1,20 @@
 """FastAPI application entrypoint."""
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 
-from app.api.routers import health
+from app.api.routers import (
+    categories,
+    data,
+    health,
+    lookups,
+    meta,
+    net_transfers,
+    weekly,
+    yoy,
+)
+from app.core.duckdb import DataUnavailable
 
 
 def generate_unique_id(route: APIRoute) -> str:
@@ -21,4 +32,18 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
 )
 
-app.include_router(health.router)
+
+@app.exception_handler(DataUnavailable)
+def data_unavailable(request: Request, exc: DataUnavailable) -> JSONResponse:
+    return JSONResponse(status_code=503, content={"detail": "Data is not loaded yet"})
+
+
+@app.exception_handler(ValueError)
+def bad_request(request: Request, exc: ValueError) -> JSONResponse:
+    # Services raise ValueError for inputs they reject (unknown data source,
+    # same fiscal year twice, bad comparison_mode); the message is for people.
+    return JSONResponse(status_code=400, content={"detail": str(exc)})
+
+
+for module in (health, meta, lookups, data, net_transfers, weekly, yoy, categories):
+    app.include_router(module.router)

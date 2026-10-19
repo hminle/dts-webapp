@@ -5,6 +5,7 @@ from app.constants.endpoints import (
     ENDPOINT_TABLES,
     ENDPOINTS,
     EndpointDef,
+    data_table_for,
     table_for,
 )
 
@@ -15,5 +16,6 @@ __all__ = [
     "ENDPOINT_TABLES",
     "ENDPOINTS",
     "EndpointDef",
+    "data_table_for",
     "table_for",
 ]

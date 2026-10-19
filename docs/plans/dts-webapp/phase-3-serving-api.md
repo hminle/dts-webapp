@@ -1,4 +1,4 @@
-# Phase 3: Serving API — ⬜ Not Started
+# Phase 3: Serving API — 🔄 In Progress
 
 **Goal**: Every read endpoint of REF is served by a read-only FastAPI app as a cacheable `GET`
 (per the phase-0 Endpoint Map), with SQL-side pagination, errors that surface instead of empty

@@ -86,3 +86,14 @@ def table_for(key: str) -> str:
     if key not in ENDPOINTS:
         raise ValueError(f"Unknown Treasury endpoint key: {key!r}")
     return key
+
+
+def data_table_for(name: str) -> str:
+    """Return a queryable table: any endpoint table or a derived one.
+
+    Raises:
+        ValueError: If the name is not an artifact table.
+    """
+    if name not in ALL_TABLES:
+        raise ValueError(f"Unknown data source: {name!r}")
+    return name
