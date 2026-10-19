@@ -29,3 +29,23 @@ export function errorMessage(error: unknown, fallback: string): string {
   const detail = (error as { detail?: unknown } | undefined)?.detail
   return typeof detail === 'string' ? detail : fallback
 }
+
+/** A failed call with its HTTP status, so callers can tell "no data" from "down". */
+export class ApiError extends Error {
+  readonly status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
+/** Throw the call's failure as an `ApiError` carrying the backend's detail. */
+export function throwApiError(
+  error: unknown,
+  response: Response,
+  fallback: string
+): never {
+  throw new ApiError(errorMessage(error, fallback), response.status)
+}

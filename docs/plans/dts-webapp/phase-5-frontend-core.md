@@ -1,4 +1,4 @@
-# Phase 5: Frontend — Core Pages — ⬜ Not Started
+# Phase 5: Frontend — Core Pages — 🔄 In Progress
 
 **Goal**: The Overview, Data status, Single date, Daily net transfers, and Fiscal year pages
 work against the Phase 3 API in FAM's look, and the shared frontend building blocks (formatters,

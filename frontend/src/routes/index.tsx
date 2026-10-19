@@ -1,6 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { PagePlaceholder } from '@/components/page-placeholder'
+import { Page } from '@/components/page'
+import { OverviewPage } from '@/features/overview/overview-page'
 
 export const Route = createFileRoute('/')({
-  component: () => <PagePlaceholder title='Overview' phase={5} />,
+  component: () => (
+    <Page title='Overview'>
+      <OverviewPage />
+    </Page>
+  ),
 })
