@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DataStatusRouteImport } from './routes/data-status'
 import { Route as FiscalYearRouteImport } from './routes/fiscal-year'
 import { Route as MethodologyRouteImport } from './routes/methodology'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WeeklyRouteImport } from './routes/weekly'
 import { Route as DailyNetTransfersRouteImport } from './routes/daily/net-transfers'
 import { Route as DailySingleDateRouteImport } from './routes/daily/single-date'
@@ -39,6 +41,16 @@ const FiscalYearRoute = FiscalYearRouteImport.update({
 const MethodologyRoute = MethodologyRouteImport.update({
   id: '/methodology',
   path: '/methodology',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WeeklyRoute = WeeklyRouteImport.update({
@@ -82,6 +94,8 @@ export interface FileRoutesByFullPath {
   '/data-status': typeof DataStatusRoute
   '/fiscal-year': typeof FiscalYearRoute
   '/methodology': typeof MethodologyRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/weekly': typeof WeeklyRoute
   '/daily/net-transfers': typeof DailyNetTransfersRoute
   '/daily/single-date': typeof DailySingleDateRoute
@@ -95,6 +109,8 @@ export interface FileRoutesByTo {
   '/data-status': typeof DataStatusRoute
   '/fiscal-year': typeof FiscalYearRoute
   '/methodology': typeof MethodologyRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/weekly': typeof WeeklyRoute
   '/daily/net-transfers': typeof DailyNetTransfersRoute
   '/daily/single-date': typeof DailySingleDateRoute
@@ -109,6 +125,8 @@ export interface FileRoutesById {
   '/data-status': typeof DataStatusRoute
   '/fiscal-year': typeof FiscalYearRoute
   '/methodology': typeof MethodologyRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/weekly': typeof WeeklyRoute
   '/daily/net-transfers': typeof DailyNetTransfersRoute
   '/daily/single-date': typeof DailySingleDateRoute
@@ -124,6 +142,8 @@ export interface FileRouteTypes {
     | '/data-status'
     | '/fiscal-year'
     | '/methodology'
+    | '/privacy'
+    | '/terms'
     | '/weekly'
     | '/daily/net-transfers'
     | '/daily/single-date'
@@ -137,6 +157,8 @@ export interface FileRouteTypes {
     | '/data-status'
     | '/fiscal-year'
     | '/methodology'
+    | '/privacy'
+    | '/terms'
     | '/weekly'
     | '/daily/net-transfers'
     | '/daily/single-date'
@@ -150,6 +172,8 @@ export interface FileRouteTypes {
     | '/data-status'
     | '/fiscal-year'
     | '/methodology'
+    | '/privacy'
+    | '/terms'
     | '/weekly'
     | '/daily/net-transfers'
     | '/daily/single-date'
@@ -164,6 +188,8 @@ export interface RootRouteChildren {
   DataStatusRoute: typeof DataStatusRoute
   FiscalYearRoute: typeof FiscalYearRoute
   MethodologyRoute: typeof MethodologyRoute
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
   WeeklyRoute: typeof WeeklyRoute
   DailyNetTransfersRoute: typeof DailyNetTransfersRoute
   DailySingleDateRoute: typeof DailySingleDateRoute
@@ -201,6 +227,20 @@ declare module '@tanstack/react-router' {
       path: '/methodology'
       fullPath: '/methodology'
       preLoaderRoute: typeof MethodologyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/weekly': {
@@ -260,6 +300,8 @@ const rootRouteChildren: RootRouteChildren = {
   DataStatusRoute: DataStatusRoute,
   FiscalYearRoute: FiscalYearRoute,
   MethodologyRoute: MethodologyRoute,
+  PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
   WeeklyRoute: WeeklyRoute,
   DailyNetTransfersRoute: DailyNetTransfersRoute,
   DailySingleDateRoute: DailySingleDateRoute,

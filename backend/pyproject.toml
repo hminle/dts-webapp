@@ -8,6 +8,7 @@ dependencies = [
     "fastapi[standard]>=0.146.0",
     "pandas>=2.2.3,<3",
     "pydantic-settings>=2.16.0",
+    "sentry-sdk[fastapi]>=2.72.0",
 ]
 
 [tool.fastapi]

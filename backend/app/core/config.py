@@ -15,6 +15,8 @@ class Settings(BaseSettings):
 
     duckdb_path: Path = BACKEND_DIR / "data" / "treasury_data.duckdb"
     artifact_url: str | None = None
+    # Unset locally and in tests, so nothing is reported from there.
+    sentry_dsn: str | None = None
 
     # Ingestion only. The reference app declared these but its client read
     # module constants instead, so .env overrides never took effect.

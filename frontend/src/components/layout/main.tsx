@@ -1,14 +1,16 @@
 import { cn } from '@/lib/utils'
 
-type MainProps = React.HTMLAttributes<HTMLElement> & {
+type MainProps = React.HTMLAttributes<HTMLDivElement> & {
   fixed?: boolean
   fluid?: boolean
-  ref?: React.Ref<HTMLElement>
+  ref?: React.Ref<HTMLDivElement>
 }
 
 export function Main({ fixed, className, fluid, ...props }: MainProps) {
+  // A div, not <main>: SidebarInset already renders the page's <main>, and a
+  // second one nested inside it is an accessibility error.
   return (
-    <main
+    <div
       data-layout={fixed ? 'fixed' : 'auto'}
       className={cn(
         'px-4 py-6',
