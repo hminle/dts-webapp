@@ -332,7 +332,10 @@ vercel deploy --prod
   neither pandas nor DuckDB, so the cost is the Python runtime booting a 262 MB bundle, not
   query work. Carried into Phase 3: re-measure on a real data route, and if it stays > 4 s
   apply the follow-ups above in order (lazy pandas import, function memory/CPU, Phase 4
-  warm-up ping). CDN caching (Phase 3) hides this for repeat requests within a deployment. If cold > 4 s, the follow-up options (in order) are: lazy-import
+  warm-up ping). CDN caching (Phase 3) hides this for repeat requests within a deployment.
+  **Resolved in Phase 3:** a data route measured 6.80 s cold; app code accounts for < 0.5 s,
+  so the fix is a post-deploy CDN warm-up in Phase 4 rather than code changes (see Phase 3
+  Notes). If cold > 4 s, the follow-up options (in order) are: lazy-import
   pandas inside the services that need it, then Vercel function memory/CPU settings, then a
   scheduled warm-up ping in Phase 4.
 - A DuckDB version bump in `uv.lock` requires re-running the `--full` bootstrap and uploading

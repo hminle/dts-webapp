@@ -92,6 +92,33 @@ jobs:
       - name: Trigger Vercel deploy
         if: steps.ingest.outputs.changed == 'true'
         run: curl -fsS -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
+      - name: Warm the CDN cache
+        if: steps.ingest.outputs.changed == 'true'
+        run: |
+          # A cold Vercel function takes ~7 s (Phase 3 Notes). Wait until the new
+          # deployment serves today's data, then request each page's default URLs so
+          # visitors get cache HITs. Extend URLS as Phases 5-6 add pages.
+          U=https://dts-webapp.vercel.app/api/v1
+          want="${{ steps.ingest.outputs.latest_record_date }}"
+          for i in $(seq 1 40); do
+            curl -fsS "$U/meta/build?_=$(date +%s)" | grep -q "\"latest_record_date\":\"$want\"" && break
+            sleep 30
+          done
+          FY=$(curl -fsS "$U/lookups/fiscal-years" | python3 -c 'import json,sys; print(json.load(sys.stdin)[0])')
+          PREV=$((FY - 1))
+          for path in meta/stats meta/build meta/record-counts meta/record-counts-by-year \
+                      lookups/fiscal-years lookups/data-sources lookups/categories \
+                      "net-transfers/fiscal-year/$FY" "net-transfers/fiscal-year/$PREV" \
+                      "weekly/comparison?first_fiscal_year=$FY&second_fiscal_year=$PREV" \
+                      "yoy/daily-comparison?current_fiscal_year=$FY&previous_fiscal_year=$PREV&metric=net_flow" \
+                      "yoy/daily-comparison?current_fiscal_year=$FY&previous_fiscal_year=$PREV&metric=total_withdrawals" \
+                      "yoy/daily-comparison?current_fiscal_year=$FY&previous_fiscal_year=$PREV&metric=total_deposits" \
+                      "categories/major-spending?current_fiscal_year=$FY&previous_fiscal_year=$PREV" \
+                      "categories/major-receipts?current_fiscal_year=$FY&previous_fiscal_year=$PREV" \
+                      "categories/tbill-interest?current_fiscal_year=$FY&previous_fiscal_year=$PREV" \
+                      "categories/irs-tax-refunds?current_fiscal_year=$FY&previous_fiscal_year=$PREV"; do
+            curl -fsS -o /dev/null -w "%{http_code} %{time_total}s $path\n" "$U/$path" || true
+          done
       - name: Ping success
         if: success()
         run: curl -fsS -m 10 --retry 3 "${{ secrets.HEALTHCHECK_PING_URL }}"
@@ -141,6 +168,8 @@ the Actions tab).
       on a branch where `APP_TREASURY_BASE_URL: https://10.255.255.1` is added to the Ingest
       step env) → job fails, healthchecks.io receives `/fail` and emails, R2 `latest/` object's
       `last-modified` (`curl -sI https://pub-<hash>.r2.dev/latest/treasury_data.duckdb`) is unchanged.
+- [ ] After a changed run, the warm-up step logs 200 for every URL and a manual
+      `curl -sI` of `$U/categories/major-spending?...` right after shows `x-vercel-cache: HIT`.
 - [ ] Open a PR that changes a schema field without regenerating the contract → `ci` fails at the
       `git diff --exit-code` step; regenerate → green.
 - [ ] `gh workflow run ingest -f full=true` completes inside the 120-minute timeout (record the

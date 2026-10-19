@@ -1,4 +1,4 @@
-# Phase 3: Serving API — 🔄 In Progress
+# Phase 3: Serving API — ✅ Done
 
 **Goal**: Every read endpoint of REF is served by a read-only FastAPI app as a cacheable `GET`
 (per the phase-0 Endpoint Map), with SQL-side pagination, errors that surface instead of empty
@@ -220,11 +220,11 @@ cd ../frontend && pnpm gen:api && pnpm typecheck
 
 ## Verification
 
-- [ ] `uv run ruff check . && uv run ruff format --check . && uv run pytest -q` → pass.
-- [ ] `grep -rn "duckdb.connect" backend/app | grep -v -e app/core/duckdb.py -e app/ingest/` → no output.
-- [ ] `grep -rn "async def" backend/app/api/routers` → no output.
-- [ ] `grep -rn "except Exception" backend/app/services backend/app/api` → no output.
-- [ ] Parity against REF on the bootstrap artifact: copy it
+- [x] `uv run ruff check . && uv run ruff format --check . && uv run pytest -q` → pass.
+- [x] `grep -rn "duckdb.connect" backend/app | grep -v -e app/core/duckdb.py -e app/ingest/` → no output.
+- [x] `grep -rn "async def" backend/app/api/routers` → no output.
+- [x] `grep -rn "except Exception" backend/app/services backend/app/api` → no output.
+- [x] Parity against REF on the bootstrap artifact: copy it
       (`cp backend/data/treasury_data.duckdb /tmp/ref.duckdb` — REF opens read-write and
       DuckDB's file lock would block this app's read-only open of the same file), start REF's
       backend on :8001 with `DUCKDB_PATH=/tmp/ref.duckdb uv run uvicorn app.main:app --port 8001`
@@ -233,15 +233,47 @@ cd ../frontend && pnpm gen:api && pnpm typecheck
       `GET :8000/api/v1/weekly/comparison?...`, and likewise one `yoy/*` and one
       `categories/*` route — bodies equal after `jq -S` (allowed diff: `day_of_fiscal_year`
       on FYs where REF skipped dates).
-- [ ] `time curl -s 'localhost:8000/api/v1/data?page=200&page_size=50' >/dev/null` < 300 ms on
+- [x] `time curl -s 'localhost:8000/api/v1/data?page=200&page_size=50' >/dev/null` < 300 ms on
       the full artifact.
-- [ ] `docs/contracts/openapi.json` lists exactly the paths in the phase-0 Endpoint Map and
+- [x] `docs/contracts/openapi.json` lists exactly the paths in the phase-0 Endpoint Map and
       operation ids like `yoy_get_daily_comparison`; `git diff` on it is committed with the code.
-- [ ] After `vercel deploy --prod`: requesting
+- [x] After `vercel deploy --prod`: requesting
       `https://dts-webapp.vercel.app/api/v1/lookups/fiscal-years` twice → second response has
       `x-vercel-cache: HIT`.
 
 ## Notes
 
-(fill in during execution — record any REF handler whose body needed more than the listed
-changes, and any `iterrows()` vectorization skipped)
+- **Parity (2026-10-18, REF on a copy of the bootstrap artifact, same DuckDB 1.5.6 / pandas
+  2.3.3):** 19 of 20 compared routes returned identical JSON (weekly, both YoY routes incl.
+  `calendar_date` mode, all five category routes, both net-transfer routes, data by date, the
+  four lookups, record counts, counts by year). The one difference is sanctioned:
+  `stats.last_updated` was always `null` in REF (it read a key nothing wrote) and is now the
+  build date. `/data` totals match (872,632 rows, 17,453 pages); page 1 row sets differ only
+  because all its rows share one date — REF's order among ties was arbitrary, ours is
+  `record_date DESC, data_source, id`. No `day_of_fiscal_year` differences: the bootstrap had no
+  skipped dates.
+- The REF handlers were ported by a scripted transform (strip router/`Depends`, connection →
+  cursor parameter, 400 → `ValueError`, remove `try/except` blocks that returned `[]` or a
+  generic 500 — 3 in `yoy.py`, 0 in `major_categories.py`), then reviewed. `iterrows()` loops
+  were left as they are (behavior-identical vectorization is not needed at this data size).
+- `get_data_by_date` keeps REF's table-by-table output order via an internal `_table_order`
+  column. A new `data_table_for` resolver accepts derived tables: REF's `data_source=
+  daily_net_transfers` silently fell back to `deposits_withdrawals`.
+- FastAPI 0.146 wraps included routers in `app.routes` (`_IncludedRouter`); the GET-only
+  guard test inspects `app.openapi()` instead.
+- Latency, local: `/data?page=200` 237 ms; every other route ≤ 245 ms. **Production (cache
+  MISS):** filtered paging as the Fiscal year page uses it (`fiscal_year` [+ `data_source`])
+  0.19–0.35 s at pages 1 and 40; YoY/category routes 0.22–0.69 s; **unfiltered** `/data`
+  across all ten tables 1.0–1.4 s warm (6.2 s on a fresh instance) — slower function CPU on a
+  full sort; no page requests that shape.
+- CDN: second request → `x-vercel-cache: HIT`. Vercel strips `s-maxage` /
+  `stale-while-revalidate` from the browser-facing header (documented behavior), so browsers
+  see `public, max-age=300`.
+- **Cold start on a data route (2026-10-18, ~18 min idle, unique query to bypass the CDN):**
+  `/api/v1/net-transfers/fiscal-year/2025` 6.80 s cold, then 0.33 s / 0.34 s warm. Locally,
+  `import app.main` takes 0.44 s (pandas 0.17 s, FastAPI 0.19 s) and DuckDB open + first
+  query 12 ms — so ~6 s of the cold start is Vercel loading the 262 MB bundle and booting
+  Python, not app code. **Decision:** skip lazy pandas imports (saves well under a second) and
+  function-size tuning; instead Phase 4 warms the CDN after every deploy by requesting each
+  page's default URLs, so visitors almost always get a cache HIT. Revisit bundle size if cold
+  misses show up in practice (Vercel logs, `x-vercel-cache: MISS` on page defaults).
