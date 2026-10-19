@@ -29,14 +29,15 @@ describe('formatters', () => {
   it('formatTreasuryValue scales millions to T / B / M', () => {
     expect(formatTreasuryValue(0)).toBe('$0M')
     expect(formatTreasuryValue(750)).toBe('$750M')
-    expect(formatTreasuryValue(-1_500)).toBe('$-1.50B')
+    expect(formatTreasuryValue(-1_500)).toBe('-$1.50B')
+    expect(formatTreasuryValue(-750)).toBe('-$750M')
     expect(formatTreasuryValue(1_500_000)).toBe('$1.50T')
     expect(formatTreasuryValue(2e12)).toBe('$2000000.00T')
   })
 
   it('formatBillions and formatMillions', () => {
     expect(formatBillions(95_010)).toBe('$95.01B')
-    expect(formatBillions(-865)).toBe('$-0.86B')
+    expect(formatBillions(-865)).toBe('-$0.86B')
     expect(formatMillions(2_500_000)).toBe('$2.50M')
     expect(formatMillions(0)).toBe('$0.00M')
   })

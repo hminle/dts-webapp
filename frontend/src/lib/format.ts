@@ -65,18 +65,21 @@ export function formatDateTime(iso: string): string {
  * Examples: 1_500_000 → "$1.50T", 1_500 → "$1.50B", 750 → "$750M"
  */
 export function formatTreasuryValue(value: number): string {
+  // The sign goes before the "$" ("-$5.63B"); the reference printed "$-5.63B".
+  const sign = value < 0 ? '-' : ''
   const absValue = Math.abs(value)
   if (absValue >= 1_000_000) {
-    return `$${(value / 1_000_000).toFixed(DECIMAL_PLACES)}T`
+    return `${sign}$${(absValue / 1_000_000).toFixed(DECIMAL_PLACES)}T`
   } else if (absValue >= 1_000) {
-    return `$${(value / 1_000).toFixed(DECIMAL_PLACES)}B`
+    return `${sign}$${(absValue / 1_000).toFixed(DECIMAL_PLACES)}B`
   }
-  return `$${value.toFixed(0)}M`
+  return `${sign}$${absValue.toFixed(0)}M`
 }
 
 /** A value in millions, as billions. Example: 95_010 → "$95.01B" */
 export function formatBillions(value: number): string {
-  return `$${(value / 1_000).toFixed(DECIMAL_PLACES)}B`
+  const sign = value < 0 ? '-' : ''
+  return `${sign}$${(Math.abs(value) / 1_000).toFixed(DECIMAL_PLACES)}B`
 }
 
 /** A value in raw units, as millions. Example: 2_500_000 → "$2.50M" */

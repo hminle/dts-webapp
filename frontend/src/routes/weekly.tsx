@@ -1,6 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { PagePlaceholder } from '@/components/page-placeholder'
+import { Page } from '@/components/page'
+import { WeeklyPage } from '@/features/weekly/weekly-page'
 
 export const Route = createFileRoute('/weekly')({
-  component: () => <PagePlaceholder title='Weekly comparison' phase={6} />,
+  component: () => (
+    <Page title='Weekly comparison'>
+      <WeeklyPage />
+    </Page>
+  ),
 })

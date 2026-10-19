@@ -1,4 +1,4 @@
-# Phase 6: Frontend — Analysis Pages — ⬜ Not Started
+# Phase 6: Frontend — Analysis Pages — 🔄 In Progress
 
 **Goal**: The year-over-year suite (net transfers, withdrawals, deposits, category comparison,
 category drill-down) and the weekly comparison work against the Phase 3 API in FAM's look, with

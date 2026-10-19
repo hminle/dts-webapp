@@ -19,7 +19,7 @@ free public app is live (see Key Decisions).
 | Phase 3: Serving API | ✅ Done | Read-only DuckDB, all reference endpoints ported as cacheable `GET`s, SQL pagination, tests, OpenAPI contract |
 | Phase 4: Daily pipeline & CI | ⬜ Not Started | GitHub Actions cron: ingest → R2 → Vercel Deploy Hook; CI workflow for lint/tests/typecheck |
 | Phase 5: Frontend — core pages | ✅ Done | Overview, Data status, Single date, Daily net transfers, Fiscal year |
-| Phase 6: Frontend — analysis pages | ⬜ Not Started | Year-over-year suite, category comparison, weekly comparison (week-alignment fix), Vitest |
+| Phase 6: Frontend — analysis pages | 🔄 In Progress | Year-over-year suite, category comparison, weekly comparison (week-alignment fix), Vitest |
 | Phase 7: Launch hygiene | ⬜ Not Started | Cache verification, rate limiting, error monitoring, methodology + legal pages |
 
 ## Phase Dependencies
