@@ -262,7 +262,7 @@ The user has run `cf auth login` and enabled R2 in the dashboard (prerequisite).
 ```bash
 cf r2 buckets create --name dts-data --location-hint enam
 cf r2 buckets domains managed update dts-data --enabled --force
-cf r2 buckets domains managed list dts-data        # prints the pub-<hash>.r2.dev domain
+cf r2 buckets domains managed list --bucket-name dts-data   # or read "domain" from the update output
 D=$(date -u +%F)
 cf r2 objects put "snapshots/$D/treasury_data.duckdb" --bucket-name dts-data \
   --file backend/data/treasury_data.duckdb --content-type application/octet-stream
@@ -281,20 +281,20 @@ vercel deploy --prod
 
 ## Verification
 
-- [ ] `uv run ruff check . && uv run ruff format --check . && uv run pytest -q` → all pass,
+- [x] `uv run ruff check . && uv run ruff format --check . && uv run pytest -q` → all pass,
       no network access (run once with the network disabled, e.g. `unshare -rn uv run pytest -q`).
-- [ ] Bootstrap run exits 0; `daily_net_transfers` has rows for every FY in
+- [x] Bootstrap run exits 0; `daily_net_transfers` has rows for every FY in
       `deposits_withdrawals`; `MAX(day_of_fiscal_year)` for a complete past FY (e.g. 2025) equals
       `SELECT COUNT(DISTINCT record_date) FROM deposits_withdrawals WHERE record_fiscal_year = 2025`.
-- [ ] Immediately re-running without `--full` prints `"changed": false` and does not modify the
+- [x] Immediately re-running without `--full` prints `"changed": false` and does not modify the
       file (`sha256sum` before/after equal).
-- [ ] `uv run --group ingest python -m app.ingest --db /tmp/none.duckdb` → exit code 2 with a
+- [x] `uv run --group ingest python -m app.ingest --db /tmp/none.duckdb` → exit code 2 with a
       message telling you to use `--full`.
-- [ ] With `APP_TREASURY_BASE_URL=https://10.255.255.1` an incremental run fails within ~1 minute
+- [x] With `APP_TREASURY_BASE_URL=https://10.255.255.1` an incremental run fails within ~1 minute
       with exit code 1 and the artifact's SHA-256 is unchanged.
-- [ ] `curl -sI https://pub-<hash>.r2.dev/latest/treasury_data.duckdb` → `200`, `content-length`
+- [x] `curl -sI https://pub-<hash>.r2.dev/latest/treasury_data.duckdb` → `200`, `content-length`
       equals the local file size.
-- [ ] Vercel `api` build log shows `fetch_artifact: downloaded <n> bytes, latest_record_date=...`;
+- [x] Vercel `api` build log shows `fetch_artifact: downloaded <n> bytes, latest_record_date=...`;
       `curl -s https://dts-webapp.vercel.app/api/health` → `"data_loaded":true`.
 - [ ] Cold start measured: wait ≥ 15 minutes idle, then
       `curl -s -o /dev/null -w '%{time_total}\n' https://dts-webapp.vercel.app/api/health`
@@ -302,6 +302,31 @@ vercel deploy --prod
 
 ## Notes
 
+- **Bootstrap (2026-10-18):** 4 min 19 s wall clock, 1.25 GB peak RSS, 867,348 rows across the
+  9 tables (deposits_withdrawals 486,609), 49,295,360 bytes, FY2006–FY2027, latest
+  `record_date` 2026-10-15. Every date produced metrics (0 skipped); `MAX(day_of_fiscal_year)`
+  equals the distinct `deposits_withdrawals` date count in all 22 FYs.
+- Network-free test run: `unshare -rn` is not permitted on this machine; ran with
+  `HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY` pointed at a dead port instead — 24 passed.
+- `requests` is in both the `ingest` and `dev` groups so `uv run pytest` can import the
+  client; neither group is installed by Vercel.
+- Unreachable Treasury host: exit 1 after 27 s (5 s connect timeout × 4 attempts + backoff),
+  artifact SHA-256 unchanged.
+- **r2.dev rejects urllib's default User-Agent with 403** (curl is fine). The first deploy with
+  `APP_ARTIFACT_URL` set failed its build exactly as designed (previous deployment stayed
+  live); `fetch_artifact` now sends `User-Agent: dts-webapp-build/1.0`.
+- **`cf r2 objects put` of the ~49 MB file fails intermittently** with `fetch failed`
+  (random 20–48 MB probes and the same file under another name succeeded; roughly half of
+  the large attempts failed). Uploaded with a retry loop. Phase 4's upload step retries and
+  verifies size; its Notes record the S3-API fallback.
+- `cf r2 buckets domains managed list` takes `--bucket-name`, not a positional; the `update`
+  output already prints the domain. Bucket `dts-data` (ENAM), public domain
+  `pub-22cfaba2d9874e799d437ddb6d289fd2.r2.dev`.
+- `cf r2 objects delete` needs `--force` in non-interactive shells (otherwise "Aborted.").
+- Vercel build: "Bundle size (262.03 MB) exceeds the standard size; optimizing dependencies."
+  Under the 500 MB limit; pandas + numpy + duckdb dominate.
+- Warm `/api/health` ≈ 0.19–0.33 s. This health route opens neither DuckDB nor pandas, so its
+  cold start understates a real data request — re-measure on a data route in Phase 3.
 - Record cold/warm timings here. If cold > 4 s, the follow-up options (in order) are: lazy-import
   pandas inside the services that need it, then Vercel function memory/CPU settings, then a
   scheduled warm-up ping in Phase 4.

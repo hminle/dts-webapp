@@ -64,16 +64,31 @@ jobs:
         if: ${{ !inputs.full }}
         run: |
           mkdir -p data
-          $CF r2 objects get latest/treasury_data.duckdb --bucket-name dts-data -q > data/treasury_data.duckdb
+          # Public r2.dev read; a named User-Agent, since Cloudflare 403s some defaults.
+          curl -fsS -A "dts-webapp-ingest/1.0" --retry 3 -o data/treasury_data.duckdb \
+            "https://pub-22cfaba2d9874e799d437ddb6d289fd2.r2.dev/latest/treasury_data.duckdb"
       - name: Ingest
         id: ingest
         run: uv run --group ingest python -m app.ingest --db data/treasury_data.duckdb ${{ inputs.full && '--full' || '' }}
       - name: Upload snapshot and latest
         if: steps.ingest.outputs.changed == 'true'
         run: |
+          # Single-request uploads of the ~50 MB file fail intermittently with
+          # "fetch failed" (Phase 2 notes), so each put is retried and checked.
+          put() {
+            local size; size=$(stat -c %s data/treasury_data.duckdb)
+            for try in 1 2 3 4 5 6; do
+              if $CF r2 objects put "$1" --bucket-name dts-data --file "$PWD/data/treasury_data.duckdb" \
+                   --content-type application/octet-stream 2>&1 | grep -q "\"size\": \"$size\""; then
+                echo "$1 uploaded on try $try"; return 0
+              fi
+              echo "$1 try $try failed"; sleep $((try * 5))
+            done
+            return 1
+          }
           D=$(date -u +%F)
-          $CF r2 objects put "snapshots/$D/treasury_data.duckdb" --bucket-name dts-data --file data/treasury_data.duckdb --content-type application/octet-stream
-          $CF r2 objects put latest/treasury_data.duckdb --bucket-name dts-data --file data/treasury_data.duckdb --content-type application/octet-stream
+          put "snapshots/$D/treasury_data.duckdb"
+          put latest/treasury_data.duckdb
       - name: Trigger Vercel deploy
         if: steps.ingest.outputs.changed == 'true'
         run: curl -fsS -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
@@ -132,5 +147,12 @@ the Actions tab).
       duration in Notes).
 
 ## Notes
+
+- **If the retried `cf` upload still fails in CI**, switch the upload step to R2's
+  S3-compatible API (`aws s3 cp --endpoint-url https://<account_id>.r2.cloudflarestorage.com`,
+  preinstalled on GitHub runners, multipart for large files) with an R2 S3 access key pair as
+  secrets `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`. `cf r2 objects put --help` itself
+  recommends the S3 API for most workloads.
+- Use absolute paths with `cf --file` (`$PWD/...`).
 
 (record full-rebuild duration and any cf CLI quirks met in CI)

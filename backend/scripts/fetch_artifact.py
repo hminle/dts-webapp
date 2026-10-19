@@ -16,6 +16,10 @@ import duckdb
 
 from app.core.config import get_settings
 
+# Cloudflare answers 403 to urllib's default "Python-urllib/x.y" User-Agent on
+# r2.dev, so the build must identify itself.
+USER_AGENT = "dts-webapp-build/1.0"
+
 
 def main() -> int:
     settings = get_settings()
@@ -30,7 +34,11 @@ def main() -> int:
     dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_suffix(".download")
     try:
-        with urllib.request.urlopen(url, timeout=120) as response, tmp.open("wb") as f:
+        request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        with (
+            urllib.request.urlopen(request, timeout=120) as response,
+            tmp.open("wb") as f,
+        ):
             shutil.copyfileobj(response, f)
         conn = duckdb.connect(str(tmp), read_only=True)
         try:

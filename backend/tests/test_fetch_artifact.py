@@ -1,3 +1,4 @@
+import urllib.request
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -53,3 +54,23 @@ def test_installs_a_valid_artifact(
 
     assert fetch_artifact.main() == 0
     assert dest.exists()
+
+
+def test_sends_a_named_user_agent(
+    dest: Path, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    seen: list[str | None] = []
+    real_urlopen = fetch_artifact.urllib.request.urlopen
+
+    def spy(request: urllib.request.Request, timeout: float):
+        seen.append(request.get_header("User-agent"))
+        return real_urlopen(request, timeout=timeout)
+
+    junk = tmp_path / "junk.bin"
+    junk.write_bytes(b"x")
+    _use_url(monkeypatch, junk.as_uri())
+    monkeypatch.setattr(fetch_artifact.urllib.request, "urlopen", spy)
+
+    fetch_artifact.main()
+
+    assert seen == [fetch_artifact.USER_AGENT]
