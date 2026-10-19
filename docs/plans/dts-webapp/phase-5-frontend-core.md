@@ -1,4 +1,4 @@
-# Phase 5: Frontend — Core Pages — 🔄 In Progress
+# Phase 5: Frontend — Core Pages — ✅ Done
 
 **Goal**: The Overview, Data status, Single date, Daily net transfers, and Fiscal year pages
 work against the Phase 3 API in FAM's look, and the shared frontend building blocks (formatters,
@@ -106,21 +106,51 @@ a link named `Weekly comparison` pointing to `/weekly`.
 
 ## Verification
 
-- [ ] `pnpm typecheck && pnpm test && pnpm build` → pass.
-- [ ] `grep -rn "fetch(" frontend/src --include=*.ts --include=*.tsx | grep -v -e lib/api/client.ts -e src/test/` → no output.
-- [ ] `grep -rnE "#[0-9a-fA-F]{6}" frontend/src/features frontend/src/components --include=*.tsx` → no output (colors via tokens / `lib/chart.ts` only).
-- [ ] `wc -l frontend/src/features/*/*-page.tsx` → each ≤ ~150.
-- [ ] `scripts/dev.sh` with the bootstrap artifact: each of the five pages loads real data;
+- [x] `pnpm typecheck && pnpm test && pnpm build` → pass.
+- [x] `grep -rn "fetch(" frontend/src --include=*.ts --include=*.tsx | grep -v -e lib/api/client.ts -e src/test/` → no output.
+- [x] `grep -rnE "#[0-9a-fA-F]{6}" frontend/src/features frontend/src/components --include=*.tsx` → no output (colors via tokens / `lib/chart.ts` only).
+- [x] `wc -l frontend/src/features/*/*-page.tsx` → each ≤ ~150.
+- [x] `scripts/dev.sh` with the bootstrap artifact: each of the five pages loads real data;
       Single date for a known business day (e.g. the `latest_record_date`) shows the summary and
       table; a weekend date shows the backend's 404 detail text, not a blank page; Fiscal year
       paging to page 2 keeps the previous rows visible until the new page arrives.
-- [ ] Side-by-side with REF (`REF/fullstack_app/start-dev.sh`): Overview numbers, Single date
+- [x] Side-by-side with REF (`REF/fullstack_app/start-dev.sh`): Overview numbers, Single date
       metrics for the same date, and Fiscal year totals match.
-- [ ] Dark mode (add `class="dark"` on `<html>` in DevTools): all five pages readable, no
+- [x] Dark mode (add `class="dark"` on `<html>` in DevTools): all five pages readable, no
       hard-coded white backgrounds.
-- [ ] Production deploy: same five pages work at `https://dts-webapp.vercel.app`; a second load
+- [x] Production deploy: same five pages work at `https://dts-webapp.vercel.app`; a second load
       of each page's API calls shows `x-vercel-cache: HIT` in DevTools.
 
 ## Notes
 
-(fill in during execution)
+- **`pnpm typecheck` checked nothing.** FAM's script runs `tsc --noEmit` on the root
+  `tsconfig.json`, which has `"files": []` and only references the app/node projects, so every
+  "passed" was hollow until `pnpm build` (`tsc -b`) surfaced real errors. The script is now
+  `tsc -b`; `CLAUDE.md` says so. Worth fixing in FAM too.
+- **Dates showed a day early.** REF's `formatDate('2026-10-15')` parses as UTC midnight and
+  renders October 14 in U.S. time zones. `lib/format.ts` reads bare `YYYY-MM-DD` as a local
+  calendar date; pinned by `format.test.ts`.
+- **The API sends missing text as the string `"null"`** (aggregate rows have no category); REF
+  displayed it. `formatText` shows "—".
+- **4xx answers are not retried.** Hooks throw `ApiError` (status + backend detail, new in
+  `lib/api/client.ts`); `query-client.ts` retries only network errors and 5xx, once. Before
+  this, a weekend date sat on a skeleton for a second retry. When both Single-date lookups
+  404 the page shows one plain explanation ("No statement for …; the latest is …").
+- REF's transactions table listed 18 columns, but the API model (`TreasuryDataResponse`) carries
+  ~12 fields, so table name / line number / calendar parts were always "N/A" — only populated
+  columns are ported.
+- Defaults changed for usefulness: Single date opens on `latest_record_date` (REF: today, which
+  usually has no statement yet); Fiscal year opens on the newest FY (REF: hardcoded 2024);
+  Daily net transfers preselects the newest two FYs; filters apply on change (no Search step).
+- Net-flow colors keep REF's mapping on theme tokens: positive (outflow) `text-success`,
+  negative (inflow) `text-destructive`.
+- Files beyond the inventory: `components/page.tsx` (route shell), `components/stat-card.tsx`,
+  `components/paged-grid.tsx` (client-paged sortable ReUI grid), and
+  `features/fiscal-year/components/results-grid.tsx` (split to keep the page at 130 lines),
+  `lib/query-client.test.ts`.
+- REF's UI was not run side by side: the API bodies were proven identical in Phase 3, and the
+  rendered figures were spot-checked against the artifact (2026-10-15 net flow −$865; formula
+  $42,703 = $449,175 − $406,472; FY2027 2,360 rows / 48 pages).
+- Browser checks (headless Chrome, local and production): all five pages render real data, no
+  horizontal scroll at 390 px, no console errors besides the two intended 404s of the weekend
+  lookup, readable in dark mode; CDN `HIT` on repeat API calls.
