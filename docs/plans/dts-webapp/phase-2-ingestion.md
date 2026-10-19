@@ -1,4 +1,4 @@
-# Phase 2: Ingestion & Data Artifact — ⬜ Not Started
+# Phase 2: Ingestion & Data Artifact — 🔄 In Progress
 
 **Goal**: `uv run python -m app.ingest` builds a complete, validated `treasury_data.duckdb`
 (full or incremental, all-or-nothing). The first artifact is uploaded to Cloudflare R2, and the
