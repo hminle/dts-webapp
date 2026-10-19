@@ -71,7 +71,7 @@ Frontend (from `frontend/`, pnpm — not npm):
 ```bash
 pnpm dev            # :5173, proxies /api to VITE_API_TARGET (default localhost:8000)
 pnpm test           # vitest run
-pnpm typecheck      # tsc --noEmit
+pnpm typecheck      # tsc -b (the root tsconfig has no files; --noEmit alone checks nothing)
 pnpm build          # tsc -b && vite build
 pnpm gen:api        # regenerate src/lib/api/schema.d.ts from the OpenAPI snapshot
 ```

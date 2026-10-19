@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTable } from '@tanstack/react-table'
-import type { ColumnDef, SortingState } from '@tanstack/react-table'
+import type { ColumnDef, RowData, SortingState } from '@tanstack/react-table'
 import {
   DataGrid,
   DataGridContainer,
@@ -11,7 +11,7 @@ import { DataGridPagination } from '@/components/reui/data-grid/data-grid-pagina
 import { DataGridScrollArea } from '@/components/reui/data-grid/data-grid-scroll-area'
 import { DataGridTable } from '@/components/reui/data-grid/data-grid-table'
 
-type PagedGridProps<Row> = {
+type PagedGridProps<Row extends RowData> = {
   data: Row[]
   columns: ColumnDef<DataGridFeatures, Row>[]
   pageSize?: number
@@ -24,7 +24,7 @@ type PagedGridProps<Row> = {
  * (one date's rows, one fiscal year's days). Server-paged data uses the grid
  * with `manualPagination` instead.
  */
-export function PagedGrid<Row>({
+export function PagedGrid<Row extends RowData>({
   data,
   columns,
   pageSize = 20,

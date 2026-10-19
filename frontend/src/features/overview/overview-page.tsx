@@ -36,7 +36,7 @@ const QUICK_LINKS = [
 ] as const
 
 export function OverviewPage() {
-  const stats = useStats()
+  const statsQuery = useStats()
 
   return (
     <div className='flex flex-col gap-6'>
@@ -50,79 +50,84 @@ export function OverviewPage() {
         </p>
       </div>
 
-      <QueryState query={stats}>
-        {(s) => (
-          <>
-            <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
-              <StatCard
-                title='Total records'
-                icon={Database}
-                value={formatNumber(s.record_count)}
-                note='Across all data sources'
-              />
-              <StatCard
-                title='Date range'
-                icon={Calendar}
-                value={`${s.fiscal_years.length} fiscal years`}
-                note={
-                  s.earliest_date && s.latest_date
-                    ? `${formatShortDate(s.earliest_date)} – ${formatShortDate(s.latest_date)}`
-                    : 'No data yet'
-                }
-              />
-              <StatCard
-                title='Data sources'
-                icon={TrendingUp}
-                value={s.data_sources.length}
-                note='Daily Treasury Statement tables'
-              />
-              <StatCard
-                title='Last updated'
-                icon={Activity}
-                value={
-                  <span className='text-base'>
-                    {s.last_updated ? formatDateTime(s.last_updated) : 'Never'}
-                  </span>
-                }
-                note='When the daily refresh last ran'
-              />
-            </div>
+      <QueryState query={statsQuery}>
+        {(stats) => {
+          // Both lists have server-side defaults, so the schema marks them optional.
+          const fiscalYears = stats.fiscal_years ?? []
+          const dataSources = stats.data_sources ?? []
+          return (
+            <>
+              <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
+                <StatCard
+                  title='Total records'
+                  icon={Database}
+                  value={formatNumber(stats.record_count)}
+                  note='Across all data sources'
+                />
+                <StatCard
+                  title='Date range'
+                  icon={Calendar}
+                  value={`${fiscalYears.length} fiscal years`}
+                  note={
+                    stats.earliest_date && stats.latest_date
+                      ? `${formatShortDate(stats.earliest_date)} – ${formatShortDate(stats.latest_date)}`
+                      : 'No data yet'
+                  }
+                />
+                <StatCard
+                  title='Data sources'
+                  icon={TrendingUp}
+                  value={dataSources.length}
+                  note='Daily Treasury Statement tables'
+                />
+                <StatCard
+                  title='Last updated'
+                  icon={Activity}
+                  value={
+                    <span className='text-base'>
+                      {stats.last_updated ? formatDateTime(stats.last_updated) : 'Never'}
+                    </span>
+                  }
+                  note='When the daily refresh last ran'
+                />
+              </div>
 
-            <div className='grid gap-4 md:grid-cols-2'>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Available data sources</CardTitle>
-                  <CardDescription>Treasury tables in this dataset</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className='flex flex-col gap-2'>
-                    {s.data_sources.map((source) => (
-                      <li key={source} className='flex items-center gap-2 text-sm'>
-                        <span className='size-1.5 rounded-full bg-primary' />
-                        {dataSourceName(source)}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Available fiscal years</CardTitle>
-                  <CardDescription>October 1 to September 30</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className='flex flex-wrap gap-2'>
-                    {s.fiscal_years.map((year) => (
-                      <Badge key={year} variant='secondary'>
-                        FY {year}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </>
-        )}
+              <div className='grid gap-4 md:grid-cols-2'>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Available data sources</CardTitle>
+                    <CardDescription>Treasury tables in this dataset</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className='flex flex-col gap-2'>
+                      {dataSources.map((source) => (
+                        <li key={source} className='flex items-center gap-2 text-sm'>
+                          <span className='size-1.5 rounded-full bg-primary' />
+                          {dataSourceName(source)}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Available fiscal years</CardTitle>
+                    <CardDescription>October 1 to September 30</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className='flex flex-wrap gap-2'>
+                      {fiscalYears.map((year) => (
+                        <Badge key={year} variant='secondary'>
+                          FY {year}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          )
+        }}
       </QueryState>
 
       <Card>
