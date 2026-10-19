@@ -1,4 +1,4 @@
-# Phase 2: Ingestion & Data Artifact — 🔄 In Progress
+# Phase 2: Ingestion & Data Artifact — ✅ Done
 
 **Goal**: `uv run python -m app.ingest` builds a complete, validated `treasury_data.duckdb`
 (full or incremental, all-or-nothing). The first artifact is uploaded to Cloudflare R2, and the
@@ -296,7 +296,7 @@ vercel deploy --prod
       equals the local file size.
 - [x] Vercel `api` build log shows `fetch_artifact: downloaded <n> bytes, latest_record_date=...`;
       `curl -s https://dts-webapp.vercel.app/api/health` → `"data_loaded":true`.
-- [ ] Cold start measured: wait ≥ 15 minutes idle, then
+- [x] Cold start measured: wait ≥ 15 minutes idle, then
       `curl -s -o /dev/null -w '%{time_total}\n' https://dts-webapp.vercel.app/api/health`
       three times; record the first (cold) and the next two (warm) timings in Notes.
 
@@ -327,7 +327,12 @@ vercel deploy --prod
   Under the 500 MB limit; pandas + numpy + duckdb dominate.
 - Warm `/api/health` ≈ 0.19–0.33 s. This health route opens neither DuckDB nor pandas, so its
   cold start understates a real data request — re-measure on a data route in Phase 3.
-- Record cold/warm timings here. If cold > 4 s, the follow-up options (in order) are: lazy-import
+- **Cold start (2026-10-18, after ~20 min idle, production `/api/health`):** 4.80 s cold,
+  then 0.38 s and 0.20 s warm. That is above the 4 s threshold even though this route touches
+  neither pandas nor DuckDB, so the cost is the Python runtime booting a 262 MB bundle, not
+  query work. Carried into Phase 3: re-measure on a real data route, and if it stays > 4 s
+  apply the follow-ups above in order (lazy pandas import, function memory/CPU, Phase 4
+  warm-up ping). CDN caching (Phase 3) hides this for repeat requests within a deployment. If cold > 4 s, the follow-up options (in order) are: lazy-import
   pandas inside the services that need it, then Vercel function memory/CPU settings, then a
   scheduled warm-up ping in Phase 4.
 - A DuckDB version bump in `uv.lock` requires re-running the `--full` bootstrap and uploading
