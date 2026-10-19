@@ -1,4 +1,4 @@
-# Phase 1: Scaffold & First Deploy — 🔄 In Progress
+# Phase 1: Scaffold & First Deploy — ✅ Done
 
 **Goal**: The monorepo skeleton exists with FAM's structure, design tokens, and sidebar shell,
 and a deployment on Vercel Services serves the shell at `/` and `GET /api/health` from FastAPI.
@@ -358,7 +358,7 @@ to `curl`.
 - [x] `scripts/dev.sh --install` → backend logs `Uvicorn running on http://127.0.0.1:8000`,
       `http://localhost:5173` shows the sidebar; `curl -s localhost:5173/api/health` →
       `{"status":"ok","data_loaded":false}` (through the Vite proxy).
-- [ ] Sidebar in the browser: collapsing to the icon rail turns `Daily` / `Year over year`
+- [x] Sidebar in the browser: collapsing to the icon rail turns `Daily` / `Year over year`
       into dropdowns; text font is Inter (DevTools → Computed → `font-family` starts with
       `"Inter"`); the `.dark` class on `<html>` switches tokens.
 - [x] `curl -s https://dts-webapp.vercel.app/api/health` →
@@ -396,10 +396,9 @@ to `curl`.
   `Executing: python -m scripts.fetch_artifact`); the `functions` key `app/main.py` was
   accepted. Neither fallback was needed. Vercel used Python 3.12 from `backend/.python-version`
   and uv for the install.
-- `vercel link` created the project but **`vercel git connect` failed** ("Failed to connect
-  hminle/dts-webapp"): the Vercel GitHub app has no access to the repo. Deploys work via
-  `vercel deploy --prod`; Git connection (needed for Deploy Hooks, Phase 4) waits on granting
-  the app access in GitHub → Settings → Applications → Vercel → Repository access.
+- `vercel link`'s Git connection first failed because the Vercel GitHub app had no access to
+  the repo; after access was granted, `vercel git connect` reports the repo connected (needed
+  for Deploy Hooks, Phase 4).
 - Production `https://dts-webapp.vercel.app` is not behind Deployment Protection (only previews are).
 - FAM's tests do not install `@testing-library/jest-dom`; the sidebar test uses plain
   `expect(...).toBeTruthy()` / `getAttribute` assertions, matching FAM.
@@ -407,4 +406,8 @@ to `curl`.
   fresh clone run `pnpm build` (Vite generates it) — it is committed, so CI is unaffected.
 - The `min-w-0` comment copied into `__root.tsx` cited FAM's holdings grid; it now says "a wide
   data table".
-- The browser check of the sidebar (icon-rail collapse, Inter, dark tokens) is still open.
+- Browser check (headless Chrome via playwright-core against production): Inter loaded,
+  Ctrl+B collapses to the icon rail, the collapsed `Year over year` dropdown lists its 4 pages,
+  no console errors, no horizontal scroll at 390 px. It found one bug: **text outside cards
+  was black in dark mode** — FAM's `globals.css` never sets the body color. Fixed with
+  `@apply bg-background text-foreground` on `body` in `globals.css` (`@layer base`).

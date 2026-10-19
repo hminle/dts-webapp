@@ -221,7 +221,10 @@
   html {
     @apply scroll-smooth;
   }
+  /* FAM omits this; without it text outside a card inherits the browser's
+     default black and disappears in dark mode. */
   body {
+    @apply bg-background text-foreground;
     font-synthesis-weight: none;
     text-rendering: optimizeLegibility;
   }
