@@ -117,4 +117,6 @@ Write copy for a non-specialist reader; numbers and definitions must match the c
 
 ## Notes
 
-(fill in during execution)
+- Found in Phase 6: every page nests two `<main>` landmarks (shadcn `SidebarInset` renders one
+  and `components/layout/main.tsx` another — FAM has the same). Make `Main` a `<div>` as part of
+  the Lighthouse accessibility check.
