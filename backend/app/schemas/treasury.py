@@ -127,7 +127,7 @@ class WeeklyComparisonResponse(BaseModel):
     second_year_data: list[WeeklyDataPoint] = Field(
         default_factory=list, description="Second year weekly data"
     )
-    comparison_weeks: int = Field(..., description="Number of weeks compared (drift test)")
+    comparison_weeks: int = Field(..., description="Number of weeks compared (drift)")
 
 
 class DailyNetTransfer(BaseModel):
