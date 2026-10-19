@@ -1264,7 +1264,7 @@ export interface components {
         WeeklyComparisonResponse: {
             /**
              * Comparison Weeks
-             * @description Number of weeks compared
+             * @description Number of weeks compared (drift)
              */
             comparison_weeks: number;
             /**

@@ -1253,7 +1253,7 @@
         "description": "Schema for weekly comparison response.",
         "properties": {
           "comparison_weeks": {
-            "description": "Number of weeks compared",
+            "description": "Number of weeks compared (drift)",
             "title": "Comparison Weeks",
             "type": "integer"
           },
