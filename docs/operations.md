@@ -83,3 +83,29 @@ in Vercel and updating the secret.
 GitHub turns off scheduled workflows in a repo with no activity for 60 days. The healthcheck
 stops getting pings and emails. Fix: Actions → `ingest` → **Enable workflow**, then
 `gh workflow run ingest`.
+
+## Rate limiting
+
+Vercel → project → Firewall holds one rule (the Hobby limit), `api-per-ip`: Request Path starts
+with `/api/` → Rate Limit, fixed window 60 s, 300 requests, keyed on IP, action 429. CDN cache
+hits count too, but a person browsing makes a few dozen API requests a minute at most. A false
+positive shows up as 429s in Firewall → Overview; raise the limit or switch the action to Log.
+
+## Sentry
+
+The backend reports unhandled exceptions to Sentry when `APP_SENTRY_DSN` is set (Vercel env var,
+Production). Errors only: tracing is off and no personal data is sent. Unset, nothing is
+reported, which is the case locally and in tests. Frontend errors are not reported; the root
+error page shows them to the visitor.
+
+To send a test event, from `backend/` with the DSN in your shell:
+
+```bash
+APP_SENTRY_DSN=... uv run python -c "import sentry_sdk, app.main; sentry_sdk.capture_message('dts-webapp test'); sentry_sdk.flush()"
+```
+
+## Analytics
+
+Vercel Web Analytics (enabled in the project's Analytics tab) counts page views without cookies;
+`<Analytics />` in `frontend/src/routes/__root.tsx` loads `/_vercel/insights/script.js`, which
+exists only on Vercel deployments, so it 404s under `pnpm dev` / `vite preview` (harmless).

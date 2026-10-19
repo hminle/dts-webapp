@@ -1,4 +1,4 @@
-# Phase 7: Launch Hygiene — ⬜ Not Started
+# Phase 7: Launch Hygiene — 🟡 In Progress
 
 **Goal**: The public app is safe to share: caching is verified end to end, abusive traffic is
 rate limited, backend errors reach a monitor, and the site states its methodology, data source,
@@ -111,12 +111,33 @@ Write copy for a non-specialist reader; numbers and definitions must match the c
       (unique URLs force misses) → shows `429`s once the rule is active.
 - [ ] Temporarily add a route that raises (local branch only, deployed as a preview with
       `APP_SENTRY_DSN` set for preview) → the exception appears in Sentry; remove the route.
-- [ ] `curl -sI https://dts-webapp.vercel.app/ | grep -i -E "x-frame-options|x-content-type-options"` → both present.
-- [ ] `/methodology`, `/terms`, `/privacy` load; sidebar footer shows the disclaimer with both
+- [x] `curl -sI https://dts-webapp.vercel.app/ | grep -i -E "x-frame-options|x-content-type-options"` → both present
+      (checked on the preview deploy; re-run on production after merge).
+- [x] `/methodology`, `/terms`, `/privacy` load; sidebar footer shows the disclaimer with both
       links; `pnpm typecheck && pnpm test && pnpm build` and backend `uv run pytest -q` pass.
 
 ## Notes
 
+- **Code done 2026-10-19** (branch `feat/launch-hygiene`): content pages, disclaimer, meta
+  description, security headers, Sentry init (inert until `APP_SENTRY_DSN` is set), Web
+  Analytics component, `Main` as a `div`, `docs/launch-checklist.md`, operations sections.
+  Left for the owner: Firewall rule, Sentry project + env var, enabling Web Analytics, and the
+  checklist items that need a few days of runs.
+- **Top-level `headers` work in services mode** — they apply to both services (checked on a
+  preview: `/`, `/terms`, `/api/health`, `/api/v1/meta/build`), so no FastAPI middleware.
+- **Hashed assets were served `max-age=0`** in production: services mode doesn't add Vercel's
+  usual Vite asset caching. A `/assets/(.*)` rule in `vercel.json` sets
+  `public, max-age=31536000, immutable`.
+- **The audit as first written couldn't pass:** Vercel strips `s-maxage` and
+  `stale-while-revalidate` from the client-facing header (data routes show
+  `public, max-age=300`), and FastAPI answers `HEAD` with 405, so `curl -I` is useless on
+  `/api/*`. The checklist checks `x-vercel-cache: HIT` with `GET` instead.
+- Previews have Vercel Deployment Protection; `vercel curl <path> --deployment <url>` reaches
+  them (it created a protection-bypass token for the project the first time).
+- **The app does set one cookie:** shadcn's `SidebarProvider` writes `sidebar_state` when the
+  sidebar is toggled (meant for server rendering; nothing here reads it). The privacy page names
+  it instead of claiming "no cookies". It doesn't affect CDN caching — Vercel's cache key
+  ignores request cookies. Nothing else writes cookies or `localStorage` (no theme toggle).
 - Found in Phase 6: every page nests two `<main>` landmarks (shadcn `SidebarInset` renders one
-  and `components/layout/main.tsx` another — FAM has the same). Make `Main` a `<div>` as part of
-  the Lighthouse accessibility check.
+  and `components/layout/main.tsx` another — FAM has the same). `Main` is now a `<div>`; each page
+  has one `<main>`.

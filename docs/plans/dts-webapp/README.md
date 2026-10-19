@@ -20,7 +20,7 @@ free public app is live (see Key Decisions).
 | Phase 4: Daily pipeline & CI | 🟡 In Progress | GitHub Actions cron: ingest → R2 → Vercel Deploy Hook; CI workflow for lint/tests/typecheck |
 | Phase 5: Frontend — core pages | ✅ Done | Overview, Data status, Single date, Daily net transfers, Fiscal year |
 | Phase 6: Frontend — analysis pages | ✅ Done | Year-over-year suite, category comparison, weekly comparison (week-alignment fix), Vitest |
-| Phase 7: Launch hygiene | ⬜ Not Started | Cache verification, rate limiting, error monitoring, methodology + legal pages |
+| Phase 7: Launch hygiene | 🟡 In Progress | Cache verification, rate limiting, error monitoring, methodology + legal pages |
 
 ## Phase Dependencies
 

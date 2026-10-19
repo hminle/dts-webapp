@@ -7,6 +7,7 @@ import {
   SidebarMenu,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { DataDisclaimer } from '@/components/data-disclaimer'
 import { AppTitle } from './app-title'
 import { FOOTER_ITEMS, MENU_ITEMS } from './data/sidebar-data'
 import { NavGroup, SidebarMenuLink } from './nav-group'
@@ -28,9 +29,7 @@ export function AppSidebar() {
             <SidebarMenuLink key={item.title} item={item} href={href} />
           ))}
         </SidebarMenu>
-        <p className='px-2 py-1 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden'>
-          Source: U.S. Treasury Fiscal Data
-        </p>
+        <DataDisclaimer />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
