@@ -1,0 +1,34 @@
+# Google-style ruff rule set — APPLIED to backend/pyproject.toml (2026-06-30).
+#
+# This file documents the lint selection now live in `[tool.ruff.lint]`. Formatting
+# stays on ruff defaults (double quotes, 88-char) so the existing codebase is NOT
+# reformatted — `ruff format --check .` reports all 64 files already formatted.
+#
+# The selection (mirrors pyproject.toml):
+#     extend-select = ["I", "FAST", "N", "UP", "B", "C4", "SIM", "TID", "RUF"]
+#     [tool.ruff.lint.flake8-tidy-imports] ban-relative-imports = "all"
+#
+#   I    isort — import sorting/grouping            (§3.13)
+#   FAST FastAPI-specific checks                    (project)
+#   N    pep8-naming                                (§3.16)
+#   UP   pyupgrade — modern syntax, X | None        (§2.20, §3.19.5)
+#   B    flake8-bugbear — B006 mutable defaults, B904 raise-from  (§2.12, §2.4)
+#   C4   flake8-comprehensions                      (§2.7)
+#   SIM  flake8-simplify — truthiness, nested ifs   (§2.7, §2.14)
+#   TID  flake8-tidy-imports — ban relative imports (§2.2.4)
+#   RUF  ruff-native lints
+#
+# Baseline `ruff check .` on adoption: 18 findings (7 auto-fixable), none severe —
+#   UP017 x5  use datetime.UTC over timezone.utc        [auto-fixable]
+#   UP042 x5  Enum+str -> StrEnum                        [review]
+#   B904  x1  raise-without-from in app/api/deps.py      [add `from exc`/`from None`]
+#   B007  x1  unused loop variable
+#   N802  x1  function name not lower_with_under
+#   SIM103/SIM300/UP043/RUF002/RUF003  minor
+# Run `uv run ruff check . --fix` for the safe fixes; review UP042 / B904 by hand.
+#
+# OPTIONAL stricter families (off by default — noisy on pragmatic docstrings):
+#   "D" (pydocstyle, convention="google") to enforce docstring SHAPE. To enable:
+#       extend-select += ["D"]
+#       [tool.ruff.lint.pydocstyle] convention = "google"
+#       [tool.ruff.lint.per-file-ignores] "tests/**" = ["D"]; "scripts/**" = ["D"]

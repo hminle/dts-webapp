@@ -1,0 +1,44 @@
+[project]
+name = "dts-webapp-backend"
+version = "0.1.0"
+description = "Read-only API and daily ingestion for the DTS Analysis web app"
+requires-python = ">=3.12"
+dependencies = [
+    "duckdb>=1.5.6",
+    "fastapi[standard]>=0.146.0",
+    "pandas>=2.2.3,<3",
+    "pydantic-settings>=2.16.0",
+]
+
+[tool.fastapi]
+entrypoint = "app.main:app"
+
+[tool.vercel]
+entrypoint = "app.main:app"
+
+[tool.vercel.scripts]
+# Runs on Vercel after dependency install: downloads the data artifact into data/
+# so it is bundled with the function (deploy = data refresh).
+build = "python -m scripts.fetch_artifact"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.1.1",
+    "requests>=2.34.2",
+    "ruff>=0.17.1",
+]
+ingest = [
+    "requests>=2.34.2",
+]

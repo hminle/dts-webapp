@@ -1,0 +1,16 @@
+import { ReceiptCategoriesSection } from './components/receipt-categories-section'
+import { YoYAnalysisLayout } from './yoy-analysis-layout'
+
+export function DepositsYoYPage() {
+  return (
+    <YoYAnalysisLayout
+      title='Treasury deposits — change from a year ago'
+      description='Year-over-year difference in total deposits (excluding public debt issues).'
+      metric='total_deposits'
+      latestNote='Higher means more revenue'
+      renderCategoriesSection={(pair) => (
+        <ReceiptCategoriesSection pair={pair} />
+      )}
+    />
+  )
+}

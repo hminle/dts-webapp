@@ -1,0 +1,2764 @@
+{
+  "components": {
+    "schemas": {
+      "BuildInfo": {
+        "properties": {
+          "build_date": {
+            "title": "Build Date",
+            "type": "string"
+          },
+          "latest_record_date": {
+            "title": "Latest Record Date",
+            "type": "string"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "build_date",
+          "latest_record_date",
+          "source",
+          "schema_version"
+        ],
+        "title": "BuildInfo",
+        "type": "object"
+      },
+      "CategoryDailyDataPoint": {
+        "description": "Schema for a single day's data for a category.",
+        "properties": {
+          "day_of_fiscal_year": {
+            "description": "Day number within the fiscal year (1-366)",
+            "title": "Day Of Fiscal Year",
+            "type": "integer"
+          },
+          "record_date": {
+            "description": "Actual date in YYYY-MM-DD format",
+            "title": "Record Date",
+            "type": "string"
+          },
+          "transaction_fytd_amt": {
+            "description": "FYTD cumulative amount",
+            "title": "Transaction Fytd Amt",
+            "type": "number"
+          }
+        },
+        "required": [
+          "day_of_fiscal_year",
+          "record_date",
+          "transaction_fytd_amt"
+        ],
+        "title": "CategoryDailyDataPoint",
+        "type": "object"
+      },
+      "CategoryDailyYoYDataPoint": {
+        "description": "Schema for a single day's YoY data for a category.",
+        "properties": {
+          "current_date": {
+            "description": "Date in current fiscal year",
+            "title": "Current Date",
+            "type": "string"
+          },
+          "current_fytd": {
+            "description": "FYTD amount in current year",
+            "title": "Current Fytd",
+            "type": "number"
+          },
+          "day_of_fiscal_year": {
+            "description": "Day number within the fiscal year",
+            "title": "Day Of Fiscal Year",
+            "type": "integer"
+          },
+          "previous_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Date in previous fiscal year",
+            "title": "Previous Date"
+          },
+          "previous_fytd": {
+            "description": "FYTD amount in previous year",
+            "title": "Previous Fytd",
+            "type": "number"
+          },
+          "yoy_change": {
+            "description": "YoY difference (current - previous)",
+            "title": "Yoy Change",
+            "type": "number"
+          },
+          "yoy_percent_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "YoY percent change",
+            "title": "Yoy Percent Change"
+          }
+        },
+        "required": [
+          "day_of_fiscal_year",
+          "current_date",
+          "current_fytd",
+          "previous_fytd",
+          "yoy_change"
+        ],
+        "title": "CategoryDailyYoYDataPoint",
+        "type": "object"
+      },
+      "CategoryDailyYoYResponse": {
+        "description": "Schema for category daily YoY response.",
+        "properties": {
+          "category_name": {
+            "description": "Category name",
+            "title": "Category Name",
+            "type": "string"
+          },
+          "category_type": {
+            "description": "Type: 'spending', 'receipt', or 'tbill'",
+            "title": "Category Type",
+            "type": "string"
+          },
+          "comparison_days": {
+            "description": "Number of days compared",
+            "title": "Comparison Days",
+            "type": "integer"
+          },
+          "comparison_mode": {
+            "default": "fiscal_day",
+            "description": "Comparison mode used",
+            "title": "Comparison Mode",
+            "type": "string"
+          },
+          "current_fiscal_year": {
+            "description": "Current fiscal year",
+            "title": "Current Fiscal Year",
+            "type": "integer"
+          },
+          "data_points": {
+            "description": "Daily YoY data points",
+            "items": {
+              "$ref": "#/components/schemas/CategoryDailyYoYDataPoint"
+            },
+            "title": "Data Points",
+            "type": "array"
+          },
+          "previous_fiscal_year": {
+            "description": "Previous fiscal year",
+            "title": "Previous Fiscal Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "category_name",
+          "category_type",
+          "current_fiscal_year",
+          "previous_fiscal_year",
+          "comparison_days"
+        ],
+        "title": "CategoryDailyYoYResponse",
+        "type": "object"
+      },
+      "CategoryListResponse": {
+        "description": "Schema for available categories response.",
+        "properties": {
+          "deposits": {
+            "description": "Categories under Deposits",
+            "items": {
+              "type": "string"
+            },
+            "title": "Deposits",
+            "type": "array"
+          },
+          "withdrawals": {
+            "description": "Categories under Withdrawals",
+            "items": {
+              "type": "string"
+            },
+            "title": "Withdrawals",
+            "type": "array"
+          }
+        },
+        "title": "CategoryListResponse",
+        "type": "object"
+      },
+      "CategoryYearData": {
+        "description": "Schema for a single category's data for one fiscal year.",
+        "properties": {
+          "category_description": {
+            "description": "The transaction_catg_desc value",
+            "title": "Category Description",
+            "type": "string"
+          },
+          "data_points": {
+            "description": "Daily data points",
+            "items": {
+              "$ref": "#/components/schemas/CategoryDailyDataPoint"
+            },
+            "title": "Data Points",
+            "type": "array"
+          },
+          "fiscal_year": {
+            "description": "Fiscal year",
+            "title": "Fiscal Year",
+            "type": "integer"
+          },
+          "transaction_type": {
+            "description": "'Deposits' or 'Withdrawals'",
+            "title": "Transaction Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category_description",
+          "transaction_type",
+          "fiscal_year"
+        ],
+        "title": "CategoryYearData",
+        "type": "object"
+      },
+      "DailyNetTransfer": {
+        "description": "Schema for daily net transfers stored in database.",
+        "properties": {
+          "created_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Creation timestamp",
+            "title": "Created At"
+          },
+          "day_of_fiscal_year": {
+            "description": "Day number in fiscal year (sequential)",
+            "title": "Day Of Fiscal Year",
+            "type": "integer"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Record ID",
+            "title": "Id"
+          },
+          "leading_flow": {
+            "description": "Leading Flow - equals Total Withdrawals (Today)",
+            "title": "Leading Flow",
+            "type": "number"
+          },
+          "net_flow_fytd": {
+            "description": "Net Government Transfers (FYTD)",
+            "title": "Net Flow Fytd",
+            "type": "number"
+          },
+          "net_flow_mtd": {
+            "description": "Net Government Transfers (MTD)",
+            "title": "Net Flow Mtd",
+            "type": "number"
+          },
+          "net_flow_today": {
+            "description": "Net Government Transfers (Today)",
+            "title": "Net Flow Today",
+            "type": "number"
+          },
+          "public_debt_issues_fytd": {
+            "description": "Public Debt Cash Issues (FYTD)",
+            "title": "Public Debt Issues Fytd",
+            "type": "number"
+          },
+          "public_debt_issues_mtd": {
+            "description": "Public Debt Cash Issues (MTD)",
+            "title": "Public Debt Issues Mtd",
+            "type": "number"
+          },
+          "public_debt_issues_today": {
+            "description": "Public Debt Cash Issues (Today)",
+            "title": "Public Debt Issues Today",
+            "type": "number"
+          },
+          "public_debt_redemptions_fytd": {
+            "description": "Public Debt Cash Redemptions (FYTD)",
+            "title": "Public Debt Redemptions Fytd",
+            "type": "number"
+          },
+          "public_debt_redemptions_mtd": {
+            "description": "Public Debt Cash Redemptions (MTD)",
+            "title": "Public Debt Redemptions Mtd",
+            "type": "number"
+          },
+          "public_debt_redemptions_today": {
+            "description": "Public Debt Cash Redemptions (Today)",
+            "title": "Public Debt Redemptions Today",
+            "type": "number"
+          },
+          "record_date": {
+            "description": "Date of the record",
+            "title": "Record Date",
+            "type": "string"
+          },
+          "record_fiscal_year": {
+            "description": "Fiscal year",
+            "title": "Record Fiscal Year",
+            "type": "integer"
+          },
+          "tga_total_deposits_fytd": {
+            "description": "TGA Total Deposits (FYTD)",
+            "title": "Tga Total Deposits Fytd",
+            "type": "number"
+          },
+          "tga_total_deposits_mtd": {
+            "description": "TGA Total Deposits (MTD)",
+            "title": "Tga Total Deposits Mtd",
+            "type": "number"
+          },
+          "tga_total_deposits_today": {
+            "description": "TGA Total Deposits (Today)",
+            "title": "Tga Total Deposits Today",
+            "type": "number"
+          },
+          "tga_total_withdrawals_fytd": {
+            "description": "TGA Total Withdrawals (FYTD)",
+            "title": "Tga Total Withdrawals Fytd",
+            "type": "number"
+          },
+          "tga_total_withdrawals_mtd": {
+            "description": "TGA Total Withdrawals (MTD)",
+            "title": "Tga Total Withdrawals Mtd",
+            "type": "number"
+          },
+          "tga_total_withdrawals_today": {
+            "description": "TGA Total Withdrawals (Today)",
+            "title": "Tga Total Withdrawals Today",
+            "type": "number"
+          },
+          "total_deposits_fytd": {
+            "description": "Total Deposits excluding debt (FYTD)",
+            "title": "Total Deposits Fytd",
+            "type": "number"
+          },
+          "total_deposits_mtd": {
+            "description": "Total Deposits excluding debt (MTD)",
+            "title": "Total Deposits Mtd",
+            "type": "number"
+          },
+          "total_deposits_today": {
+            "description": "Total Deposits excluding debt (Today)",
+            "title": "Total Deposits Today",
+            "type": "number"
+          },
+          "total_withdrawals_fytd": {
+            "description": "Total Withdrawals excluding debt (FYTD)",
+            "title": "Total Withdrawals Fytd",
+            "type": "number"
+          },
+          "total_withdrawals_mtd": {
+            "description": "Total Withdrawals excluding debt (MTD)",
+            "title": "Total Withdrawals Mtd",
+            "type": "number"
+          },
+          "total_withdrawals_today": {
+            "description": "Total Withdrawals excluding debt (Today)",
+            "title": "Total Withdrawals Today",
+            "type": "number"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Update timestamp",
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "record_date",
+          "record_fiscal_year",
+          "day_of_fiscal_year",
+          "tga_total_deposits_today",
+          "tga_total_withdrawals_today",
+          "public_debt_issues_today",
+          "public_debt_redemptions_today",
+          "total_deposits_today",
+          "total_withdrawals_today",
+          "net_flow_today",
+          "leading_flow",
+          "tga_total_deposits_mtd",
+          "tga_total_withdrawals_mtd",
+          "public_debt_issues_mtd",
+          "public_debt_redemptions_mtd",
+          "total_deposits_mtd",
+          "total_withdrawals_mtd",
+          "net_flow_mtd",
+          "tga_total_deposits_fytd",
+          "tga_total_withdrawals_fytd",
+          "public_debt_issues_fytd",
+          "public_debt_redemptions_fytd",
+          "total_deposits_fytd",
+          "total_withdrawals_fytd",
+          "net_flow_fytd"
+        ],
+        "title": "DailyNetTransfer",
+        "type": "object"
+      },
+      "DatabaseStats": {
+        "description": "Schema for database statistics.",
+        "properties": {
+          "account_types": {
+            "description": "Available account types",
+            "items": {
+              "type": "string"
+            },
+            "title": "Account Types",
+            "type": "array"
+          },
+          "data_sources": {
+            "description": "Available data sources",
+            "items": {
+              "type": "string"
+            },
+            "title": "Data Sources",
+            "type": "array"
+          },
+          "earliest_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Earliest record date",
+            "title": "Earliest Date"
+          },
+          "fiscal_years": {
+            "description": "Available fiscal years",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Fiscal Years",
+            "type": "array"
+          },
+          "last_updated": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Last update timestamp",
+            "title": "Last Updated"
+          },
+          "latest_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Latest record date",
+            "title": "Latest Date"
+          },
+          "record_count": {
+            "description": "Total number of records",
+            "title": "Record Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "record_count"
+        ],
+        "title": "DatabaseStats",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "properties": {
+          "data_loaded": {
+            "title": "Data Loaded",
+            "type": "boolean"
+          },
+          "latest_record_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Record Date"
+          },
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "data_loaded"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "IrsRefundComponent": {
+        "description": "Schema for an IRS tax refund component (Individual/Business, EFT/Check).",
+        "properties": {
+          "current_fytd": {
+            "description": "Current fiscal year FYTD amount",
+            "title": "Current Fytd",
+            "type": "number"
+          },
+          "name": {
+            "description": "Component name (e.g., 'Taxes - Individual Tax Refunds (EFT)')",
+            "title": "Name",
+            "type": "string"
+          },
+          "previous_fytd": {
+            "description": "Previous fiscal year FYTD amount",
+            "title": "Previous Fytd",
+            "type": "number"
+          },
+          "tax_refund_type": {
+            "description": "The tax_refund_type value from income_tax_refunds table",
+            "title": "Tax Refund Type",
+            "type": "string"
+          },
+          "yoy_change": {
+            "description": "Year-over-year change amount",
+            "title": "Yoy Change",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "tax_refund_type",
+          "current_fytd",
+          "previous_fytd",
+          "yoy_change"
+        ],
+        "title": "IrsRefundComponent",
+        "type": "object"
+      },
+      "IrsRefundResponse": {
+        "description": "Schema for IRS tax refund response.",
+        "properties": {
+          "comparison_mode": {
+            "default": "fiscal_day",
+            "description": "Comparison mode used",
+            "title": "Comparison Mode",
+            "type": "string"
+          },
+          "components": {
+            "description": "Breakdown by component",
+            "items": {
+              "$ref": "#/components/schemas/IrsRefundComponent"
+            },
+            "title": "Components",
+            "type": "array"
+          },
+          "current_date": {
+            "description": "Latest date with data in current fiscal year",
+            "title": "Current Date",
+            "type": "string"
+          },
+          "current_fiscal_year": {
+            "description": "Current fiscal year",
+            "title": "Current Fiscal Year",
+            "type": "integer"
+          },
+          "previous_date": {
+            "description": "Equivalent date in previous fiscal year",
+            "title": "Previous Date",
+            "type": "string"
+          },
+          "previous_fiscal_year": {
+            "description": "Previous fiscal year",
+            "title": "Previous Fiscal Year",
+            "type": "integer"
+          },
+          "total_current_fytd": {
+            "description": "Total IRS tax refunds for current fiscal year",
+            "title": "Total Current Fytd",
+            "type": "number"
+          },
+          "total_previous_fytd": {
+            "description": "Total IRS tax refunds for previous fiscal year",
+            "title": "Total Previous Fytd",
+            "type": "number"
+          },
+          "total_yoy_change": {
+            "description": "Total year-over-year change",
+            "title": "Total Yoy Change",
+            "type": "number"
+          },
+          "total_yoy_percent_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total year-over-year percent change",
+            "title": "Total Yoy Percent Change"
+          }
+        },
+        "required": [
+          "current_fiscal_year",
+          "previous_fiscal_year",
+          "current_date",
+          "previous_date",
+          "total_current_fytd",
+          "total_previous_fytd",
+          "total_yoy_change"
+        ],
+        "title": "IrsRefundResponse",
+        "type": "object"
+      },
+      "MajorReceiptCategoriesResponse": {
+        "description": "Schema for major receipt categories response.",
+        "properties": {
+          "categories": {
+            "description": "List of major receipt categories",
+            "items": {
+              "$ref": "#/components/schemas/MajorReceiptCategory"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "comparison_mode": {
+            "default": "fiscal_day",
+            "description": "Comparison mode used",
+            "title": "Comparison Mode",
+            "type": "string"
+          },
+          "current_date": {
+            "description": "Latest date with data in current fiscal year",
+            "title": "Current Date",
+            "type": "string"
+          },
+          "current_fiscal_year": {
+            "description": "Current fiscal year",
+            "title": "Current Fiscal Year",
+            "type": "integer"
+          },
+          "previous_date": {
+            "description": "Equivalent date in previous fiscal year",
+            "title": "Previous Date",
+            "type": "string"
+          },
+          "previous_fiscal_year": {
+            "description": "Previous fiscal year",
+            "title": "Previous Fiscal Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "current_fiscal_year",
+          "previous_fiscal_year",
+          "current_date",
+          "previous_date"
+        ],
+        "title": "MajorReceiptCategoriesResponse",
+        "type": "object"
+      },
+      "MajorReceiptCategory": {
+        "description": "Schema for a major receipt category with breakdown.",
+        "properties": {
+          "current_fytd": {
+            "description": "Total current fiscal year FYTD amount",
+            "title": "Current Fytd",
+            "type": "number"
+          },
+          "name": {
+            "description": "Display name (e.g., 'Employment & Withholding Tax')",
+            "title": "Name",
+            "type": "string"
+          },
+          "previous_fytd": {
+            "description": "Total previous fiscal year FYTD amount",
+            "title": "Previous Fytd",
+            "type": "number"
+          },
+          "subcategories": {
+            "description": "Breakdown by subcategory",
+            "items": {
+              "$ref": "#/components/schemas/SubcategoryBreakdown"
+            },
+            "title": "Subcategories",
+            "type": "array"
+          },
+          "yoy_change": {
+            "description": "Year-over-year change amount",
+            "title": "Yoy Change",
+            "type": "number"
+          },
+          "yoy_percent_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Year-over-year percent change",
+            "title": "Yoy Percent Change"
+          }
+        },
+        "required": [
+          "name",
+          "current_fytd",
+          "previous_fytd",
+          "yoy_change"
+        ],
+        "title": "MajorReceiptCategory",
+        "type": "object"
+      },
+      "MajorSpendingCategoriesResponse": {
+        "description": "Schema for major spending categories response.",
+        "properties": {
+          "categories": {
+            "description": "List of major spending categories",
+            "items": {
+              "$ref": "#/components/schemas/MajorSpendingCategory"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "comparison_mode": {
+            "default": "fiscal_day",
+            "description": "Comparison mode used",
+            "title": "Comparison Mode",
+            "type": "string"
+          },
+          "current_date": {
+            "description": "Latest date with data in current fiscal year",
+            "title": "Current Date",
+            "type": "string"
+          },
+          "current_fiscal_year": {
+            "description": "Current fiscal year",
+            "title": "Current Fiscal Year",
+            "type": "integer"
+          },
+          "previous_date": {
+            "description": "Equivalent date in previous fiscal year",
+            "title": "Previous Date",
+            "type": "string"
+          },
+          "previous_fiscal_year": {
+            "description": "Previous fiscal year",
+            "title": "Previous Fiscal Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "current_fiscal_year",
+          "previous_fiscal_year",
+          "current_date",
+          "previous_date"
+        ],
+        "title": "MajorSpendingCategoriesResponse",
+        "type": "object"
+      },
+      "MajorSpendingCategory": {
+        "description": "Schema for a major spending category with breakdown.",
+        "properties": {
+          "current_fytd": {
+            "description": "Total current fiscal year FYTD amount",
+            "title": "Current Fytd",
+            "type": "number"
+          },
+          "name": {
+            "description": "Display name (e.g., 'Social Security Benefits')",
+            "title": "Name",
+            "type": "string"
+          },
+          "previous_fytd": {
+            "description": "Total previous fiscal year FYTD amount",
+            "title": "Previous Fytd",
+            "type": "number"
+          },
+          "subcategories": {
+            "description": "Breakdown by subcategory",
+            "items": {
+              "$ref": "#/components/schemas/SubcategoryBreakdown"
+            },
+            "title": "Subcategories",
+            "type": "array"
+          },
+          "yoy_change": {
+            "description": "Year-over-year change amount",
+            "title": "Yoy Change",
+            "type": "number"
+          },
+          "yoy_percent_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Year-over-year percent change",
+            "title": "Yoy Percent Change"
+          }
+        },
+        "required": [
+          "name",
+          "current_fytd",
+          "previous_fytd",
+          "yoy_change"
+        ],
+        "title": "MajorSpendingCategory",
+        "type": "object"
+      },
+      "SubcategoryBreakdown": {
+        "description": "Schema for a subcategory within a major spending category.",
+        "properties": {
+          "category_name": {
+            "description": "The transaction_catg value",
+            "title": "Category Name",
+            "type": "string"
+          },
+          "current_fytd": {
+            "description": "Current fiscal year FYTD amount",
+            "title": "Current Fytd",
+            "type": "number"
+          },
+          "previous_fytd": {
+            "description": "Previous fiscal year FYTD amount",
+            "title": "Previous Fytd",
+            "type": "number"
+          },
+          "yoy_change": {
+            "description": "Year-over-year change amount",
+            "title": "Yoy Change",
+            "type": "number"
+          }
+        },
+        "required": [
+          "category_name",
+          "current_fytd",
+          "previous_fytd",
+          "yoy_change"
+        ],
+        "title": "SubcategoryBreakdown",
+        "type": "object"
+      },
+      "TBillInterestComponent": {
+        "description": "Schema for a T-Bill interest component (Bills or Bonds and Notes discount).",
+        "properties": {
+          "adj_type": {
+            "description": "The adj_type value from adjustment_public_debt table",
+            "title": "Adj Type",
+            "type": "string"
+          },
+          "current_fytd": {
+            "description": "Current fiscal year FYTD amount",
+            "title": "Current Fytd",
+            "type": "number"
+          },
+          "name": {
+            "description": "Component name (e.g., 'Bills (-) Discount')",
+            "title": "Name",
+            "type": "string"
+          },
+          "previous_fytd": {
+            "description": "Previous fiscal year FYTD amount",
+            "title": "Previous Fytd",
+            "type": "number"
+          },
+          "yoy_change": {
+            "description": "Year-over-year change amount",
+            "title": "Yoy Change",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "adj_type",
+          "current_fytd",
+          "previous_fytd",
+          "yoy_change"
+        ],
+        "title": "TBillInterestComponent",
+        "type": "object"
+      },
+      "TBillInterestResponse": {
+        "description": "Schema for T-Bill interest response.",
+        "properties": {
+          "comparison_mode": {
+            "default": "fiscal_day",
+            "description": "Comparison mode used",
+            "title": "Comparison Mode",
+            "type": "string"
+          },
+          "components": {
+            "description": "Breakdown by component",
+            "items": {
+              "$ref": "#/components/schemas/TBillInterestComponent"
+            },
+            "title": "Components",
+            "type": "array"
+          },
+          "current_date": {
+            "description": "Latest date with data in current fiscal year",
+            "title": "Current Date",
+            "type": "string"
+          },
+          "current_fiscal_year": {
+            "description": "Current fiscal year",
+            "title": "Current Fiscal Year",
+            "type": "integer"
+          },
+          "previous_date": {
+            "description": "Equivalent date in previous fiscal year",
+            "title": "Previous Date",
+            "type": "string"
+          },
+          "previous_fiscal_year": {
+            "description": "Previous fiscal year",
+            "title": "Previous Fiscal Year",
+            "type": "integer"
+          },
+          "total_current_fytd": {
+            "description": "Total T-Bill interest for current fiscal year",
+            "title": "Total Current Fytd",
+            "type": "number"
+          },
+          "total_previous_fytd": {
+            "description": "Total T-Bill interest for previous fiscal year",
+            "title": "Total Previous Fytd",
+            "type": "number"
+          },
+          "total_yoy_change": {
+            "description": "Total year-over-year change",
+            "title": "Total Yoy Change",
+            "type": "number"
+          },
+          "total_yoy_percent_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total year-over-year percent change",
+            "title": "Total Yoy Percent Change"
+          }
+        },
+        "required": [
+          "current_fiscal_year",
+          "previous_fiscal_year",
+          "current_date",
+          "previous_date",
+          "total_current_fytd",
+          "total_previous_fytd",
+          "total_yoy_change"
+        ],
+        "title": "TBillInterestResponse",
+        "type": "object"
+      },
+      "TreasuryDataList": {
+        "description": "Schema for paginated list of Treasury data.",
+        "properties": {
+          "items": {
+            "description": "List of records",
+            "items": {
+              "$ref": "#/components/schemas/TreasuryDataResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "default": 1,
+            "description": "Current page number",
+            "minimum": 1.0,
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "default": 50,
+            "description": "Number of records per page",
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "pages": {
+            "description": "Total number of pages",
+            "title": "Pages",
+            "type": "integer"
+          },
+          "total": {
+            "description": "Total number of records",
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "pages"
+        ],
+        "title": "TreasuryDataList",
+        "type": "object"
+      },
+      "TreasuryDataResponse": {
+        "description": "Schema for Treasury data responses.",
+        "properties": {
+          "account_desc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Account description",
+            "title": "Account Desc"
+          },
+          "account_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Account type",
+            "title": "Account Type"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Creation timestamp",
+            "title": "Created At"
+          },
+          "data_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Data source endpoint key",
+            "title": "Data Source"
+          },
+          "id": {
+            "description": "Record ID",
+            "title": "Id",
+            "type": "integer"
+          },
+          "record_calendar_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Calendar year",
+            "title": "Record Calendar Year"
+          },
+          "record_date": {
+            "description": "Record date in YYYY-MM-DD format",
+            "title": "Record Date",
+            "type": "string"
+          },
+          "record_fiscal_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Fiscal year",
+            "title": "Record Fiscal Year"
+          },
+          "transaction_catg": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Transaction category",
+            "title": "Transaction Catg"
+          },
+          "transaction_fytd_amt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Fiscal year-to-date amount",
+            "title": "Transaction Fytd Amt"
+          },
+          "transaction_mtd_amt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Month-to-date amount",
+            "title": "Transaction Mtd Amt"
+          },
+          "transaction_today_amt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Today's transaction amount",
+            "title": "Transaction Today Amt"
+          },
+          "transaction_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Transaction type",
+            "title": "Transaction Type"
+          }
+        },
+        "required": [
+          "record_date",
+          "id"
+        ],
+        "title": "TreasuryDataResponse",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WeeklyComparisonResponse": {
+        "description": "Schema for weekly comparison response.",
+        "properties": {
+          "comparison_weeks": {
+            "description": "Number of weeks compared",
+            "title": "Comparison Weeks",
+            "type": "integer"
+          },
+          "first_fiscal_year": {
+            "description": "First fiscal year",
+            "title": "First Fiscal Year",
+            "type": "integer"
+          },
+          "first_year_data": {
+            "description": "First year weekly data",
+            "items": {
+              "$ref": "#/components/schemas/WeeklyDataPoint"
+            },
+            "title": "First Year Data",
+            "type": "array"
+          },
+          "second_fiscal_year": {
+            "description": "Second fiscal year",
+            "title": "Second Fiscal Year",
+            "type": "integer"
+          },
+          "second_year_data": {
+            "description": "Second year weekly data",
+            "items": {
+              "$ref": "#/components/schemas/WeeklyDataPoint"
+            },
+            "title": "Second Year Data",
+            "type": "array"
+          }
+        },
+        "required": [
+          "first_fiscal_year",
+          "second_fiscal_year",
+          "comparison_weeks"
+        ],
+        "title": "WeeklyComparisonResponse",
+        "type": "object"
+      },
+      "WeeklyDataPoint": {
+        "description": "Schema for a single weekly data point.",
+        "properties": {
+          "net_transfer_fytd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Net transfer FYTD",
+            "title": "Net Transfer Fytd"
+          },
+          "net_transfer_mtd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Net transfer MTD",
+            "title": "Net Transfer Mtd"
+          },
+          "net_transfer_today": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Net transfer amount for today",
+            "title": "Net Transfer Today"
+          },
+          "record_date": {
+            "description": "Actual date of the record",
+            "title": "Record Date",
+            "type": "string"
+          },
+          "total_deposits": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total deposits",
+            "title": "Total Deposits"
+          },
+          "total_withdrawals": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total withdrawals",
+            "title": "Total Withdrawals"
+          },
+          "week_number": {
+            "description": "Week number in fiscal year",
+            "title": "Week Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "week_number",
+          "record_date"
+        ],
+        "title": "WeeklyDataPoint",
+        "type": "object"
+      },
+      "YoYCategoryComparisonResponse": {
+        "description": "Schema for year-over-year category comparison response.",
+        "properties": {
+          "comparison_days": {
+            "description": "Number of days compared (limited by shortest year)",
+            "title": "Comparison Days",
+            "type": "integer"
+          },
+          "comparison_mode": {
+            "default": "fiscal_day",
+            "description": "Comparison mode: 'fiscal_day' or 'calendar_date'",
+            "title": "Comparison Mode",
+            "type": "string"
+          },
+          "current_fiscal_year": {
+            "description": "Current fiscal year",
+            "title": "Current Fiscal Year",
+            "type": "integer"
+          },
+          "current_year_data": {
+            "description": "Current year category data",
+            "items": {
+              "$ref": "#/components/schemas/CategoryYearData"
+            },
+            "title": "Current Year Data",
+            "type": "array"
+          },
+          "previous_fiscal_year": {
+            "description": "Previous fiscal year",
+            "title": "Previous Fiscal Year",
+            "type": "integer"
+          },
+          "previous_year_data": {
+            "description": "Previous year category data",
+            "items": {
+              "$ref": "#/components/schemas/CategoryYearData"
+            },
+            "title": "Previous Year Data",
+            "type": "array"
+          }
+        },
+        "required": [
+          "current_fiscal_year",
+          "previous_fiscal_year",
+          "comparison_days"
+        ],
+        "title": "YoYCategoryComparisonResponse",
+        "type": "object"
+      },
+      "YoYDailyComparisonResponse": {
+        "description": "Schema for year-over-year daily comparison response.",
+        "properties": {
+          "comparison_days": {
+            "description": "Number of days compared",
+            "title": "Comparison Days",
+            "type": "integer"
+          },
+          "comparison_mode": {
+            "description": "Comparison mode: 'fiscal_day' or 'calendar_date'",
+            "title": "Comparison Mode",
+            "type": "string"
+          },
+          "current_fiscal_year": {
+            "description": "Current fiscal year",
+            "title": "Current Fiscal Year",
+            "type": "integer"
+          },
+          "data_points": {
+            "description": "YoY comparison data points",
+            "items": {
+              "$ref": "#/components/schemas/YoYDailyDataPoint"
+            },
+            "title": "Data Points",
+            "type": "array"
+          },
+          "granularity": {
+            "description": "Data granularity: 'daily'",
+            "title": "Granularity",
+            "type": "string"
+          },
+          "metric": {
+            "description": "The metric being compared",
+            "title": "Metric",
+            "type": "string"
+          },
+          "previous_fiscal_year": {
+            "description": "Previous fiscal year",
+            "title": "Previous Fiscal Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "current_fiscal_year",
+          "previous_fiscal_year",
+          "metric",
+          "granularity",
+          "comparison_mode",
+          "comparison_days"
+        ],
+        "title": "YoYDailyComparisonResponse",
+        "type": "object"
+      },
+      "YoYDailyDataPoint": {
+        "description": "Schema for a single day's YoY comparison data point.",
+        "properties": {
+          "current_date": {
+            "description": "Date in current fiscal year (YYYY-MM-DD)",
+            "title": "Current Date",
+            "type": "string"
+          },
+          "current_value": {
+            "description": "Value in current fiscal year",
+            "title": "Current Value",
+            "type": "number"
+          },
+          "day_of_fiscal_year": {
+            "description": "Day number within the fiscal year (1-366)",
+            "title": "Day Of Fiscal Year",
+            "type": "integer"
+          },
+          "difference": {
+            "description": "Current - Previous (YoY change)",
+            "title": "Difference",
+            "type": "number"
+          },
+          "percent_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Percent change from previous year",
+            "title": "Percent Change"
+          },
+          "previous_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Date in previous fiscal year (YYYY-MM-DD)",
+            "title": "Previous Date"
+          },
+          "previous_value": {
+            "description": "Value in previous fiscal year",
+            "title": "Previous Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "day_of_fiscal_year",
+          "current_date",
+          "current_value",
+          "previous_value",
+          "difference"
+        ],
+        "title": "YoYDailyDataPoint",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "DTS Analysis API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/health": {
+      "get": {
+        "description": "Report that the API is up and how far its data reaches.",
+        "operationId": "health_health",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/categories/daily-yoy": {
+      "get": {
+        "description": "One category, day by day, in two fiscal years.",
+        "operationId": "categories_get_daily_yoy",
+        "parameters": [
+          {
+            "description": "Category name (e.g., 'Social Security Benefits', 'Medicare', 'T-Bill Interest')",
+            "in": "query",
+            "name": "category_name",
+            "required": true,
+            "schema": {
+              "description": "Category name (e.g., 'Social Security Benefits', 'Medicare', 'T-Bill Interest')",
+              "title": "Category Name",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Type of category: 'spending', 'receipt', or 'tbill'",
+            "in": "query",
+            "name": "category_type",
+            "required": true,
+            "schema": {
+              "description": "Type of category: 'spending', 'receipt', or 'tbill'",
+              "title": "Category Type",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Current fiscal year",
+            "in": "query",
+            "name": "current_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Current fiscal year",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Current Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Previous fiscal year for Y-o-Y comparison",
+            "in": "query",
+            "name": "previous_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Previous fiscal year for Y-o-Y comparison",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Previous Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Comparison mode: 'fiscal_day' or 'calendar_date'",
+            "in": "query",
+            "name": "comparison_mode",
+            "required": false,
+            "schema": {
+              "default": "fiscal_day",
+              "description": "Comparison mode: 'fiscal_day' or 'calendar_date'",
+              "title": "Comparison Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryDailyYoYResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Daily Yoy",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/api/v1/categories/irs-tax-refunds": {
+      "get": {
+        "description": "IRS tax refund components, with YoY change.",
+        "operationId": "categories_get_irs_tax_refunds",
+        "parameters": [
+          {
+            "description": "Current fiscal year",
+            "in": "query",
+            "name": "current_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Current fiscal year",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Current Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Previous fiscal year for Y-o-Y comparison",
+            "in": "query",
+            "name": "previous_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Previous fiscal year for Y-o-Y comparison",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Previous Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+            "in": "query",
+            "name": "comparison_mode",
+            "required": false,
+            "schema": {
+              "default": "fiscal_day",
+              "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+              "title": "Comparison Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IrsRefundResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Irs Tax Refunds",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/api/v1/categories/major-receipts": {
+      "get": {
+        "description": "FYTD receipts of the major categories, with YoY change.",
+        "operationId": "categories_get_major_receipts",
+        "parameters": [
+          {
+            "description": "Current fiscal year",
+            "in": "query",
+            "name": "current_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Current fiscal year",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Current Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Previous fiscal year for Y-o-Y comparison",
+            "in": "query",
+            "name": "previous_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Previous fiscal year for Y-o-Y comparison",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Previous Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+            "in": "query",
+            "name": "comparison_mode",
+            "required": false,
+            "schema": {
+              "default": "fiscal_day",
+              "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+              "title": "Comparison Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MajorReceiptCategoriesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Major Receipts",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/api/v1/categories/major-spending": {
+      "get": {
+        "description": "FYTD spending of the major categories, with YoY change.",
+        "operationId": "categories_get_major_spending",
+        "parameters": [
+          {
+            "description": "Current fiscal year",
+            "in": "query",
+            "name": "current_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Current fiscal year",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Current Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Previous fiscal year for Y-o-Y comparison",
+            "in": "query",
+            "name": "previous_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Previous fiscal year for Y-o-Y comparison",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Previous Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+            "in": "query",
+            "name": "comparison_mode",
+            "required": false,
+            "schema": {
+              "default": "fiscal_day",
+              "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+              "title": "Comparison Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MajorSpendingCategoriesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Major Spending",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/api/v1/categories/tbill-interest": {
+      "get": {
+        "description": "T-bill interest components, with YoY change.",
+        "operationId": "categories_get_tbill_interest",
+        "parameters": [
+          {
+            "description": "Current fiscal year",
+            "in": "query",
+            "name": "current_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Current fiscal year",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Current Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Previous fiscal year for Y-o-Y comparison",
+            "in": "query",
+            "name": "previous_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Previous fiscal year for Y-o-Y comparison",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Previous Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+            "in": "query",
+            "name": "comparison_mode",
+            "required": false,
+            "schema": {
+              "default": "fiscal_day",
+              "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+              "title": "Comparison Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TBillInterestResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Tbill Interest",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/api/v1/data": {
+      "get": {
+        "description": "One page of rows, newest first, across all tables or one.",
+        "operationId": "data_list_data",
+        "parameters": [
+          {
+            "description": "Page number",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "description": "Page number",
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Records per page",
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Records per page",
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Filter by data source (table name)",
+            "in": "query",
+            "name": "data_source",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by data source (table name)",
+              "title": "Data Source"
+            }
+          },
+          {
+            "description": "Filter by account type",
+            "in": "query",
+            "name": "account_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by account type",
+              "title": "Account Type"
+            }
+          },
+          {
+            "description": "Filter by fiscal year",
+            "in": "query",
+            "name": "fiscal_year",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by fiscal year",
+              "title": "Fiscal Year"
+            }
+          },
+          {
+            "description": "Start date (YYYY-MM-DD)",
+            "in": "query",
+            "name": "start_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Start date (YYYY-MM-DD)",
+              "title": "Start Date"
+            }
+          },
+          {
+            "description": "End date (YYYY-MM-DD)",
+            "in": "query",
+            "name": "end_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "End date (YYYY-MM-DD)",
+              "title": "End Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreasuryDataList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Data",
+        "tags": [
+          "data"
+        ]
+      }
+    },
+    "/api/v1/data/date/{date}": {
+      "get": {
+        "description": "Every row for one date.",
+        "operationId": "data_get_by_date",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "title": "Date",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by data source (table name)",
+            "in": "query",
+            "name": "data_source",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by data source (table name)",
+              "title": "Data Source"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TreasuryDataResponse"
+                  },
+                  "title": "Response Data Get By Date",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get By Date",
+        "tags": [
+          "data"
+        ]
+      }
+    },
+    "/api/v1/lookups/account-types": {
+      "get": {
+        "description": "Distinct account types, optionally for one table.",
+        "operationId": "lookups_get_account_types",
+        "parameters": [
+          {
+            "description": "Filter by data source (table name)",
+            "in": "query",
+            "name": "data_source",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by data source (table name)",
+              "title": "Data Source"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response Lookups Get Account Types",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Account Types",
+        "tags": [
+          "lookups"
+        ]
+      }
+    },
+    "/api/v1/lookups/categories": {
+      "get": {
+        "description": "Deposit and withdrawal category labels.",
+        "operationId": "lookups_get_categories",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Categories",
+        "tags": [
+          "lookups"
+        ]
+      }
+    },
+    "/api/v1/lookups/data-sources": {
+      "get": {
+        "description": "Every queryable table.",
+        "operationId": "lookups_get_data_sources",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response Lookups Get Data Sources",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Data Sources",
+        "tags": [
+          "lookups"
+        ]
+      }
+    },
+    "/api/v1/lookups/fiscal-years": {
+      "get": {
+        "description": "Fiscal years with data, newest first.",
+        "operationId": "lookups_get_fiscal_years",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "title": "Response Lookups Get Fiscal Years",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Fiscal Years",
+        "tags": [
+          "lookups"
+        ]
+      }
+    },
+    "/api/v1/meta/build": {
+      "get": {
+        "description": "When this artifact was built and how far its data reaches.",
+        "operationId": "meta_get_build",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuildInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Build",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/api/v1/meta/record-counts": {
+      "get": {
+        "description": "Row count per endpoint table.",
+        "operationId": "meta_get_record_counts",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "title": "Response Meta Get Record Counts",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Record Counts",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/api/v1/meta/record-counts-by-year": {
+      "get": {
+        "description": "Rows per fiscal year across endpoint tables, newest first.",
+        "operationId": "meta_get_record_counts_by_year",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "title": "Response Meta Get Record Counts By Year",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Record Counts By Year",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/api/v1/meta/stats": {
+      "get": {
+        "description": "Record count, date range and dimensions across the endpoint tables.",
+        "operationId": "meta_get_stats",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatabaseStats"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Stats",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/api/v1/net-transfers/date/{date}": {
+      "get": {
+        "description": "The net-transfer figures for one date.",
+        "operationId": "net_transfers_get_for_date",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "title": "Date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyNetTransfer"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get For Date",
+        "tags": [
+          "net_transfers"
+        ]
+      }
+    },
+    "/api/v1/net-transfers/fiscal-year/{fiscal_year}": {
+      "get": {
+        "description": "Every day of a fiscal year, in order.",
+        "operationId": "net_transfers_get_for_fiscal_year",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fiscal_year",
+            "required": true,
+            "schema": {
+              "title": "Fiscal Year",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DailyNetTransfer"
+                  },
+                  "title": "Response Net Transfers Get For Fiscal Year",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get For Fiscal Year",
+        "tags": [
+          "net_transfers"
+        ]
+      }
+    },
+    "/api/v1/weekly/comparison": {
+      "get": {
+        "description": "Friday-by-Friday net transfers, FYTD, for two fiscal years.",
+        "operationId": "weekly_get_comparison",
+        "parameters": [
+          {
+            "description": "First fiscal year to compare",
+            "in": "query",
+            "name": "first_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "First fiscal year to compare",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "First Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Second fiscal year to compare",
+            "in": "query",
+            "name": "second_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Second fiscal year to compare",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Second Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Filter by data source",
+            "in": "query",
+            "name": "data_source",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by data source",
+              "title": "Data Source"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyComparisonResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Comparison",
+        "tags": [
+          "weekly"
+        ]
+      }
+    },
+    "/api/v1/yoy/category-comparison": {
+      "get": {
+        "description": "FYTD amounts of selected categories in two fiscal years.\n\nPass several categories as repeated keys:\n``?category_descriptions=A&category_descriptions=B``.",
+        "operationId": "yoy_get_category_comparison",
+        "parameters": [
+          {
+            "description": "Current fiscal year to compare",
+            "in": "query",
+            "name": "current_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Current fiscal year to compare",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Current Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Previous fiscal year to compare",
+            "in": "query",
+            "name": "previous_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Previous fiscal year to compare",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Previous Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "List of transaction_catg_desc values to compare",
+            "in": "query",
+            "name": "category_descriptions",
+            "required": true,
+            "schema": {
+              "description": "List of transaction_catg_desc values to compare",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "title": "Category Descriptions",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Filter by 'Deposits' or 'Withdrawals'",
+            "in": "query",
+            "name": "transaction_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by 'Deposits' or 'Withdrawals'",
+              "title": "Transaction Type"
+            }
+          },
+          {
+            "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+            "in": "query",
+            "name": "comparison_mode",
+            "required": false,
+            "schema": {
+              "default": "fiscal_day",
+              "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+              "title": "Comparison Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YoYCategoryComparisonResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Category Comparison",
+        "tags": [
+          "yoy"
+        ]
+      }
+    },
+    "/api/v1/yoy/daily-comparison": {
+      "get": {
+        "description": "One metric, day by day, in two fiscal years.",
+        "operationId": "yoy_get_daily_comparison",
+        "parameters": [
+          {
+            "description": "Current fiscal year to compare",
+            "in": "query",
+            "name": "current_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Current fiscal year to compare",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Current Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Previous fiscal year to compare",
+            "in": "query",
+            "name": "previous_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Previous fiscal year to compare",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Previous Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Metric to compare: 'net_flow', 'total_withdrawals', 'total_deposits', or a category name",
+            "in": "query",
+            "name": "metric",
+            "required": true,
+            "schema": {
+              "description": "Metric to compare: 'net_flow', 'total_withdrawals', 'total_deposits', or a category name",
+              "title": "Metric",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Data granularity: 'daily' only (weekly removed)",
+            "in": "query",
+            "name": "granularity",
+            "required": false,
+            "schema": {
+              "default": "daily",
+              "description": "Data granularity: 'daily' only (weekly removed)",
+              "title": "Granularity",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+            "in": "query",
+            "name": "comparison_mode",
+            "required": false,
+            "schema": {
+              "default": "fiscal_day",
+              "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+              "title": "Comparison Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YoYDailyComparisonResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Daily Comparison",
+        "tags": [
+          "yoy"
+        ]
+      }
+    }
+  }
+}

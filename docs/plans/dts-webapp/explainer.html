@@ -1,0 +1,798 @@
+<title>DTS Webapp Launch Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one reading column (≤ 1040px) in three parts split by full-width seams; Part 1 is a 2-up panel grid, Part 2 a stepper + framed mockup, Part 3 a briefing with tables. */
+:root {
+  --paper: oklch(0.985 0.004 250);
+  --panel: oklch(0.962 0.007 250);
+  --ink: oklch(0.25 0.03 255);
+  --muted: oklch(0.49 0.02 255);
+  --rule: oklch(0.89 0.01 250);
+  --accent: oklch(0.47 0.09 165);
+  --accent-soft: oklch(0.93 0.035 165);
+  --alarm: oklch(0.55 0.17 28);
+  --alarm-soft: oklch(0.95 0.03 28);
+  --font-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.1875rem;
+  --step-2: 1.5rem;
+  --step-3: 2.125rem;
+  --step-4: 2.875rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: oklch(0.19 0.015 255);
+    --panel: oklch(0.235 0.017 255);
+    --ink: oklch(0.93 0.01 250);
+    --muted: oklch(0.72 0.015 250);
+    --rule: oklch(0.33 0.017 255);
+    --accent: oklch(0.75 0.11 165);
+    --accent-soft: oklch(0.3 0.045 165);
+    --alarm: oklch(0.72 0.15 28);
+    --alarm-soft: oklch(0.3 0.06 28);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: oklch(0.19 0.015 255);
+  --panel: oklch(0.235 0.017 255);
+  --ink: oklch(0.93 0.01 250);
+  --muted: oklch(0.72 0.015 250);
+  --rule: oklch(0.33 0.017 255);
+  --accent: oklch(0.75 0.11 165);
+  --accent-soft: oklch(0.3 0.045 165);
+  --alarm: oklch(0.72 0.15 28);
+  --alarm-soft: oklch(0.3 0.06 28);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+}
+.wrap {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: var(--step-4); font-weight: 800; letter-spacing: -0.015em; }
+h2 { font-size: var(--step-3); font-weight: 800; letter-spacing: -0.01em; }
+h3 { font-size: var(--step-1); font-weight: 700; }
+p { margin: 0; max-width: 66ch; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--font-mono); font-size: 0.88em; }
+.label {
+  font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted);
+}
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Masthead */
+.masthead { padding-block: 48px 32px; display: grid; gap: 16px; border-bottom: 1px solid var(--rule); }
+.masthead .lede { font-size: var(--step-1); color: var(--muted); max-width: 60ch; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: var(--step--1); color: var(--muted); }
+.facts b { color: var(--ink); font-weight: 600; }
+
+/* Part seams */
+.part { padding-block: 56px 24px; display: grid; gap: 28px; }
+.seam { display: grid; gap: 8px; padding-top: 28px; border-top: 3px solid var(--ink); }
+.seam p { color: var(--muted); }
+
+/* Part 1 panels */
+.panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+@media (max-width: 760px) { .panels { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--panel); border-radius: 10px; padding: 20px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.panel .cap { color: var(--muted); font-size: 0.95rem; }
+.panel .cap b { color: var(--ink); font-weight: 600; }
+.pic { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 96px; }
+.box {
+  border: 1.5px solid var(--ink); border-radius: 6px; padding: 8px 10px; background: var(--paper);
+  font-size: 0.85rem; font-weight: 600; line-height: 1.3; text-align: center; min-width: 0;
+}
+.box small { display: block; font-weight: 400; color: var(--muted); font-size: 0.75rem; }
+.box.accent { border-color: var(--accent); background: var(--accent-soft); }
+.box.bad { border-color: var(--alarm); background: var(--alarm-soft); }
+.box.ghost { border-style: dashed; color: var(--muted); }
+.arrow { color: var(--muted); font-family: var(--font-mono); font-size: 1rem; }
+.stack { display: grid; gap: 6px; }
+.laptop { border: 1.5px dashed var(--muted); border-radius: 8px; padding: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.laptop .label { width: 100%; }
+.badlist { display: grid; gap: 6px; width: 100%; }
+.badlist div { display: flex; gap: 8px; align-items: baseline; font-size: 0.9rem; }
+.badlist span.x { color: var(--alarm); font-weight: 700; font-family: var(--font-mono); }
+.dag { display: grid; grid-template-columns: auto auto auto auto; gap: 6px 4px; align-items: center; width: 100%; }
+.dag .box { font-size: 0.78rem; padding: 6px 8px; }
+.risk { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 10px; font-size: 0.86rem; width: 100%; }
+.risk .q { color: var(--alarm); font-weight: 600; }
+.beforeafter { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; width: 100%; }
+.mini { border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); padding: 8px; display: grid; gap: 4px; font-size: 0.75rem; min-height: 120px; align-content: start; }
+.mini .bar { height: 8px; border-radius: 3px; background: var(--rule); }
+.mini .row { display: flex; gap: 4px; }
+.mini .side { width: 34%; display: grid; gap: 3px; align-content: start; }
+.mini .side i { display: block; height: 7px; border-radius: 2px; background: var(--rule); font-style: normal; }
+.mini .side i.on { background: var(--accent); }
+.mini .content { flex: 1; display: grid; gap: 4px; align-content: start; }
+.mini .content i { display: block; height: 22px; border-radius: 3px; border: 1px solid var(--rule); }
+
+/* Part 2 walkthrough */
+.walk { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 880px) { .walk { grid-template-columns: minmax(0, 1fr); } }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.steps button {
+  all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid; grid-template-columns: 24px 1fr; gap: 2px 8px;
+  padding: 10px; border-radius: 8px; font-size: 0.9rem; line-height: 1.35;
+}
+.steps button:hover { background: var(--panel); }
+.steps button[aria-current="step"] { background: var(--accent-soft); }
+.steps .n { font-family: var(--font-mono); font-weight: 500; color: var(--accent); }
+.steps .tag { grid-column: 2; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); }
+.stepcount { display: none; font-family: var(--font-mono); font-size: var(--step--1); color: var(--muted); }
+@media (max-width: 880px) { .steps { display: none; } .stepcount { display: block; } .js-off .steps { display: grid; } }
+.controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.controls button {
+  font: inherit; font-size: 0.9rem; font-weight: 600; padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  border: 1.5px solid var(--ink); background: var(--paper); color: var(--ink);
+}
+.controls button.primary { background: var(--ink); color: var(--paper); }
+.controls button:disabled { opacity: 0.4; cursor: default; }
+.instruction { font-size: var(--step-1); font-weight: 600; }
+.stage { display: grid; gap: 12px; min-width: 0; }
+
+/* Browser frame */
+.frame { border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; background: var(--panel); }
+.chrome { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--rule); }
+.dots { display: flex; gap: 5px; }
+.dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--rule); }
+.addr { flex: 1; min-width: 0; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); background: var(--paper); border-radius: 6px; padding: 3px 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mocklabel { font-family: var(--font-mono); font-size: 0.68rem; color: var(--alarm); white-space: nowrap; }
+
+/* App tokens, copied from frontend/src/styles/globals.css (FAM) — scoped to the mockup */
+.mock-app {
+  --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0); --primary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0); --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116); --chart-2: oklch(0.6 0.118 184.704);
+  --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --success: oklch(0.696 0.17 162.48);
+  --hl: oklch(0.55 0.2 264);
+  --radius: 0.625rem;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  background: var(--sidebar); color: var(--foreground);
+  display: grid; grid-template-columns: 172px minmax(0, 1fr); min-height: 430px; font-size: 13px; line-height: 1.4;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .mock-app {
+    --background: oklch(0.145 0 0); --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0); --card-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0); --primary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.269 0 0); --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.371 0 0); --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%); --input: oklch(1 0 0 / 15%); --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.488 0.243 264.376); --chart-2: oklch(0.696 0.17 162.48);
+    --sidebar: oklch(0.205 0 0); --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0); --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --hl: oklch(0.72 0.16 264);
+  }
+}
+:root[data-theme="dark"] .mock-app {
+  --background: oklch(0.145 0 0); --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0); --card-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0); --primary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.269 0 0); --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.371 0 0); --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%); --input: oklch(1 0 0 / 15%); --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376); --chart-2: oklch(0.696 0.17 162.48);
+  --sidebar: oklch(0.205 0 0); --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0); --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --hl: oklch(0.72 0.16 264);
+}
+.mock-app .sb { padding: 10px 8px; display: flex; flex-direction: column; gap: 10px; color: var(--sidebar-foreground); min-width: 0; }
+.mock-app .brand { padding: 4px 6px; }
+.mock-app .brand b { display: block; font-size: 13px; }
+.mock-app .brand span { font-size: 11px; color: var(--muted-foreground); }
+.mock-app .grp { font-size: 11px; color: var(--muted-foreground); padding: 0 6px; }
+.mock-app nav { display: grid; gap: 1px; }
+.mock-app .ni { display: flex; align-items: center; gap: 7px; padding: 5px 6px; border-radius: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mock-app .ni svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.mock-app .ni .chev { margin-left: auto; transition: transform .2s; }
+.mock-app .ni.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 500; }
+.mock-app .sub { display: none; margin-left: 13px; padding-left: 8px; border-left: 1px solid var(--sidebar-border); }
+.mock-app .sub.open { display: grid; gap: 1px; }
+.mock-app .grpopen .chev { transform: rotate(90deg); }
+.mock-app .sub .ni { padding: 4px 6px; }
+.mock-app .foot { margin-top: auto; display: grid; gap: 1px; }
+.mock-app .foot p { font-size: 10.5px; color: var(--muted-foreground); padding: 4px 6px; margin: 0; }
+.mock-app .inset { background: var(--background); margin: 8px 8px 8px 0; border-radius: 12px; box-shadow: 0 1px 2px oklch(0 0 0 / 0.06); min-width: 0; display: flex; flex-direction: column; }
+.mock-app .hdr { height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 14px; border-bottom: 1px solid var(--border); }
+.mock-app .trig { width: 22px; height: 22px; border: 1px solid var(--border); border-radius: 6px; display: grid; place-items: center; }
+.mock-app .trig svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; }
+.mock-app .hdr h4 { margin: 0; font-size: 13px; font-weight: 500; }
+.mock-app .main { padding: 14px; display: grid; gap: 12px; align-content: start; }
+.mock-app .grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.mock-app .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.mock-app .card { background: var(--card); color: var(--card-foreground); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; display: grid; gap: 4px; min-width: 0; }
+.mock-app .card .t { font-size: 11px; color: var(--muted-foreground); font-weight: 500; }
+.mock-app .card .v { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.mock-app .card .s { font-size: 10.5px; color: var(--muted-foreground); }
+.mock-app .card h5 { margin: 0; font-size: 13px; font-weight: 600; }
+.mock-app .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.mock-app .chip { font-size: 10.5px; border: 1px solid var(--border); border-radius: 999px; padding: 1px 7px; }
+.mock-app .field { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.mock-app .inp { border: 1px solid var(--input); border-radius: 8px; padding: 5px 9px; font-variant-numeric: tabular-nums; min-width: 130px; background: var(--background); }
+.mock-app .btn { background: var(--primary); color: var(--primary-foreground); border-radius: 8px; padding: 5px 12px; font-weight: 500; }
+.mock-app .btn.outline { background: var(--background); color: var(--foreground); border: 1px solid var(--border); }
+.mock-app table { width: 100%; border-collapse: collapse; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.mock-app th { text-align: left; font-weight: 500; color: var(--muted-foreground); padding: 5px 6px; border-bottom: 1px solid var(--border); }
+.mock-app td { padding: 5px 6px; border-bottom: 1px solid var(--border); }
+.mock-app td.r, .mock-app th.r { text-align: right; }
+.mock-app .alert { border: 1px solid var(--destructive); color: var(--destructive); border-radius: var(--radius); padding: 10px 12px; display: grid; gap: 2px; }
+.mock-app .alert b { font-weight: 600; }
+.mock-app .pos { color: var(--success); }
+.mock-app .chart { height: 110px; width: 100%; }
+.mock-app .legend { display: flex; gap: 12px; font-size: 10.5px; color: var(--muted-foreground); }
+.mock-app .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+.mock-app .target { position: relative; border-radius: 8px; outline: 2px solid transparent; outline-offset: 3px; transition: outline-color .2s; }
+.mock-app[data-active] .target.is-on { outline-color: var(--hl); }
+.mock-app .callout {
+  display: none; position: absolute; z-index: 3; top: calc(100% + 8px); left: 0; width: max-content; max-width: 210px;
+  background: var(--hl); color: oklch(1 0 0); font-size: 11px; font-weight: 500; padding: 4px 8px; border-radius: 6px; line-height: 1.3;
+}
+.mock-app[data-active] .target.is-on .callout { display: block; }
+.screen-cap { display: none; }
+@media (max-width: 640px) {
+  .mock-app { grid-template-columns: 44px minmax(0, 1fr); }
+  .mock-app .brand, .mock-app .grp, .mock-app .ni span, .mock-app .ni .chev, .mock-app .foot p, .mock-app .sub { display: none !important; }
+  .mock-app .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mock-app .grid2 { grid-template-columns: minmax(0, 1fr); }
+}
+/* No JavaScript: every screen stacks, each with its own caption. */
+.js-off .screen-cap { display: block; padding: 10px 14px 0; font-weight: 600; font-size: 13px; }
+.js-off .controls, .js-off .instruction, .js-off .stepcount { display: none; }
+
+/* Part 3 */
+.brief { display: grid; gap: 40px; }
+.brief section { display: grid; gap: 14px; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 8px; }
+table.t { width: 100%; border-collapse: collapse; font-size: 0.88rem; min-width: 620px; }
+table.t th { text-align: left; font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); background: var(--panel); padding: 9px 12px; }
+table.t td { padding: 9px 12px; border-top: 1px solid var(--rule); vertical-align: top; }
+table.t td code { white-space: nowrap; }
+.pill { display: inline-block; font-family: var(--font-mono); font-size: 0.72rem; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--rule); color: var(--muted); white-space: nowrap; }
+.pill.get { border-color: var(--accent); color: var(--accent); }
+.pill.drop { border-color: var(--alarm); color: var(--alarm); }
+.arch { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .arch { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.lane { border: 1px solid var(--rule); border-radius: 10px; padding: 12px; display: grid; gap: 8px; align-content: start; background: var(--panel); min-width: 0; }
+.lane .box { text-align: left; font-size: 0.8rem; }
+.lane .box code { font-size: 0.74rem; }
+.seq { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-left: 2px solid var(--rule); }
+.seq li { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 4px 14px; padding: 8px 0 8px 16px; position: relative; }
+.seq li::before { content: ""; position: absolute; left: -6px; top: 15px; width: 10px; height: 10px; border-radius: 50%; background: var(--paper); border: 2px solid var(--accent); }
+.seq li.fail::before { border-color: var(--alarm); }
+.seq .who { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+@media (max-width: 560px) { .seq li { grid-template-columns: minmax(0, 1fr); } }
+.decisions { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.decisions li { display: grid; gap: 2px; padding: 12px 14px; border: 1px solid var(--rule); border-radius: 8px; }
+.decisions li b { font-weight: 600; }
+.decisions li span { color: var(--muted); font-size: 0.93rem; }
+.todo { display: grid; gap: 8px; counter-reset: t; margin: 0; padding: 0; list-style: none; }
+.todo li { counter-increment: t; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: baseline; }
+.todo li::before { content: counter(t); font-family: var(--font-mono); color: var(--accent); font-weight: 500; }
+footer { padding-block: 40px 56px; color: var(--muted); font-size: var(--step--1); border-top: 1px solid var(--rule); margin-top: 40px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap js-off" id="root">
+  <header class="masthead">
+    <span class="label">Plan · docs/plans/dts-webapp</span>
+    <h1>Taking DTS Analysis public</h1>
+    <p class="lede">The Daily Treasury Statement app leaves the laptop. A job builds the data once a day, Cloudflare stores it, and Vercel serves a website that only reads it.</p>
+    <div class="facts">
+      <span><b>8</b> phases (0 done)</span>
+      <span><b>20</b> read routes, all GET</span>
+      <span><b>9</b> Treasury tables + 1 derived</span>
+      <span>Hosting: <b>Vercel Hobby</b> + <b>Cloudflare R2</b></span>
+    </div>
+  </header>
+
+  <!-- ───────────── PART 1 ───────────── -->
+  <section class="part" id="picture" aria-labelledby="p1">
+    <div class="seam">
+      <span class="label">Part 1</span>
+      <h2 id="p1">The plain picture</h2>
+      <p>What the plan builds and why, for anyone.</p>
+    </div>
+
+    <div class="panels">
+      <article class="panel">
+        <h3>What exists today</h3>
+        <div class="pic">
+          <div class="laptop">
+            <span class="label">One laptop</span>
+            <div class="box">Website</div>
+            <div class="box">Program</div>
+            <div class="box">Database file</div>
+            <div class="box accent">Fetch button</div>
+          </div>
+        </div>
+        <p class="cap">The app runs on one computer. Someone presses <b>Fetch</b> to pull new Treasury numbers, and the same program writes the database while it answers questions about it.</p>
+      </article>
+
+      <article class="panel">
+        <h3>What breaks when strangers use it</h3>
+        <div class="pic">
+          <div class="badlist">
+            <div><span class="x">✕</span> Reading while a fetch is writing can crash the program.</div>
+            <div><span class="x">✕</span> A fetch that fails halfway can leave a table empty.</div>
+            <div><span class="x">✕</span> Most questions are sent in a form no web cache will store, so every visitor makes the server work.</div>
+          </div>
+        </div>
+        <p class="cap">Fine for one person. With many visitors, each problem gets worse.</p>
+      </article>
+
+      <article class="panel">
+        <h3>The idea in one picture</h3>
+        <div class="pic">
+          <div class="box">Daily job<small>writes</small></div>
+          <span class="arrow">→</span>
+          <div class="box accent">treasury_data<small>one file per day</small></div>
+          <span class="arrow">→</span>
+          <div class="box">Website<small>only reads</small></div>
+        </div>
+        <p class="cap">Split writing from reading. A job builds a fresh, checked file once a day. The website never writes, so nothing can collide.</p>
+      </article>
+
+      <article class="panel">
+        <h3>The moving parts</h3>
+        <div class="pic">
+          <div class="box">Treasury<small>data source</small></div>
+          <span class="arrow">→</span>
+          <div class="box">GitHub<small>job, 6:30 pm ET</small></div>
+          <span class="arrow">→</span>
+          <div class="box accent">Cloudflare<small>stores the file</small></div>
+          <span class="arrow">→</span>
+          <div class="box">Vercel<small>runs the site</small></div>
+        </div>
+        <p class="cap">GitHub runs the daily job. Cloudflare keeps today's file and a copy of every earlier day. Vercel rebuilds the website with the new file baked in.</p>
+      </article>
+
+      <article class="panel">
+        <h3>The path of one request</h3>
+        <div class="pic">
+          <div class="box">Browser</div>
+          <span class="arrow">→</span>
+          <div class="stack">
+            <div class="box accent">Vercel cache<small>seen it today? answer now</small></div>
+            <div class="box ghost">first time only ↓</div>
+          </div>
+          <span class="arrow">→</span>
+          <div class="box">Program<small>reads the file</small></div>
+        </div>
+        <p class="cap">Every visitor sees the same numbers, so the first answer is kept and reused all day. A new day's deploy starts a fresh cache.</p>
+      </article>
+
+      <article class="panel">
+        <h3>What changes on screen</h3>
+        <div class="pic">
+          <div class="beforeafter">
+            <div class="mini" aria-label="Before: top menu and a database admin page">
+              <span class="label">Before</span>
+              <div class="bar"></div>
+              <div class="row"><div class="content"><i></i><i></i></div></div>
+              <span>Top menus · Database admin page</span>
+            </div>
+            <div class="mini" aria-label="After: grouped sidebar and a data status page">
+              <span class="label">After</span>
+              <div class="row">
+                <div class="side"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+                <div class="content"><i></i><i></i></div>
+              </div>
+              <span>Grouped sidebar · Data status page</span>
+            </div>
+          </div>
+        </div>
+        <p class="cap">Same charts and numbers, in the family-finance app's look. The admin page with the Fetch button goes away. A Data status page says how fresh the data is.</p>
+      </article>
+
+      <article class="panel">
+        <h3>The order of work</h3>
+        <div class="pic">
+          <div class="dag">
+            <div class="box">1 Skeleton</div><span class="arrow">→</span>
+            <div class="box">2 Daily file</div><span class="arrow">→</span>
+            <div class="box">3 Read-only API</div><span class="arrow">→</span>
+            <div class="box">4 Automate daily</div><span></span>
+            <span></span><span></span><span></span><span class="arrow">↓</span>
+            <div class="box">5 Main pages</div><span class="arrow">→</span>
+            <div class="box">6 Comparison pages</div><span class="arrow">→</span>
+            <div class="box accent">7 Ready to share</div>
+          </div>
+        </div>
+        <p class="cap">After step 3, automation and the pages run in parallel. Both must finish before step 7.</p>
+      </article>
+
+      <article class="panel">
+        <h3>What could go wrong</h3>
+        <div class="pic">
+          <div class="risk">
+            <span class="q">First visit after a quiet hour is slow (1.5–4 s)</span><span>Measured in step 2, with three fixes ready.</span>
+            <span class="q">Treasury's server is down</span><span>Yesterday's data stays up; an email alert goes out.</span>
+            <span class="q">Vercel's two-part setup is new</span><span>Fallback: two linked Vercel projects.</span>
+            <span class="q">Free plan bans selling</span><span>Upgrade to Pro ($20/mo) before charging.</span>
+          </div>
+        </div>
+        <p class="cap">Each risk has a planned answer before any code exists.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ───────────── PART 2 ───────────── -->
+  <section class="part" id="walkthrough" aria-labelledby="p2">
+    <div class="seam">
+      <span class="label">Part 2</span>
+      <h2 id="p2">What you will click</h2>
+      <p>A step-by-step mockup of the finished site in the real app's tokens. The figures are examples; the live site shows Treasury data, in millions of dollars.</p>
+    </div>
+
+    <div class="walk" id="walk">
+      <ol class="steps" id="steplist"></ol>
+      <div class="stage">
+        <span class="stepcount" id="stepcount">Step 1 of 7</span>
+        <p class="instruction" id="instruction">Open the site: the Overview says how fresh the data is.</p>
+        <div class="controls">
+          <button type="button" id="prev">Back</button>
+          <button type="button" id="next" class="primary">Next</button>
+          <span class="label" id="phasetag">Ships in Phase 5</span>
+        </div>
+
+        <div class="frame">
+          <div class="chrome">
+            <span class="dots"><i></i><i></i><i></i></span>
+            <span class="addr" id="addr">dts-webapp.vercel.app/</span>
+            <span class="mocklabel">Mockup — not the live app</span>
+          </div>
+
+          <div class="mock-app" id="mock">
+            <aside class="sb" aria-label="Sidebar">
+              <div class="brand"><b>DTS Analysis</b><span>U.S. Treasury daily statement</span></div>
+              <span class="grp">Analysis</span>
+              <nav>
+                <div class="ni" data-nav="overview"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span>Overview</span></div>
+                <div class="ni" data-group="daily"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Daily</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+                <div class="sub" data-sub="daily">
+                  <div class="target" data-target="2"><div class="ni" data-nav="single"><span>Single date</span></div><span class="callout">2 · Open Daily → Single date</span></div>
+                  <div class="ni" data-nav="dnt"><span>Net transfers</span></div>
+                </div>
+                <div class="ni" data-nav="fy"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><span>Fiscal year</span></div>
+                <div class="ni" data-group="yoy"><svg viewBox="0 0 24 24"><path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg><span>Year over year</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+                <div class="sub" data-sub="yoy">
+                  <div class="ni" data-nav="yoy-net"><span>Net transfers</span></div>
+                  <div class="ni" data-nav="yoy-wd"><span>Withdrawals</span></div>
+                  <div class="ni" data-nav="yoy-dep"><span>Deposits</span></div>
+                  <div class="ni" data-nav="yoy-cat"><span>Category comparison</span></div>
+                </div>
+                <div class="ni" data-nav="weekly"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M17 14h-6M13 18H7"/></svg><span>Weekly comparison</span></div>
+              </nav>
+              <div class="foot">
+                <div class="ni" data-nav="status"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg><span>Data status</span></div>
+                <div class="ni" data-nav="method"><svg viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg><span>Methodology</span></div>
+                <p>Not financial advice · Source: U.S. Treasury</p>
+              </div>
+            </aside>
+
+            <div class="inset">
+              <!-- Screen: Overview -->
+              <div data-screen="overview">
+                <div class="screen-cap">Steps 1–2 · Overview</div>
+                <div class="hdr"><span class="trig"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg></span><h4>Overview</h4></div>
+                <div class="main">
+                  <div class="grid4">
+                    <div class="card"><span class="t">Total records</span><span class="v">2,143,880</span><span class="s">across 9 tables</span></div>
+                    <div class="target" data-target="1"><div class="card"><span class="t">Date range</span><span class="v">2005-10-03 – 2026-10-16</span><span class="s">data through Oct 16</span></div><span class="callout">1 · Data through Friday, Oct 16</span></div>
+                    <div class="card"><span class="t">Data sources</span><span class="v">9</span><span class="s">DTS tables</span></div>
+                    <div class="card"><span class="t">Last updated</span><span class="v">Oct 16, 6:41 pm</span><span class="s">your time</span></div>
+                  </div>
+                  <div class="card"><h5>Available fiscal years</h5><div class="chips"><span class="chip">FY2027</span><span class="chip">FY2026</span><span class="chip">FY2025</span><span class="chip">FY2024</span><span class="chip">… FY2006</span></div></div>
+                </div>
+              </div>
+
+              <!-- Screen: Single date form -->
+              <div data-screen="single-form">
+                <div class="screen-cap">Step 3 · Single date</div>
+                <div class="hdr"><span class="trig"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg></span><h4>Single date</h4></div>
+                <div class="main">
+                  <div class="card"><h5>Select date</h5>
+                    <div class="target" data-target="3"><div class="field"><span class="inp">2026-10-16</span><span class="btn">Search</span></div><span class="callout">3 · Pick Oct 16, press Search</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Screen: Single date result -->
+              <div data-screen="single-result">
+                <div class="screen-cap">Step 4 · Single date result</div>
+                <div class="hdr"><span class="trig"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg></span><h4>Single date</h4></div>
+                <div class="main">
+                  <div class="card"><div class="field"><span class="inp">2026-10-16</span><span class="btn">Search</span></div></div>
+                  <div class="card"><h5>Daily net transfers · Fri Oct 16, 2026 · FY2027 day 11</h5>
+                    <div class="grid4">
+                      <div class="card"><span class="t">Total deposits</span><span class="v">$15,507M</span><span class="s">38,412 − 22,905 debt issues</span></div>
+                      <div class="card"><span class="t">Total withdrawals</span><span class="v">$21,396M</span><span class="s">41,276 − 19,880 redemptions</span></div>
+                      <div class="target" data-target="4"><div class="card"><span class="t">Net flow</span><span class="v">$5,889M</span><span class="s">withdrawals − deposits</span></div><span class="callout">4 · Read the day's net flow</span></div>
+                      <div class="card"><span class="t">Leading flow</span><span class="v">$21,396M</span><span class="s">total withdrawals</span></div>
+                    </div>
+                  </div>
+                  <div class="card"><h5>Transactions</h5>
+                    <table><thead><tr><th>Account</th><th>Category</th><th class="r">Today ($M)</th></tr></thead>
+                      <tbody><tr><td>TGA</td><td>Public Debt Cash Issues (Table IIIB)</td><td class="r">22,905</td></tr><tr><td>TGA</td><td>Public Debt Cash Redemp. (Table IIIB)</td><td class="r">19,880</td></tr></tbody></table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Screen: Single date error -->
+              <div data-screen="single-error">
+                <div class="screen-cap">Step 5 · A day with no statement</div>
+                <div class="hdr"><span class="trig"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg></span><h4>Single date</h4></div>
+                <div class="main">
+                  <div class="card"><div class="field"><span class="inp">2026-10-18</span><span class="btn">Search</span></div></div>
+                  <div class="target" data-target="5"><div class="alert"><b>No data found for 2026-10-18</b><span>Treasury publishes a statement on business days only. Try Friday, Oct 16.</span></div><span class="callout">5 · A Sunday: the API's message, not a blank page</span></div>
+                </div>
+              </div>
+
+              <!-- Screen: YoY net transfers -->
+              <div data-screen="yoy">
+                <div class="screen-cap">Step 6 · Year over year</div>
+                <div class="hdr"><span class="trig"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg></span><h4>Net transfers year over year</h4></div>
+                <div class="main">
+                  <div class="field"><span class="inp">Current FY2027</span><span class="inp">Previous FY2026</span><span class="btn outline">Fiscal day</span></div>
+                  <div class="grid2">
+                    <div class="card"><span class="t">FY2027 to date · day 11</span><span class="v">$61,240M</span></div>
+                    <div class="target" data-target="6"><div class="card"><span class="t">Change from FY2026 day 11 ($54,980M)</span><span class="v pos">+$6,260M</span></div><span class="callout">6 · Compare with the same day last year</span></div>
+                  </div>
+                  <div class="card">
+                    <div class="legend"><span><i style="background:var(--chart-1)"></i>FY2027</span><span><i style="background:var(--chart-2)"></i>FY2026</span></div>
+                    <svg class="chart" viewBox="0 0 400 110" preserveAspectRatio="none" aria-label="Cumulative net flow, FY2027 above FY2026 by day 11">
+                      <line x1="0" y1="100" x2="400" y2="100" stroke="var(--border)" />
+                      <polyline fill="none" stroke="var(--chart-2)" stroke-width="2" points="0,98 40,92 80,85 120,80 160,70 200,64 240,57 280,50 320,44 360,38 400,32" />
+                      <polyline fill="none" stroke="var(--chart-1)" stroke-width="2" points="0,97 40,90 80,82 120,74 160,66 200,58 240,49 280,42 320,34 360,27 400,20" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Screen: Data status -->
+              <div data-screen="status">
+                <div class="screen-cap">Step 7 · Data status</div>
+                <div class="hdr"><span class="trig"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg></span><h4>Data status</h4></div>
+                <div class="main">
+                  <div class="target" data-target="7"><div class="card"><span class="t">Data through</span><span class="v">Friday, Oct 16, 2026</span><span class="s">Refreshed Oct 16, 6:41 pm · updates each business day after Treasury publishes (~4 pm ET)</span></div><span class="callout">7 · When the next update lands</span></div>
+                  <div class="card"><h5>Rows by table</h5>
+                    <table><thead><tr><th>Table</th><th class="r">Rows</th></tr></thead>
+                      <tbody><tr><td>Deposits &amp; Withdrawals</td><td class="r">1,412,306</td></tr><tr><td>Operating Cash Balance</td><td class="r">26,544</td></tr><tr><td>Daily net transfers (derived)</td><td class="r">5,281</td></tr></tbody></table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── PART 3 ───────────── -->
+  <section class="part" id="briefing" aria-labelledby="p3">
+    <div class="seam">
+      <span class="label">Part 3</span>
+      <h2 id="p3">Developer briefing</h2>
+      <p>For someone who has not opened the plan files. Paths are relative to the repo; REF is <code>dts-analysis/fullstack_app</code>, FAM is <code>family-financial-app</code>.</p>
+    </div>
+
+    <div class="brief">
+      <section>
+        <h3>Goal</h3>
+        <p>Rebuild REF as a public, free, read-only web app. Copy FAM's repo layout (<code>backend/</code> uv + FastAPI, <code>frontend/</code> pnpm + Vite + TanStack + shadcn <code>base-nova</code>), its tokens and its inset sidebar. Port REF's financial logic, folding in the fixes from REF's own improvement plan. Accounts and payments are a later plan.</p>
+      </section>
+
+      <section>
+        <h3>Where each piece runs</h3>
+        <div class="arch">
+          <div class="lane"><span class="label">GitHub Actions</span>
+            <div class="box"><code>ingest.yml</code><small>cron 30 22 * * 1-5</small></div>
+            <div class="box"><code>python -m app.ingest</code><small>the only writer</small></div>
+            <div class="box"><code>ci.yml</code><small>ruff, pytest, typecheck, contract drift</small></div>
+          </div>
+          <div class="lane"><span class="label">Cloudflare R2 · dts-data</span>
+            <div class="box accent"><code>latest/treasury_data.duckdb</code><small>public r2.dev URL</small></div>
+            <div class="box"><code>snapshots/YYYY-MM-DD/…</code><small>one per changed day</small></div>
+          </div>
+          <div class="lane"><span class="label">Vercel · service api</span>
+            <div class="box"><code>backend/</code> FastAPI<small>one Python function</small></div>
+            <div class="box"><code>scripts.fetch_artifact</code><small>build step bundles the file</small></div>
+            <div class="box"><code>duckdb read_only=True</code><small>cursor per request</small></div>
+          </div>
+          <div class="lane"><span class="label">Vercel · service web</span>
+            <div class="box"><code>frontend/dist</code><small>CDN static</small></div>
+            <div class="box"><code>/api/(.*)</code> → api<small>same origin, no CORS</small></div>
+            <div class="box">CDN cache<small>s-maxage 86400, key includes deployment</small></div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h3>One business day, in order</h3>
+        <ol class="seq">
+          <li><span class="who">Actions 22:30 UTC</span><span><code>cf r2 objects get latest/…</code> into <code>backend/data/</code></span></li>
+          <li><span class="who">app.ingest</span><span>Copy to <code>*.building.duckdb</code>; fetch rows after each table's <code>MAX(record_date)</code>; any Treasury error aborts the run</span></li>
+          <li><span class="who">app.ingest</span><span>Recompute <code>daily_net_transfers</code> for touched fiscal years (DENSE_RANK day numbers); write <code>metadata</code>; validate; <code>CHECKPOINT</code>; <code>os.replace</code></span></li>
+          <li><span class="who">Actions</span><span>If <code>changed=true</code>: put <code>snapshots/DATE/</code>, then <code>latest/</code>, then POST the Vercel Deploy Hook</span></li>
+          <li><span class="who">Vercel build</span><span><code>fetch_artifact</code> downloads and opens the file; a bad file fails the build and the old deployment stays live</span></li>
+          <li class="fail"><span class="who">On failure</span><span>healthchecks.io <code>/fail</code> ping emails you; R2 and the site keep yesterday's data</span></li>
+        </ol>
+      </section>
+
+      <section>
+        <h3>API surface: every route becomes GET</h3>
+        <p>REF sent most analysis queries as POST with a JSON body. No CDN caches POST, so bodies become query parameters. Shapes stay byte-compatible with REF, so the ported pages work unchanged.</p>
+        <div class="tablewrap">
+          <table class="t">
+            <thead><tr><th>Area</th><th>New routes (<code>/api/v1/…</code>)</th><th>From REF</th></tr></thead>
+            <tbody>
+              <tr><td>meta</td><td><code>meta/stats</code>, <code>meta/record-counts</code>, <code>meta/record-counts-by-year</code>, <code>meta/build</code></td><td><span class="pill get">GET</span> was <code>database/*</code>; <code>build</code> is new</td></tr>
+              <tr><td>lookups</td><td><code>lookups/fiscal-years</code>, <code>data-sources</code>, <code>account-types</code>, <code>categories</code></td><td><span class="pill get">GET</span> moved from <code>treasury/*</code></td></tr>
+              <tr><td>data</td><td><code>data</code> (SQL <code>LIMIT/OFFSET</code> over <code>UNION ALL BY NAME</code>), <code>data/date/{date}</code></td><td><span class="pill drop">dropped</span> POST fiscal-year, POST date-range (same filters on <code>GET data</code>)</td></tr>
+              <tr><td>net_transfers</td><td><code>net-transfers/date/{date}</code>, <code>net-transfers/fiscal-year/{fy}</code></td><td><span class="pill get">GET</span></td></tr>
+              <tr><td>weekly · yoy</td><td><code>weekly/comparison</code>, <code>yoy/category-comparison</code>, <code>yoy/daily-comparison</code></td><td><span class="pill get">GET</span> was POST</td></tr>
+              <tr><td>categories</td><td><code>major-spending</code>, <code>major-receipts</code>, <code>tbill-interest</code>, <code>irs-tax-refunds</code>, <code>daily-yoy</code></td><td><span class="pill get">GET</span> was POST</td></tr>
+              <tr><td>gone</td><td>none</td><td><span class="pill drop">dropped</span> all <code>fetch/*</code>, populate, task status, metadata</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h3>Key decisions</h3>
+        <ul class="decisions">
+          <li><b>Remove the concurrency problem instead of fixing it.</b><span>REF's improvement phases 1–2 (cursor discipline, fetch locks, task keys) become unnecessary; 3–7 fold into Phases 2, 3, 5 and 6 here.</span></li>
+          <li><b>Ingestion is all-or-nothing.</b><span>REF caught per-endpoint errors and its client returned partial pages on failure. Here any error aborts and validation refuses a file that shrank, so a truncated artifact is never published.</span></li>
+          <li><b>Deploy is the data refresh.</b><span>The file ships inside the function. Rolling back data means promoting yesterday's deployment. No runtime download, no sync code.</span></li>
+          <li><b>Handlers are sync <code>def</code>.</b><span>REF's <code>async def</code> handlers blocked the event loop on DuckDB calls. Sync handlers run in FastAPI's threadpool, each with its own cursor.</span></li>
+          <li><b>Cloudflare stores, Vercel serves.</b><span>No Cloudflare proxy in front of Vercel and no domain yet. All Cloudflare work uses the <code>cf</code> CLI (<code>cf@1.0.0-beta.18</code>), which authenticates with <code>CLOUDFLARE_API_TOKEN</code> in CI.</span></li>
+          <li><b>The bucket is public-read.</b><span>The data is public domain, and the Python build can then download with stdlib only. Revisit with signed URLs when paid tiers arrive.</span></li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Phases</h3>
+        <div class="tablewrap">
+          <table class="t">
+            <thead><tr><th>Phase</th><th>Branch</th><th>Done when</th></tr></thead>
+            <tbody>
+              <tr><td>1 Scaffold &amp; first deploy</td><td><code>feat/scaffold-deploy</code></td><td>Sidebar shell at <code>/</code>, <code>/api/health</code> live on Vercel Services</td></tr>
+              <tr><td>2 Ingestion &amp; artifact</td><td><code>feat/ingestion</code></td><td>Full bootstrap built, in R2, bundled by the Vercel build; cold start recorded</td></tr>
+              <tr><td>3 Serving API</td><td><code>feat/serving-api</code></td><td>20 GET data routes, parity with REF, <code>x-vercel-cache: HIT</code> on repeat</td></tr>
+              <tr><td>4 Daily pipeline &amp; CI</td><td><code>feat/daily-pipeline</code></td><td>Scheduled run uploads and redeploys; failure alerts; CI gates PRs</td></tr>
+              <tr><td>5 Frontend core</td><td><code>feat/frontend-core</code></td><td>Overview, Data status, Single date, Daily net transfers, Fiscal year</td></tr>
+              <tr><td>6 Frontend analysis</td><td><code>feat/frontend-analysis</code></td><td>YoY suite, categories, weekly (week-alignment fix), Vitest on mappers</td></tr>
+              <tr><td>7 Launch hygiene</td><td><code>feat/launch-hygiene</code></td><td>Cache audit, WAF rate limit, Sentry, methodology, terms, privacy</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h3>Risks</h3>
+        <div class="tablewrap">
+          <table class="t">
+            <thead><tr><th>Risk</th><th>Answer</th></tr></thead>
+            <tbody>
+              <tr><td>Python cold start (FastAPI + pandas + DuckDB open)</td><td>Measured in Phase 2 against the real bundle. Then lazy pandas imports, function sizing, a warm-up ping.</td></tr>
+              <tr><td>Vercel Services is beta</td><td>Phase 1 Notes: two projects with an external rewrite; the browser sees the same paths.</td></tr>
+              <tr><td>DuckDB file format vs library version</td><td>One version pinned in <code>uv.lock</code> for both writer and reader; an upgrade means a <code>--full</code> rebuild in the same change.</td></tr>
+              <tr><td>Scheduled workflows pause after 60 days without commits</td><td>The healthcheck catches the silence; the runbook says how to re-enable.</td></tr>
+              <tr><td>Hobby plan forbids commercial use</td><td>Free public launch only. The subscriptions plan starts with Vercel Pro.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h3>What the owner does by hand</h3>
+        <ol class="todo">
+          <li><span><code>cf auth login</code>, then enable R2 in the Cloudflare dashboard (it asks for a payment method, even on the free tier).</span></li>
+          <li><span>Phase 4: create an R2-edit API token, a Vercel Deploy Hook, and a healthchecks.io check; store them with <code>gh secret set</code>.</span></li>
+          <li><span>Phase 7: one Vercel Firewall rate-limit rule and a free Sentry project.</span></li>
+        </ol>
+      </section>
+    </div>
+  </section>
+
+  <footer>Explainer for <code>docs/plans/dts-webapp/</code>. The phase files are the executor contract; this page is the briefing. Mockup figures are examples.</footer>
+</div>
+
+<script>
+(() => {
+  const STEPS = [
+    { screen: 'overview', path: '/', nav: 'overview', open: [], phase: 'Ships in Phase 5', text: 'Open the site: the Overview says how fresh the data is.' },
+    { screen: 'overview', path: '/', nav: 'overview', open: ['daily'], phase: 'Ships in Phase 1', text: 'Open Daily in the sidebar, then Single date.' },
+    { screen: 'single-form', path: '/daily/single-date', nav: 'single', open: ['daily'], phase: 'Ships in Phase 5', text: 'Pick Friday, Oct 16, 2026 and press Search.' },
+    { screen: 'single-result', path: '/daily/single-date', nav: 'single', open: ['daily'], phase: 'Ships in Phase 5', text: 'Read the day: $21,396M out, $15,507M in, net flow $5,889M.' },
+    { screen: 'single-error', path: '/daily/single-date', nav: 'single', open: ['daily'], phase: 'Ships in Phase 3 + 5', text: 'Try Sunday, Oct 18: the API says why there is no data.' },
+    { screen: 'yoy', path: '/yoy/net-transfers', nav: 'yoy-net', open: ['yoy'], phase: 'Ships in Phase 6', text: 'Year over year → Net transfers: FY2027 runs $6,260M ahead of FY2026 at day 11.' },
+    { screen: 'status', path: '/data-status', nav: 'status', open: [], phase: 'Ships in Phase 5', text: 'Data status shows when the next daily update lands.' },
+  ];
+  const mock = document.getElementById('mock');
+  const list = document.getElementById('steplist');
+  const screens = [...mock.querySelectorAll('[data-screen]')];
+  const instruction = document.getElementById('instruction');
+  const tag = document.getElementById('phasetag');
+  const addr = document.getElementById('addr');
+  const count = document.getElementById('stepcount');
+  const prev = document.getElementById('prev');
+  const next = document.getElementById('next');
+  let i = 0;
+
+  STEPS.forEach((s, n) => {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.innerHTML = '<span class="n">' + (n + 1) + '</span><span></span><span class="tag"></span>';
+    b.children[1].textContent = s.text;
+    b.children[2].textContent = s.phase;
+    b.addEventListener('click', () => show(n));
+    li.appendChild(b);
+    list.appendChild(li);
+  });
+
+  function show(n) {
+    i = Math.max(0, Math.min(STEPS.length - 1, n));
+    const s = STEPS[i];
+    screens.forEach(el => { el.hidden = el.dataset.screen !== s.screen; });
+    mock.querySelectorAll('.ni.on').forEach(el => el.classList.remove('on'));
+    const navEl = mock.querySelector('[data-nav="' + s.nav + '"]');
+    if (navEl) navEl.classList.add('on');
+    mock.querySelectorAll('[data-sub]').forEach(el => el.classList.toggle('open', s.open.includes(el.dataset.sub)));
+    mock.querySelectorAll('[data-group]').forEach(el => el.classList.toggle('grpopen', s.open.includes(el.dataset.group)));
+    mock.querySelectorAll('.target').forEach(el => el.classList.toggle('is-on', el.dataset.target === String(i + 1)));
+    mock.dataset.active = String(i + 1);
+    instruction.textContent = s.text;
+    tag.textContent = s.phase;
+    addr.textContent = 'dts-webapp.vercel.app' + s.path;
+    count.textContent = 'Step ' + (i + 1) + ' of ' + STEPS.length;
+    prev.disabled = i === 0;
+    next.disabled = i === STEPS.length - 1;
+    [...list.querySelectorAll('button')].forEach((b, k) => {
+      if (k === i) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+    });
+  }
+
+  prev.addEventListener('click', () => show(i - 1));
+  next.addEventListener('click', () => show(i + 1));
+  document.getElementById('walk').addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') { show(i + 1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { show(i - 1); e.preventDefault(); }
+  });
+  document.getElementById('root').classList.remove('js-off');
+  show(0);
+})();
+</script>
