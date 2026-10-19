@@ -1,4 +1,4 @@
-# Phase 4: Daily Pipeline & CI — ⬜ Not Started
+# Phase 4: Daily Pipeline & CI — 🟡 In Progress
 
 **Goal**: Every business day, GitHub Actions updates the artifact from the Treasury API,
 uploads it to R2, and triggers a Vercel deploy; failures alert loudly and never replace good
@@ -158,19 +158,19 @@ the Actions tab).
 
 ## Verification
 
-- [ ] `gh workflow run ingest` → run succeeds; with no new Treasury data, the log shows
+- [x] `gh workflow run ingest` → run succeeds; with no new Treasury data, the log shows
       `"changed": false` and the upload/deploy steps are skipped; healthchecks.io shows a success ping.
 - [ ] On a business day after ~22:30 UTC (or after Treasury publishes): the scheduled run
       uploads `snapshots/<today>/…`, triggers a deployment visible in `vercel ls`, and
       `curl -s https://dts-webapp.vercel.app/api/v1/meta/build` shows the new
       `latest_record_date`.
-- [ ] Failure path: temporarily set repo variable/secret so ingest fails (e.g. run the workflow
+- [x] Failure path: temporarily set repo variable/secret so ingest fails (e.g. run the workflow
       on a branch where `APP_TREASURY_BASE_URL: https://10.255.255.1` is added to the Ingest
       step env) → job fails, healthchecks.io receives `/fail` and emails, R2 `latest/` object's
       `last-modified` (`curl -sI https://pub-<hash>.r2.dev/latest/treasury_data.duckdb`) is unchanged.
 - [ ] After a changed run, the warm-up step logs 200 for every URL and a manual
       `curl -sI` of `$U/categories/major-spending?...` right after shows `x-vercel-cache: HIT`.
-- [ ] Open a PR that changes a schema field without regenerating the contract → `ci` fails at the
+- [x] Open a PR that changes a schema field without regenerating the contract → `ci` fails at the
       `git diff --exit-code` step; regenerate → green.
 - [ ] `gh workflow run ingest -f full=true` completes inside the 120-minute timeout (record the
       duration in Notes).
@@ -183,5 +183,19 @@ the Actions tab).
   secrets `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`. `cf r2 objects put --help` itself
   recommends the S3 API for most workloads.
 - Use absolute paths with `cf --file` (`$PWD/...`).
+
+- 2026-10-19: all four secrets set; PR #1 (Phases 1–6 + this phase) merged to `main` with
+  `ci` green on its first run (backend 16 s, frontend 47 s). First manual `ingest` (Sunday): 19 s,
+  `changed=false`, upload/deploy/warm-up skipped, healthcheck pinged.
+- The Treasury API had nothing after 2026-10-15 on Sunday night: each DTS appears the next
+  business day, so the run on day D usually adds day D−1.
+- 2026-10-19 failure path: `APP_TREASURY_BASE_URL=https://10.255.255.1` on a throwaway branch →
+  Ingest failed in 36 s ("artifact left unchanged", connect timeout), upload/deploy skipped,
+  `/fail` pinged; R2 `latest/` ETag `09a979a7…` / last-modified 01:19 UTC unchanged.
+- 2026-10-19 contract drift (draft PR #3, closed): a changed `Field` description failed `backend`
+  at "Contract drift" with the one-line diff; after `export_openapi` + `gen:api` both jobs passed.
+- `cf r2 objects get` has no `--file`; the runbook downloads snapshots from the public r2.dev URL.
+- Actions warns that `checkout@v4`, `setup-node@v4` and `setup-uv@v6` target Node 20 (forced to
+  24) — bump to their Node 24 majors when convenient.
 
 (record full-rebuild duration and any cf CLI quirks met in CI)
