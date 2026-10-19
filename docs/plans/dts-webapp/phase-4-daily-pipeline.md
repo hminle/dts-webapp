@@ -1,4 +1,4 @@
-# Phase 4: Daily Pipeline & CI — ⬜ Not Started
+# Phase 4: Daily Pipeline & CI — 🟡 In Progress
 
 **Goal**: Every business day, GitHub Actions updates the artifact from the Treasury API,
 uploads it to R2, and triggers a Vercel deploy; failures alert loudly and never replace good
@@ -158,7 +158,7 @@ the Actions tab).
 
 ## Verification
 
-- [ ] `gh workflow run ingest` → run succeeds; with no new Treasury data, the log shows
+- [x] `gh workflow run ingest` → run succeeds; with no new Treasury data, the log shows
       `"changed": false` and the upload/deploy steps are skipped; healthchecks.io shows a success ping.
 - [ ] On a business day after ~22:30 UTC (or after Treasury publishes): the scheduled run
       uploads `snapshots/<today>/…`, triggers a deployment visible in `vercel ls`, and
@@ -183,5 +183,14 @@ the Actions tab).
   secrets `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`. `cf r2 objects put --help` itself
   recommends the S3 API for most workloads.
 - Use absolute paths with `cf --file` (`$PWD/...`).
+
+- 2026-10-19: all four secrets set; PR #1 (Phases 1–6 + this phase) merged to `main` with
+  `ci` green on its first run (backend 16 s, frontend 47 s). First manual `ingest` (Sunday): 19 s,
+  `changed=false`, upload/deploy/warm-up skipped, healthcheck pinged.
+- The Treasury API had nothing after 2026-10-15 on Sunday night: each DTS appears the next
+  business day, so the run on day D usually adds day D−1.
+- `cf r2 objects get` has no `--file`; the runbook downloads snapshots from the public r2.dev URL.
+- Actions warns that `checkout@v4`, `setup-node@v4` and `setup-uv@v6` target Node 20 (forced to
+  24) — bump to their Node 24 majors when convenient.
 
 (record full-rebuild duration and any cf CLI quirks met in CI)
