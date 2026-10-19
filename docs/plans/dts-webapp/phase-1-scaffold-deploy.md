@@ -1,4 +1,4 @@
-# Phase 1: Scaffold & First Deploy — ⬜ Not Started
+# Phase 1: Scaffold & First Deploy — 🔄 In Progress
 
 **Goal**: The monorepo skeleton exists with FAM's structure, design tokens, and sidebar shell,
 and a deployment on Vercel Services serves the shell at `/` and `GET /api/health` from FastAPI.
@@ -352,23 +352,23 @@ to `curl`.
 
 ## Verification
 
-- [ ] `cd backend && uv run ruff check . && uv run ruff format --check . && uv run pytest -q` → all pass.
-- [ ] `cd frontend && pnpm typecheck && pnpm test && pnpm build` → all pass;
+- [x] `cd backend && uv run ruff check . && uv run ruff format --check . && uv run pytest -q` → all pass.
+- [x] `cd frontend && pnpm typecheck && pnpm test && pnpm build` → all pass;
       `ls frontend/dist/assets/*.js | wc -l` > 1 (route code splitting active).
-- [ ] `scripts/dev.sh --install` → backend logs `Uvicorn running on http://127.0.0.1:8000`,
+- [x] `scripts/dev.sh --install` → backend logs `Uvicorn running on http://127.0.0.1:8000`,
       `http://localhost:5173` shows the sidebar; `curl -s localhost:5173/api/health` →
       `{"status":"ok","data_loaded":false}` (through the Vite proxy).
 - [ ] Sidebar in the browser: collapsing to the icon rail turns `Daily` / `Year over year`
       into dropdowns; text font is Inter (DevTools → Computed → `font-family` starts with
       `"Inter"`); the `.dark` class on `<html>` switches tokens.
-- [ ] `curl -s https://dts-webapp.vercel.app/api/health` →
+- [x] `curl -s https://dts-webapp.vercel.app/api/health` →
       `{"status":"ok","data_loaded":false}`.
-- [ ] `curl -s -o /dev/null -w '%{http_code}' https://dts-webapp.vercel.app/yoy/categories` →
+- [x] `curl -s -o /dev/null -w '%{http_code}' https://dts-webapp.vercel.app/yoy/categories` →
       `200` (SPA fallback), and `https://dts-webapp.vercel.app/api/docs` renders Swagger.
-- [ ] Vercel build log for the `api` service contains
+- [x] Vercel build log for the `api` service contains
       `fetch_artifact: APP_ARTIFACT_URL not set, skipping download` (proves the
       `[tool.vercel.scripts] build` hook runs in services mode).
-- [ ] `docs/contracts/openapi.json` contains the path `/api/health` with operationId
+- [x] `docs/contracts/openapi.json` contains the path `/api/health` with operationId
       `health_health`.
 
 ## Notes
@@ -383,3 +383,28 @@ to `curl`.
   `dts-webapp` (root `frontend/`) and `dts-webapp-api` (root `backend/`) — with the frontend's
   `vercel.json` rewriting `/api/(.*)` to `https://dts-webapp-api.vercel.app/api/$1`. Paths and
   same-origin behavior stay identical for the browser. Update phase-0 and this note if used.
+
+### Execution notes (Phase 1)
+
+- `uv init --app` (uv 0.13) produced a packaged layout (`src/`, `uv_build` backend,
+  console script). Replaced with FAM's unpackaged shape: `[project]` + tool tables only,
+  dependencies added with `uv add`.
+- **pandas pinned `>=2.2.3,<3`.** uv resolved pandas 3.0, whose copy-on-write and string-dtype
+  changes could silently alter REF's ported logic (written against 2.x). Revisit only with a
+  parity check against REF.
+- The `[tool.vercel.scripts] build` hook **does** run in services mode (build log:
+  `Executing: python -m scripts.fetch_artifact`); the `functions` key `app/main.py` was
+  accepted. Neither fallback was needed. Vercel used Python 3.12 from `backend/.python-version`
+  and uv for the install.
+- `vercel link` created the project but **`vercel git connect` failed** ("Failed to connect
+  hminle/dts-webapp"): the Vercel GitHub app has no access to the repo. Deploys work via
+  `vercel deploy --prod`; Git connection (needed for Deploy Hooks, Phase 4) waits on granting
+  the app access in GitHub → Settings → Applications → Vercel → Repository access.
+- Production `https://dts-webapp.vercel.app` is not behind Deployment Protection (only previews are).
+- FAM's tests do not install `@testing-library/jest-dom`; the sidebar test uses plain
+  `expect(...).toBeTruthy()` / `getAttribute` assertions, matching FAM.
+- `tsc -b` needs `src/routeTree.gen.ts`, which the router plugin writes during a Vite run; on a
+  fresh clone run `pnpm build` (Vite generates it) — it is committed, so CI is unaffected.
+- The `min-w-0` comment copied into `__root.tsx` cited FAM's holdings grid; it now says "a wide
+  data table".
+- The browser check of the sidebar (icon-rail collapse, Inter, dark tokens) is still open.
