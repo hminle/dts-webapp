@@ -160,7 +160,7 @@ the Actions tab).
 
 - [x] `gh workflow run ingest` → run succeeds; with no new Treasury data, the log shows
       `"changed": false` and the upload/deploy steps are skipped; healthchecks.io shows a success ping.
-- [ ] On a business day after ~22:30 UTC (or after Treasury publishes): the scheduled run
+- [x] On a business day after ~22:30 UTC (or after Treasury publishes): the scheduled run
       uploads `snapshots/<today>/…`, triggers a deployment visible in `vercel ls`, and
       `curl -s https://dts-webapp.vercel.app/api/v1/meta/build` shows the new
       `latest_record_date`.
@@ -168,7 +168,7 @@ the Actions tab).
       on a branch where `APP_TREASURY_BASE_URL: https://10.255.255.1` is added to the Ingest
       step env) → job fails, healthchecks.io receives `/fail` and emails, R2 `latest/` object's
       `last-modified` (`curl -sI https://pub-<hash>.r2.dev/latest/treasury_data.duckdb`) is unchanged.
-- [ ] After a changed run, the warm-up step logs 200 for every URL and a manual
+- [x] After a changed run, the warm-up step logs 200 for every URL and a manual
       `curl -sI` of `$U/categories/major-spending?...` right after shows `x-vercel-cache: HIT`.
 - [x] Open a PR that changes a schema field without regenerating the contract → `ci` fails at the
       `git diff --exit-code` step; regenerate → green.
@@ -194,6 +194,21 @@ the Actions tab).
   `/fail` pinged; R2 `latest/` ETag `09a979a7…` / last-modified 01:19 UTC unchanged.
 - 2026-10-19 contract drift (draft PR #3, closed): a changed `Field` description failed `backend`
   at "Contract drift" with the one-line diff; after `export_openapi` + `gen:api` both jobs passed.
+- **The first scheduled run never fired** (Mon 2026-10-19 22:30 UTC): by 00:42 UTC there was no
+  `schedule` run at all, though the workflow was active on `main`. GitHub delays or drops cron
+  runs under load, and a newly added schedule can miss its first slot. Started it by hand
+  (run 39349259259). Watch whether Tuesday's fires; if cron keeps slipping, move it off the
+  half hour or add a second slot (e.g. `30 23 * * 1-5`) — re-runs on the same data are no-ops.
+- **First run with new data** (manual, 2026-10-20 00:42 UTC, 2 m 18 s): 235 rows for 2026-10-16
+  across 7 tables, FY2027 rebuilt; both uploads succeeded on try 1 (66 MB); deploy hook → new
+  production deploy Ready in ~1 m; `/api/v1/meta/build` → `latest_record_date` 2026-10-16;
+  warm-up 17/17 URLs 200 in 0.06–0.25 s; success ping.
+- Snapshots are keyed by the **UTC run date**, not the statement date: this run wrote
+  `snapshots/2026-10-20/` for the 2026-10-16 statement.
+- **The warm-up only warms the runner's edge region.** Vercel's CDN caches per edge; a request
+  through `sfo1` right after the run was a `MISS` (then `HIT`). The step still matters: it keeps
+  the `iad1` function warm, so other regions' first miss costs ~0.1–0.3 s, not the ~7 s cold
+  start.
 - `cf r2 objects get` has no `--file`; the runbook downloads snapshots from the public r2.dev URL.
 - Actions warns that `checkout@v4`, `setup-node@v4` and `setup-uv@v6` target Node 20 (forced to
   24) — bump to their Node 24 majors when convenient.
