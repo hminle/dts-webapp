@@ -4,12 +4,30 @@
     "fiscal_year": 2027,
     "day_of_fiscal_year": 12,
     "inputs": {
-      "today": { "tga_deposits": 32776, "debt_issues": 1023, "tga_withdrawals": 16223, "debt_redemptions": 1225 },
-      "fytd": { "tga_deposits": 1949405, "debt_issues": 1659685, "tga_withdrawals": 1968406, "debt_redemptions": 1569754 }
+      "today": {
+        "tga_deposits": 32776,
+        "debt_issues": 1023,
+        "tga_withdrawals": 16223,
+        "debt_redemptions": 1225
+      },
+      "fytd": {
+        "tga_deposits": 1949405,
+        "debt_issues": 1659685,
+        "tga_withdrawals": 1968406,
+        "debt_redemptions": 1569754
+      }
     },
     "outputs": {
-      "today": { "total_deposits": 31753, "total_withdrawals": 14998, "net_transfers": -16755 },
-      "fytd": { "total_deposits": 289720, "total_withdrawals": 398652, "net_transfers": 108932 }
+      "today": {
+        "total_deposits": 31753,
+        "total_withdrawals": 14998,
+        "net_transfers": -16755
+      },
+      "fytd": {
+        "total_deposits": 289720,
+        "total_withdrawals": 398652,
+        "net_transfers": 108932
+      }
     }
   },
   "yoy": {
@@ -19,7 +37,12 @@
     "difference": 14932,
     "percent_change": 15.89
   },
-  "yoy_negative_base": { "current": -30, "previous": -50, "difference": 20, "percent_change": 40.0 },
+  "yoy_negative_base": {
+    "current": -30,
+    "previous": -50,
+    "difference": 20,
+    "percent_change": 40.0
+  },
   "categories": {
     "current_date": "2026-10-19",
     "previous_date": "2025-10-17",
@@ -54,6 +77,26 @@
       "previous_total": 13865,
       "difference": 6886,
       "percent_change": 49.66
+    },
+    "social_security": {
+      "current": {
+        "SSA - Benefits Payments": 63569,
+        "SSA - Supplemental Security Income": 5468,
+        "Social Security Admin (SSA) - misc": 455
+      },
+      "previous": {
+        "SSA - Benefits Payments": 88872,
+        "SSA - Supplemental Security Income": 5310,
+        "Social Security Admin (SSA) - misc": 197
+      },
+      "current_total": 69492,
+      "previous_total": 94379,
+      "difference": -24887,
+      "percent_change": -26.37,
+      "benefit_payment_days": {
+        "current": ["2026-10-02", "2026-10-14"],
+        "previous": ["2025-10-03", "2025-10-08", "2025-10-15"]
+      }
     },
     "irs_refunds": {
       "table_v": {

@@ -225,7 +225,7 @@ table.grid code { font-family: var(--font-mono); font-size: 0.8rem; }
     <span class="eyebrow">DTS Analysis · plan</span>
     <h1>Every number explains itself</h1>
     <p class="lede">Tests for every Treasury formula in the app, one place where each formula is written down, and a "How is this calculated?" button next to every figure.</p>
-    <div class="meta"><span>Plan folder: formula-education</span><span>4 phases (0 done)</span><span>Amounts in millions of dollars, as the Treasury reports them</span></div>
+    <div class="meta"><span>Plan folder: formula-education</span><span>4 phases (3 done)</span><span>Amounts in millions of dollars, as the Treasury reports them</span></div>
   </header>
 
   <!-- PART 1 -->
@@ -316,7 +316,7 @@ table.grid code { font-family: var(--font-mono); font-size: 0.8rem; }
         <div class="browser">
           <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="url" id="url">dts-webapp.vercel.app/daily/single-date</span><span class="mocklabel">Mockup — not the live app</span></div>
           <div id="scenes"></div>
-          <noscript><ol class="instr" style="margin:0.75rem;padding-left:2rem"><li>Open Single date for October 19, 2026 (live today).</li><li>Find the help button next to Net flow (today) (Phase 3).</li><li>Tap it: the net-transfers formula opens in place (Phase 3).</li><li>Click Read the full explanation (Phase 3).</li><li>Land on Net transfers with the worked example: −16,755 today, 108,932 year to date (Phase 2).</li><li>Jump to Comparing with a year ago: +14,932, +15.89% (Phase 2).</li></ol></noscript>
+          <noscript><ol class="instr" style="margin:0.75rem;padding-left:2rem"><li>Open Single date for October 19, 2026 (live today).</li><li>Find the help button next to Net flow (today) (Phase 3).</li><li>Tap it: the net-transfers formula opens in place (Phase 3).</li><li>Click Read the full explanation (Phase 3).</li><li>Land on Net transfers with the worked example: −16,755 today, 108,932 year to date (live).</li><li>Jump to Comparing with a year ago: +14,932, +15.89% (live).</li></ol></noscript>
         </div>
       </div>
     </div>
@@ -350,7 +350,7 @@ table.grid code { font-family: var(--font-mono); font-size: 0.8rem; }
             <tr><td>Day of fiscal year (rank among all statement dates; DENSE_RANK in category queries)</td><td><code>ingest/populate.py</code>, <code>services/yoy.py</code></td><td><code>test_formula_day_of_fiscal_year.py</code></td></tr>
             <tr><td>YoY difference and percent (÷ |previous|, none at 0); previous-year date alignment in both modes</td><td><code>utils/yoy.py</code>, <code>services/yoy.py</code></td><td><code>test_formula_yoy.py</code></td></tr>
             <tr><td>Spending and receipt groups, Customs rename, T-Bill interest, IRS refunds (Table V), category daily YoY</td><td><code>constants/categories.py</code>, <code>services/categories.py</code></td><td><code>test_formula_categories.py</code></td></tr>
-            <tr><td>Weekly: Fridays, 5-day look-back, truncation to first year's weeks</td><td><code>services/weekly.py</code></td><td><code>test_formula_weekly.py</code></td></tr>
+            <tr><td>Weekly: Fridays, 5-day look-back, cut at the first year's last week</td><td><code>services/weekly.py</code></td><td><code>test_formula_weekly.py</code></td></tr>
           </tbody>
         </table>
       </div>
@@ -370,7 +370,7 @@ table.grid code { font-family: var(--font-mono); font-size: 0.8rem; }
       <h3>Risks</h3>
       <ul>
         <li><b>A test exposes a real bug.</b> Phase 1 pins current behavior with a comment and records it; the fix goes on its own <code class="mono">fix/</code> branch so the explanation and the behavior change together.</li>
-        <li><b>Social Security FYTD is down 26% at day 12</b> (69,492 vs 94,379). It is likely the benefit payment calendar; Phase 2 checks the daily payments before the page uses it as an example of a limit.</li>
+        <li><b>Social Security FYTD is down 26% at day 12</b> (69,492 vs 94,379). Confirmed as the benefit payment calendar: FY2026's first 12 days held payments on Oct 3, 8 and 15; FY2027's only on Oct 2 and 14. The Methodology lists it under Known limits.</li>
         <li><b>Rounding at billions.</b> <code class="mono">toFixed</code> shows 16.755 as 16.75, so the arithmetic examples are shown in millions.</li>
       </ul>
     </div>
@@ -423,7 +423,7 @@ table.grid code { font-family: var(--font-mono); font-size: 0.8rem; }
 
   function methodology(step) {
     var yoy = step === 6;
-    var toc = ['Start here','Reading a statement','Deposits and withdrawals','Net transfers','Comparing with a year ago','Lining up two years','Major spending','Major receipts','T-Bill interest','IRS tax refunds','Weekly comparison','Glossary'];
+    var toc = ['Start here','Reading a statement','Deposits, withdrawals and borrowing','Net transfers','Comparing with a year ago','Lining up two years','Major spending categories','Major receipt categories','T-Bill interest','IRS tax refunds','Category comparison','Weekly comparison','Known limits','Glossary','Source and update schedule'];
     var on = yoy ? 4 : 3;
     var tocHtml = '<div class="m-toc' + (yoy ? ' hl' : '') + '">' + (yoy ? '<span class="callout">6</span>' : '') + '<strong style="color:var(--m-foreground);font-size:11px">On this page</strong>' +
       toc.map(function (t, i) { return '<span class="' + (i === on ? 'on' : '') + '">' + t + '</span>'; }).join('') + '</div>';
@@ -447,8 +447,8 @@ table.grid code { font-family: var(--font-mono); font-size: 0.8rem; }
     { title: 'Find the help button next to Net flow (today)', tag: 'Ships in Phase 3', page: 'single', url: 'daily/single-date' },
     { title: 'Tap it: the formula opens in place', tag: 'Ships in Phase 3', page: 'single', url: 'daily/single-date' },
     { title: 'Click Read the full explanation', tag: 'Ships in Phase 3', page: 'single', url: 'daily/single-date' },
-    { title: 'Land on Net transfers with the worked example', tag: 'Ships in Phase 2', page: 'method', url: 'methodology#net-transfers' },
-    { title: 'Jump to Comparing with a year ago', tag: 'Ships in Phase 2', page: 'method', url: 'methodology#yoy-percent' }
+    { title: 'Land on Net transfers with the worked example', tag: 'Live', page: 'method', url: 'methodology#net-transfers' },
+    { title: 'Jump to Comparing with a year ago', tag: 'Live', page: 'method', url: 'methodology#yoy-percent' }
   ];
 
   var scenes = document.getElementById('scenes');

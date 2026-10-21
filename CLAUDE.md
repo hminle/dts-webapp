@@ -139,6 +139,10 @@ The shell, design tokens, and component layers are copied from
   `src/lib/chart.ts`.
 - Amounts from the Treasury API are **millions of dollars** as floats; format only at display
   time through `src/lib/format.ts`.
+- Formula copy lives in `features/methodology/formulas.ts`; worked-example numbers live in
+  `features/methodology/worked-examples.json`, which `backend/tests/test_formula_examples.py`
+  checks against the real formula code — change a formula and both must be updated in the same
+  commit.
 
 ## Conventions
 

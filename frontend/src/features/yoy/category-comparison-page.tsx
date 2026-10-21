@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import { CircleAlert } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { QueryState } from '@/components/query-state'
@@ -10,7 +11,6 @@ import { CategoryPicker } from './components/category-picker'
 import type { TransactionFilter } from './components/category-picker'
 import { ComparisonChart } from './components/comparison-chart'
 import { ComparisonTable } from './components/comparison-table'
-import { MethodologyCard } from './components/methodology-card'
 
 export function CategoryComparisonPage() {
   const years = useFiscalYears()
@@ -74,7 +74,13 @@ export function CategoryComparisonPage() {
         </Alert>
       )}
 
-      <MethodologyCard />
+      <Link
+        to='/methodology'
+        hash='any-line-item'
+        className='text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground'
+      >
+        How this comparison is calculated
+      </Link>
 
       {query && (
         <QueryState query={comparison} skeletonClassName='h-96'>
