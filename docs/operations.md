@@ -51,7 +51,9 @@ gh run watch                           # follow the run
 
 ## Failure triage
 
-healthchecks.io emails when a run pings `/fail` or no ping arrives within the 3 h grace.
+healthchecks.io emails when a run pings `/fail` or no ping arrives within the 5 h grace. GitHub
+starts scheduled runs late — 2–3 h after 22:30 UTC has been normal — so a late run is not a
+failure.
 
 1. Open the failed run in Actions and find the first red step.
 2. Common causes:
@@ -73,7 +75,7 @@ GitHub Actions secrets (`gh secret list`):
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Workers R2 Storage: Edit on the account |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account id (from `cf auth whoami`) |
 | `VERCEL_DEPLOY_HOOK_URL` | Vercel → Settings → Git → Deploy Hooks → `daily-data` (branch `main`) |
-| `HEALTHCHECK_PING_URL` | healthchecks.io check `dts-ingest` (cron `30 22 * * 1-5` UTC, grace 3 h) |
+| `HEALTHCHECK_PING_URL` | healthchecks.io check `dts-ingest` (cron `30 22 * * 1-5` UTC, grace 5 h) |
 
 A leaked deploy hook only lets someone trigger rebuilds; rotate it by deleting and recreating it
 in Vercel and updating the secret.

@@ -1,4 +1,4 @@
-# Phase 4: Daily Pipeline & CI — 🟡 In Progress
+# Phase 4: Daily Pipeline & CI — ✅ Done
 
 **Goal**: Every business day, GitHub Actions updates the artifact from the Treasury API,
 uploads it to R2, and triggers a Vercel deploy; failures alert loudly and never replace good
@@ -22,7 +22,7 @@ Branch: `feat/daily-pipeline`.
 | `CLOUDFLARE_API_TOKEN` | Cloudflare dashboard → My Profile → API Tokens → Create → template "Edit R2" (or custom: Account › Workers R2 Storage › Edit), scoped to the account. Store with `gh secret set CLOUDFLARE_API_TOKEN` |
 | `CLOUDFLARE_ACCOUNT_ID` | `cf auth whoami` (or dashboard sidebar). `gh secret set CLOUDFLARE_ACCOUNT_ID` |
 | `VERCEL_DEPLOY_HOOK_URL` | Vercel → project `dts-webapp` → Settings → Git → Deploy Hooks → name `daily-data`, branch `main`. `gh secret set VERCEL_DEPLOY_HOOK_URL` |
-| `HEALTHCHECK_PING_URL` | healthchecks.io (free) → new check `dts-ingest`, schedule cron `30 22 * * 1-5` UTC, grace 3 h, email alert. `gh secret set HEALTHCHECK_PING_URL` |
+| `HEALTHCHECK_PING_URL` | healthchecks.io (free) → new check `dts-ingest`, schedule cron `30 22 * * 1-5` UTC, grace 5 h, email alert. `gh secret set HEALTHCHECK_PING_URL` |
 
 Run `gh auth status` first — the active account must be `hminle`.
 
@@ -222,6 +222,10 @@ the Actions tab).
   ended 00:57:05, new deploy ready ~00:57:50). It now records the live `build_date` before
   firing the hook and waits for it to change; rerun 39350824714 waited 4 checks (~90 s) and then
   warmed the new deployment.
+- **GitHub cron runs late, not never:** the Mon 2026-10-19 slot started 01:09 UTC (+2 h 40 m) and
+  the Tue slot 00:48 UTC (+2 h 18 m), the latter loading 2026-10-19 unattended. The healthcheck
+  grace was raised from 3 h to **5 h** so these delays don't page; a genuinely missed day still
+  alerts around 03:30 UTC.
 - Scheduler options if GitHub cron keeps slipping (not done yet): a Cloudflare Worker Cron
   Trigger (Free: 5 per account, minute precision) calling the `workflow_dispatch` API with a
   fine-grained token (Actions: write, this repo only); Vercel Cron on Hobby is once a day with

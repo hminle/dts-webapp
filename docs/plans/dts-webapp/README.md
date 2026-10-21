@@ -17,7 +17,7 @@ free public app is live (see Key Decisions).
 | Phase 1: Scaffold & first deploy | ✅ Done | Monorepo skeleton, tokens + sidebar shell, `/api/health` live on Vercel Services |
 | Phase 2: Ingestion & data artifact | ✅ Done | `python -m app.ingest` builds `treasury_data.duckdb`; R2 bucket; Vercel build bundles it; cold start measured |
 | Phase 3: Serving API | ✅ Done | Read-only DuckDB, all reference endpoints ported as cacheable `GET`s, SQL pagination, tests, OpenAPI contract |
-| Phase 4: Daily pipeline & CI | 🟡 In Progress | GitHub Actions cron: ingest → R2 → Vercel Deploy Hook; CI workflow for lint/tests/typecheck |
+| Phase 4: Daily pipeline & CI | ✅ Done | GitHub Actions cron: ingest → R2 → Vercel Deploy Hook; CI workflow for lint/tests/typecheck |
 | Phase 5: Frontend — core pages | ✅ Done | Overview, Data status, Single date, Daily net transfers, Fiscal year |
 | Phase 6: Frontend — analysis pages | ✅ Done | Year-over-year suite, category comparison, weekly comparison (week-alignment fix), Vitest |
 | Phase 7: Launch hygiene | 🟡 In Progress | Cache verification, rate limiting, error monitoring, methodology + legal pages |
