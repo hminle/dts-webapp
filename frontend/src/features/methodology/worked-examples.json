@@ -1,0 +1,69 @@
+{
+  "net_transfers": {
+    "date": "2026-10-19",
+    "fiscal_year": 2027,
+    "day_of_fiscal_year": 12,
+    "inputs": {
+      "today": { "tga_deposits": 32776, "debt_issues": 1023, "tga_withdrawals": 16223, "debt_redemptions": 1225 },
+      "fytd": { "tga_deposits": 1949405, "debt_issues": 1659685, "tga_withdrawals": 1968406, "debt_redemptions": 1569754 }
+    },
+    "outputs": {
+      "today": { "total_deposits": 31753, "total_withdrawals": 14998, "net_transfers": -16755 },
+      "fytd": { "total_deposits": 289720, "total_withdrawals": 398652, "net_transfers": 108932 }
+    }
+  },
+  "yoy": {
+    "current": { "date": "2026-10-19", "fiscal_year": 2027, "value": 108932 },
+    "previous": { "date": "2025-10-17", "fiscal_year": 2026, "value": 94000 },
+    "day_of_fiscal_year": 12,
+    "difference": 14932,
+    "percent_change": 15.89
+  },
+  "yoy_negative_base": { "current": -30, "previous": -50, "difference": 20, "percent_change": 40.0 },
+  "categories": {
+    "current_date": "2026-10-19",
+    "previous_date": "2025-10-17",
+    "medicare": {
+      "current": {
+        "HHS - Federal Hospital Insr Trust Fund": 28951,
+        "HHS - Federal Supple Med Insr Trust Fund": 42077,
+        "HHS - Medicare Prescription Drugs": 10505
+      },
+      "previous": {
+        "HHS - Federal Hospital Insr Trust Fund": 26849,
+        "HHS - Federal Supple Med Insr Trust Fund": 38413,
+        "HHS - Medicare Prescription Drugs": 6969
+      },
+      "current_total": 81533,
+      "previous_total": 72231,
+      "difference": 9302,
+      "percent_change": 12.88
+    },
+    "customs": {
+      "current": { "DHS - Customs Duties, Taxes, and Fees": 3870 },
+      "previous": { "DHS - Customs and Certain Excise Taxes": 4715 },
+      "current_total": 3870,
+      "previous_total": 4715,
+      "difference": -845,
+      "percent_change": -17.92
+    },
+    "tbill": {
+      "current": { "Bills (-)": 17006, "Bonds and Notes (-)": 3745 },
+      "previous": { "Bills (-)": 13738, "Bonds and Notes (-)": 127 },
+      "current_total": 20751,
+      "previous_total": 13865,
+      "difference": 6886,
+      "percent_change": 49.66
+    },
+    "irs_refunds": {
+      "table_v": {
+        "Taxes - Individual Tax Refunds (EFT)": 4394,
+        "Taxes - Individual Tax Refunds (Checks)": 1788,
+        "Taxes - Business Tax Refunds (EFT)": 827,
+        "Taxes - Business Tax Refunds (Checks)": 3549
+      },
+      "table_v_total": 10558,
+      "table_ii_eft_only": 5221
+    }
+  }
+}

@@ -16,7 +16,7 @@ places — the code wins).
 | Phase | Status | Description |
 |-------|--------|-------------|
 | Phase 0: Setup | ✅ Done | Formula inventory, decisions, worked examples, file list |
-| Phase 1: Backend formula tests | ⬜ Not Started | Unit tests for every formula in `app/utils` + `app/services`; worked-examples JSON checked against the real code |
+| Phase 1: Backend formula tests | ✅ Done | Unit tests for every formula in `app/utils` + `app/services`; worked-examples JSON checked against the real code |
 | Phase 2: Formula registry & Methodology | ⬜ Not Started | `formulas.ts` registry, `FormulaBlock`, a long-form educational Methodology page with anchors |
 | Phase 3: In-context explanations | ⬜ Not Started | `FormulaHint` popover next to every computed figure, linking to its Methodology section |
 
