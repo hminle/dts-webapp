@@ -1,0 +1,496 @@
+<title>Formula Education Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: a single reading column (ledger page) with wide figures; Part 2 breaks out to a two-column stepper. */
+:root {
+  --paper: #f4f6f5;
+  --sheet: #ffffff;
+  --ink: #17211d;
+  --ink-soft: #55625c;
+  --rule: #d7dfdb;
+  --green: #2c6a4d;
+  --green-wash: #e3efe8;
+  --red: #a63d2c;
+  --font-display: "Public Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Public Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.75rem;
+  --step-3: 2.5rem;
+
+  /* app tokens for the mockup (frontend/src/styles/globals.css :root) */
+  --m-background: oklch(1 0 0);
+  --m-foreground: oklch(0.145 0 0);
+  --m-card: oklch(1 0 0);
+  --m-popover: oklch(1 0 0);
+  --m-primary: oklch(0.205 0 0);
+  --m-primary-foreground: oklch(0.985 0 0);
+  --m-muted: oklch(0.97 0 0);
+  --m-muted-foreground: oklch(0.556 0 0);
+  --m-accent: oklch(0.97 0 0);
+  --m-destructive: oklch(0.577 0.245 27.325);
+  --m-success: oklch(0.696 0.17 162.48);
+  --m-border: oklch(0.922 0 0);
+  --m-ring: oklch(0.708 0 0);
+  --m-sidebar: oklch(0.985 0 0);
+  --m-sidebar-accent: oklch(0.97 0 0);
+  --m-sidebar-border: oklch(0.922 0 0);
+  --m-callout: #2c6a4d;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1512; --sheet: #161e1a; --ink: #e3ebe7; --ink-soft: #9aaaa2;
+    --rule: #2a3631; --green: #74c29a; --green-wash: #1d2d25; --red: #e0806d;
+    --m-background: oklch(0.145 0 0); --m-foreground: oklch(0.985 0 0); --m-card: oklch(0.205 0 0);
+    --m-popover: oklch(0.269 0 0); --m-primary: oklch(0.922 0 0); --m-primary-foreground: oklch(0.205 0 0);
+    --m-muted: oklch(0.269 0 0); --m-muted-foreground: oklch(0.708 0 0); --m-accent: oklch(0.371 0 0);
+    --m-destructive: oklch(0.704 0.191 22.216); --m-border: oklch(1 0 0 / 10%); --m-ring: oklch(0.556 0 0);
+    --m-sidebar: oklch(0.205 0 0); --m-sidebar-accent: oklch(0.269 0 0); --m-sidebar-border: oklch(1 0 0 / 10%);
+    --m-callout: #74c29a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1512; --sheet: #161e1a; --ink: #e3ebe7; --ink-soft: #9aaaa2;
+  --rule: #2a3631; --green: #74c29a; --green-wash: #1d2d25; --red: #e0806d;
+  --m-background: oklch(0.145 0 0); --m-foreground: oklch(0.985 0 0); --m-card: oklch(0.205 0 0);
+  --m-popover: oklch(0.269 0 0); --m-primary: oklch(0.922 0 0); --m-primary-foreground: oklch(0.205 0 0);
+  --m-muted: oklch(0.269 0 0); --m-muted-foreground: oklch(0.708 0 0); --m-accent: oklch(0.371 0 0);
+  --m-destructive: oklch(0.704 0.191 22.216); --m-border: oklch(1 0 0 / 10%); --m-ring: oklch(0.556 0 0);
+  --m-sidebar: oklch(0.205 0 0); --m-sidebar-accent: oklch(0.269 0 0); --m-sidebar-border: oklch(1 0 0 / 10%);
+  --m-callout: #74c29a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: var(--step-0); line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 2.5rem 4rem;
+}
+.wrap { max-width: 64rem; margin: 0 auto; display: flex; flex-direction: column; gap: 3.5rem; }
+.col { max-width: 42rem; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: var(--step-3); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: var(--step-2); font-weight: 800; letter-spacing: -0.01em; }
+h3 { font-size: var(--step-1); font-weight: 600; }
+p { margin: 0; }
+.lede { font-size: var(--step-1); color: var(--ink-soft); max-width: 40rem; }
+.eyebrow { font-size: var(--step--1); text-transform: uppercase; letter-spacing: 0.08em; color: var(--green); font-weight: 600; }
+.mono { font-family: var(--font-mono); }
+.num { font-variant-numeric: tabular-nums; }
+.neg { color: var(--red); }
+.pos { color: var(--green); }
+
+header.top { display: flex; flex-direction: column; gap: 1rem; border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; }
+.meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; font-size: var(--step--1); color: var(--ink-soft); }
+
+.part { display: flex; flex-direction: column; gap: 1.75rem; }
+.part-head { display: flex; flex-direction: column; gap: 0.4rem; border-top: 1px solid var(--rule); padding-top: 1.25rem; }
+
+/* Part 1 panels */
+.panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); gap: 1rem; }
+.panel { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.9rem; min-width: 0; }
+.panel.wide { grid-column: 1 / -1; }
+.panel .cap { font-size: 0.9375rem; color: var(--ink-soft); }
+.panel h3 { font-size: 1.0625rem; }
+.fig { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.box { border: 1.5px solid var(--ink); border-radius: 4px; padding: 0.45rem 0.7rem; font-size: 0.875rem; background: var(--paper); }
+.box.g { border-color: var(--green); background: var(--green-wash); }
+.box.dash { border-style: dashed; color: var(--ink-soft); }
+.arrow { color: var(--ink-soft); font-family: var(--font-mono); }
+.ledger { width: 100%; border-collapse: collapse; font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+.ledger td { padding: 0.25rem 0; border-bottom: 1px solid var(--rule); }
+.ledger td:last-child { text-align: right; font-family: var(--font-mono); }
+.ledger tr.sum td { border-bottom: 2px solid var(--ink); font-weight: 600; }
+.ledger tr.total td { border-bottom: none; font-weight: 800; }
+.beforeafter { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 0.75rem; }
+.ba { border: 1px solid var(--rule); border-radius: 4px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.875rem; }
+.ba b { font-size: var(--step--1); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
+.chip { display: inline-flex; align-items: center; justify-content: center; width: 1.1rem; height: 1.1rem; border-radius: 50%; border: 1.5px solid currentColor; font-size: 0.7rem; font-weight: 700; }
+.risks { display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.9375rem; }
+.risks div { display: grid; grid-template-columns: 1fr; gap: 0.15rem; }
+.risks b { font-weight: 600; }
+
+/* Part 2 walkthrough */
+.walk { display: grid; grid-template-columns: minmax(0, 17rem) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.steps button { all: unset; box-sizing: border-box; cursor: pointer; display: grid; grid-template-columns: 1.75rem 1fr; gap: 0.5rem; width: 100%; padding: 0.6rem 0.7rem; border-radius: 6px; border: 1px solid transparent; font-size: 0.9rem; line-height: 1.4; }
+.steps button:hover { background: var(--sheet); }
+.steps button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.steps button[aria-current="step"] { background: var(--sheet); border-color: var(--green); }
+.steps .n { font-family: var(--font-mono); color: var(--green); font-weight: 500; }
+.steps .tag { display: block; font-size: 0.75rem; color: var(--ink-soft); margin-top: 0.15rem; }
+.stepnav { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.75rem; flex-wrap: wrap; }
+.stepnav button { font: inherit; font-size: 0.875rem; padding: 0.4rem 0.9rem; border-radius: 6px; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); cursor: pointer; }
+.stepnav button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.stepnav button:disabled { opacity: 0.45; cursor: default; }
+.stepcount { font-size: 0.875rem; color: var(--ink-soft); }
+.instr { font-size: 0.9375rem; padding: 0.6rem 0.8rem; border-left: 3px solid var(--green); background: var(--sheet); border-radius: 0 6px 6px 0; }
+
+.browser { border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--sheet); min-width: 0; }
+.bar { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--rule); font-size: 0.75rem; color: var(--ink-soft); }
+.dots { display: flex; gap: 0.3rem; } .dots i { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--rule); display: block; }
+.url { flex: 1; min-width: 0; font-family: var(--font-mono); background: var(--paper); border-radius: 4px; padding: 0.2rem 0.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mocklabel { white-space: nowrap; }
+
+.mock-app { font-family: "Inter", system-ui, sans-serif; background: var(--m-sidebar); color: var(--m-foreground); display: grid; grid-template-columns: 10.5rem minmax(0, 1fr); font-size: 13px; line-height: 1.45; min-height: 30rem; }
+.m-side { padding: 0.9rem 0.6rem; display: flex; flex-direction: column; gap: 0.2rem; }
+.m-title { font-weight: 600; font-size: 13px; padding: 0 0.4rem 0.6rem; }
+.m-title small { display: block; font-weight: 400; font-size: 11px; color: var(--m-muted-foreground); }
+.m-group { font-size: 11px; color: var(--m-muted-foreground); padding: 0.3rem 0.4rem; }
+.m-nav { padding: 0.3rem 0.5rem; border-radius: 6px; }
+.m-nav.on { background: var(--m-sidebar-accent); font-weight: 500; }
+.m-nav.sub { padding-left: 1.3rem; font-size: 12px; }
+.m-foot { margin-top: auto; font-size: 10.5px; color: var(--m-muted-foreground); padding: 0.4rem; }
+.m-main { background: var(--m-background); margin: 0.5rem 0.5rem 0.5rem 0; border-radius: 12px; border: 1px solid var(--m-border); min-width: 0; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+.m-head { display: flex; align-items: center; gap: 0.6rem; padding: 0.7rem 1rem; border-bottom: 1px solid var(--m-border); font-weight: 500; font-size: 14px; }
+.m-body { padding: 1rem; display: flex; flex-direction: column; gap: 0.8rem; min-width: 0; }
+.m-card { background: var(--m-card); border: 1px solid var(--m-border); border-radius: 0.625rem; padding: 0.9rem; display: flex; flex-direction: column; gap: 0.6rem; min-width: 0; }
+.m-card h4 { margin: 0; font-size: 14px; font-weight: 600; }
+.m-desc { color: var(--m-muted-foreground); font-size: 12px; }
+.m-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
+.m-metric { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.m-lab { display: flex; align-items: center; gap: 0.3rem; font-size: 12px; font-weight: 500; }
+.m-val { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.m-note { font-size: 11px; color: var(--m-muted-foreground); }
+.m-neg { color: var(--m-destructive); } .m-pos { color: var(--m-success); }
+.m-help { all: unset; display: inline-flex; width: 18px; height: 18px; align-items: center; justify-content: center; border-radius: 6px; color: var(--m-muted-foreground); }
+.m-help svg { width: 13px; height: 13px; }
+.m-pop { position: absolute; z-index: 2; background: var(--m-popover); border: 1px solid var(--m-border); border-radius: 0.625rem; padding: 0.8rem; width: min(17rem, calc(100% - 2rem)); display: flex; flex-direction: column; gap: 0.5rem; box-shadow: 0 8px 24px rgb(0 0 0 / 0.14); top: 7.8rem; left: 1rem; }
+.m-formula { font-family: var(--font-mono); font-size: 11px; background: var(--m-muted); border-radius: 6px; padding: 0.45rem 0.55rem; display: flex; flex-direction: column; gap: 0.1rem; }
+.m-link { text-decoration: underline; text-underline-offset: 3px; font-size: 12px; font-weight: 500; }
+.m-doc { display: grid; grid-template-columns: minmax(0, 1fr) 8.5rem; gap: 0.8rem; }
+.m-toc { font-size: 11.5px; display: flex; flex-direction: column; gap: 0.25rem; color: var(--m-muted-foreground); border-left: 1px solid var(--m-border); padding-left: 0.6rem; }
+.m-toc span.on { color: var(--m-foreground); font-weight: 600; }
+.m-table { width: 100%; border-collapse: collapse; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.m-table td, .m-table th { padding: 0.25rem 0.3rem; border-bottom: 1px solid var(--m-border); text-align: right; }
+.m-table td:first-child, .m-table th:first-child { text-align: left; }
+.m-table th { color: var(--m-muted-foreground); font-weight: 500; }
+.m-table tr.t td { font-weight: 600; border-bottom: none; }
+.hl { outline: 2px solid var(--m-callout); outline-offset: 2px; border-radius: 6px; position: relative; }
+.callout { position: absolute; top: -0.65rem; right: -0.65rem; width: 1.3rem; height: 1.3rem; border-radius: 50%; background: var(--m-callout); color: var(--sheet); font: 600 11px/1.3rem var(--font-mono); text-align: center; z-index: 3; }
+
+/* no-JS: every scene shows */
+.scene { display: block; }
+.js .scene { display: none; }
+.js .scene.active { display: block; }
+.scene + .scene { border-top: 1px dashed var(--rule); }
+.js .scene + .scene { border-top: none; }
+.nojs-step { font-size: 0.875rem; padding: 0.5rem 0.75rem; background: var(--paper); color: var(--ink-soft); }
+.js .nojs-step { display: none; }
+
+/* Part 3 */
+.brief { display: flex; flex-direction: column; gap: 1.5rem; }
+.brief p, .brief li { max-width: 46rem; }
+.brief ul { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.scroll { overflow-x: auto; }
+.arch { display: grid; grid-template-columns: repeat(3, minmax(12rem, 1fr)); gap: 1rem 2rem; min-width: 40rem; align-items: center; position: relative; padding: 0.5rem 0; }
+.node { background: var(--sheet); border: 1.5px solid var(--ink); border-radius: 4px; padding: 0.6rem 0.75rem; font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.2rem; }
+.node code { font-family: var(--font-mono); font-size: 0.78rem; color: var(--green); word-break: break-all; }
+.node.src { border-color: var(--green); background: var(--green-wash); }
+.edge { font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink-soft); }
+table.grid { border-collapse: collapse; width: 100%; min-width: 36rem; font-size: 0.875rem; }
+table.grid th, table.grid td { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+table.grid th { font-size: var(--step--1); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); font-weight: 600; }
+table.grid code { font-family: var(--font-mono); font-size: 0.8rem; }
+.dag { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; font-size: 0.875rem; }
+
+@media (max-width: 760px) {
+  .walk { grid-template-columns: 1fr; }
+  .steps { display: none; }
+  .mock-app { grid-template-columns: 2.6rem minmax(0, 1fr); }
+  .m-side .t, .m-title, .m-group, .m-foot, .m-nav.sub { display: none; }
+  .m-nav { width: 1.6rem; height: 1.6rem; padding: 0; }
+  .m-grid3 { grid-template-columns: 1fr; }
+  .m-doc { grid-template-columns: 1fr; }
+  .m-toc { display: none; }
+  .m-pop { top: 6.5rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .scene.active { animation: fade 160ms ease-out; }
+  @keyframes fade { from { opacity: 0.6; } to { opacity: 1; } }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">DTS Analysis · plan</span>
+    <h1>Every number explains itself</h1>
+    <p class="lede">Tests for every Treasury formula in the app, one place where each formula is written down, and a "How is this calculated?" button next to every figure.</p>
+    <div class="meta"><span>Plan folder: formula-education</span><span>4 phases (0 done)</span><span>Amounts in millions of dollars, as the Treasury reports them</span></div>
+  </header>
+
+  <!-- PART 1 -->
+  <section class="part" aria-labelledby="p1">
+    <div class="part-head"><span class="eyebrow">Part 1</span><h2 id="p1">The idea</h2></div>
+    <div class="panels">
+      <div class="panel">
+        <h3>What exists today</h3>
+        <div class="fig"><span class="box">Number on screen</span><span class="arrow">→</span><span class="box dash">?</span></div>
+        <p class="cap">A visitor sees −$16,755 on Single date. Only that one page has a "how is this calculated" toggle. The Methodology page has seven short sections.</p>
+      </div>
+      <div class="panel">
+        <h3>What breaks</h3>
+        <div class="fig"><span class="box">Formula code</span><span class="arrow">≠?</span><span class="box">Words on the page</span></div>
+        <p class="cap">No test checks the formulas directly. The explanations are typed by hand in three places and can quietly drift from what the code does.</p>
+      </div>
+      <div class="panel wide">
+        <h3>The idea in one picture</h3>
+        <div class="fig">
+          <span class="box g">One worked example from a real statement</span><span class="arrow">→</span>
+          <span class="box">Checked by the real formula code</span><span class="arrow">+</span>
+          <span class="box">Written once</span><span class="arrow">→</span>
+          <span class="box">Methodology page</span><span class="arrow">&amp;</span>
+          <span class="box">Hint next to each number</span>
+        </div>
+        <p class="cap">Every explanation reads from the same source, and the example numbers it shows are tested against the code that computes the live figures.</p>
+      </div>
+      <div class="panel">
+        <h3>The worked example</h3>
+        <table class="ledger">
+          <tr><td>Deposits into the Treasury account</td><td>32,776</td></tr>
+          <tr><td>− New borrowing</td><td>1,023</td></tr>
+          <tr class="sum"><td>Total deposits</td><td>31,753</td></tr>
+          <tr><td>Withdrawals</td><td>16,223</td></tr>
+          <tr><td>− Repaying debt</td><td>1,225</td></tr>
+          <tr class="sum"><td>Total withdrawals</td><td>14,998</td></tr>
+          <tr class="total"><td>Net transfers</td><td class="neg">−16,755</td></tr>
+        </table>
+        <p class="cap">October 19, 2026: more came in than went out that day, before borrowing.</p>
+      </div>
+      <div class="panel">
+        <h3>Compared with a year ago</h3>
+        <table class="ledger">
+          <tr><td>Fiscal year 2027, day 12, year to date</td><td>108,932</td></tr>
+          <tr><td>Fiscal year 2026, day 12, year to date</td><td>94,000</td></tr>
+          <tr class="sum"><td>Difference</td><td class="pos">+14,932</td></tr>
+          <tr class="total"><td>Change</td><td>+15.89%</td></tr>
+        </table>
+        <p class="cap">Day 12 means the 12th statement since October 1, so weekends and holidays don't shift the comparison.</p>
+      </div>
+      <div class="panel">
+        <h3>What changes for the user</h3>
+        <div class="beforeafter">
+          <div class="ba"><b>Before</b>Net flow (today) <span class="num">−$16,755.00</span></div>
+          <div class="ba"><b>After</b><span>Net flow (today) <span class="chip" aria-hidden="true">?</span></span>Tap it: the formula, then a link to the full explanation.</div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>The order of work</h3>
+        <div class="fig"><span class="box">1 · Test every formula</span><span class="arrow">→</span><span class="box">2 · Write each formula once + Methodology</span><span class="arrow">→</span><span class="box">3 · Hints on every page</span></div>
+        <p class="cap">Tests come first so every sentence written later describes behavior that is already pinned.</p>
+      </div>
+      <div class="panel">
+        <h3>What could go wrong</h3>
+        <div class="risks">
+          <div><b>The code does something surprising.</b><span>The tests record it and the page explains it. This plan changes no formula.</span></div>
+          <div><b>Treasury renames a line item.</b><span>A test compares the names on the page with the backend's list.</span></div>
+          <div><b>A number on the page is a typo.</b><span>No figure is typed into the page; they all come from the tested example file.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PART 2 -->
+  <section class="part" aria-labelledby="p2">
+    <div class="part-head"><span class="eyebrow">Part 2</span><h2 id="p2">Using it</h2><p class="cap" style="color:var(--ink-soft)">From a number on Single date to its full explanation. Six steps.</p></div>
+    <div class="walk" id="walk">
+      <div>
+        <ol class="steps" id="steps"></ol>
+        <div class="stepnav">
+          <button type="button" id="prev">Back</button>
+          <button type="button" id="next">Next</button>
+          <span class="stepcount" id="count"></span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;min-width:0">
+        <p class="instr" id="instr">Open Single date for October 19, 2026.</p>
+        <div class="browser">
+          <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="url" id="url">dts-webapp.vercel.app/daily/single-date</span><span class="mocklabel">Mockup — not the live app</span></div>
+          <div id="scenes"></div>
+          <noscript><ol class="instr" style="margin:0.75rem;padding-left:2rem"><li>Open Single date for October 19, 2026 (live today).</li><li>Find the help button next to Net flow (today) (Phase 3).</li><li>Tap it: the net-transfers formula opens in place (Phase 3).</li><li>Click Read the full explanation (Phase 3).</li><li>Land on Net transfers with the worked example: −16,755 today, 108,932 year to date (Phase 2).</li><li>Jump to Comparing with a year ago: +14,932, +15.89% (Phase 2).</li></ol></noscript>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PART 3 -->
+  <section class="part" aria-labelledby="p3">
+    <div class="part-head"><span class="eyebrow">Part 3</span><h2 id="p3">Developer briefing</h2></div>
+    <div class="brief">
+      <p>Goal: every financial formula has a direct unit test; each formula's wording lives in <code class="mono">frontend/src/features/methodology/formulas.ts</code>; the worked examples live in <code class="mono">worked-examples.json</code> beside it and are asserted by <code class="mono">backend/tests/test_formula_examples.py</code> through the real functions. The Methodology page and a <code class="mono">FormulaHint</code> popover both render from the registry. No formula, API response or OpenAPI contract changes.</p>
+
+      <h3>How the pieces connect</h3>
+      <div class="scroll">
+        <div class="arch">
+          <div class="node src"><b>Worked examples</b><code>features/methodology/worked-examples.json</code><span>Real inputs and outputs, 2026-10-19 and 2025-10-17</span></div>
+          <div class="node"><b>Backend example test</b><code>tests/test_formula_examples.py</code><span>Runs <code>calculate_daily_net_transfers</code>, <code>yoy_change</code>, category services</span></div>
+          <div class="node"><b>Formula unit tests</b><code>tests/test_formula_*.py</code><span>Every branch: fallbacks, alignment, sums, Friday rule</span></div>
+          <div class="node src"><b>Registry</b><code>features/methodology/formulas.ts</code><span>17 FormulaIds: title, summary, expression, pitfalls</span></div>
+          <div class="node"><b>Methodology page</b><code>/methodology#&lt;id&gt;</code><span>15 chapters, table of contents, anchors</span></div>
+          <div class="node"><b>FormulaHint</b><code>components/formula-hint.tsx</code><span>Popover on StatCard, cards, dialogs, controls</span></div>
+        </div>
+      </div>
+      <p class="edge">Examples feed the example test and the registry; the registry feeds the page and the hints; each hint links to its page anchor.</p>
+
+      <h3>Formula inventory and where it is tested</h3>
+      <div class="scroll">
+        <table class="grid">
+          <thead><tr><th>Formula</th><th>Code</th><th>Phase 1 test file</th></tr></thead>
+          <tbody>
+            <tr><td>Total deposits, total withdrawals, net transfers, leading flow; TGA → Federal Reserve Account fallbacks</td><td><code>utils/deposits_withdrawals.py</code></td><td><code>test_formula_net_transfers.py</code></td></tr>
+            <tr><td>Day of fiscal year (rank among all statement dates; DENSE_RANK in category queries)</td><td><code>ingest/populate.py</code>, <code>services/yoy.py</code></td><td><code>test_formula_day_of_fiscal_year.py</code></td></tr>
+            <tr><td>YoY difference and percent (÷ |previous|, none at 0); previous-year date alignment in both modes</td><td><code>utils/yoy.py</code>, <code>services/yoy.py</code></td><td><code>test_formula_yoy.py</code></td></tr>
+            <tr><td>Spending and receipt groups, Customs rename, T-Bill interest, IRS refunds (Table V), category daily YoY</td><td><code>constants/categories.py</code>, <code>services/categories.py</code></td><td><code>test_formula_categories.py</code></td></tr>
+            <tr><td>Weekly: Fridays, 5-day look-back, truncation to first year's weeks</td><td><code>services/weekly.py</code></td><td><code>test_formula_weekly.py</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Key decisions</h3>
+      <ul>
+        <li><b>Test functions, not routes.</b> API tests exist; these call the formula functions on small in-memory DuckDB files built by the real schema code.</li>
+        <li><b>Pin, don't fix.</b> Surprising behavior is recorded and explained: calendar-date charts drop a date the other year lacks, while category cards fall back to the latest earlier statement.</li>
+        <li><b>The examples file sits in the frontend.</b> Vercel builds the web service from <code class="mono">frontend/</code>, so the page must own the file; the backend test reads it by repo path, which CI checks out in full.</li>
+        <li><b>Popover over tooltip.</b> It opens on tap, holds a link, and is keyboard reachable. The category card hint stops click propagation so it doesn't open the card's dialog.</li>
+        <li><b>Code wins over the reference docs.</b> The reference names Social Security components that the code no longer uses; copy is written from <code class="mono">categories.py</code>, and a test checks the names.</li>
+      </ul>
+
+      <h3>Phase order</h3>
+      <div class="dag"><span class="box">0 Setup ✓</span><span class="arrow">→</span><span class="box">1 Backend formula tests</span><span class="arrow">→</span><span class="box">2 Registry &amp; Methodology</span><span class="arrow">→</span><span class="box">3 In-context hints</span></div>
+
+      <h3>Risks</h3>
+      <ul>
+        <li><b>A test exposes a real bug.</b> Phase 1 pins current behavior with a comment and records it; the fix goes on its own <code class="mono">fix/</code> branch so the explanation and the behavior change together.</li>
+        <li><b>Social Security FYTD is down 26% at day 12</b> (69,492 vs 94,379). It is likely the benefit payment calendar; Phase 2 checks the daily payments before the page uses it as an example of a limit.</li>
+        <li><b>Rounding at billions.</b> <code class="mono">toFixed</code> shows 16.755 as 16.75, so the arithmetic examples are shown in millions.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<template id="t-shell">
+  <div class="mock-app">
+    <nav class="m-side" aria-label="Mock sidebar">
+      <div class="m-title">DTS Analysis<small>U.S. Treasury daily statement</small></div>
+      <div class="m-group">Analysis</div>
+      <div class="m-nav"><span class="t">Overview</span></div>
+      <div class="m-nav" data-nav="daily"><span class="t">Daily</span></div>
+      <div class="m-nav sub" data-nav="single">Single date</div>
+      <div class="m-nav"><span class="t">Fiscal year</span></div>
+      <div class="m-nav"><span class="t">Year over year</span></div>
+      <div class="m-nav"><span class="t">Weekly comparison</span></div>
+      <div style="height:1rem"></div>
+      <div class="m-nav"><span class="t">Data status</span></div>
+      <div class="m-nav" data-nav="method"><span class="t">Methodology</span></div>
+      <div class="m-foot">Not financial advice · Source: U.S. Treasury · Terms · Privacy</div>
+    </nav>
+    <div class="m-main"></div>
+  </div>
+</template>
+
+<script>
+(function () {
+  document.documentElement.classList.add('js');
+  var help = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>';
+  function hb(on, n) { return '<span class="m-help' + (on ? ' hl' : '') + '" role="img" aria-label="How is net transfers calculated?">' + help + (on ? '<span class="callout">' + n + '</span>' : '') + '</span>'; }
+
+  function single(step) {
+    var pop = step === 3 || step === 4;
+    return '<div class="m-head">Single date</div><div class="m-body">' +
+      '<div class="m-card"><h4>Flow summary for October 19, 2026</h4><p class="m-desc">FY 2027 · Day 12 of the fiscal year · millions of dollars</p>' +
+      '<div class="m-grid3">' +
+      '<div class="m-metric' + (step === 1 ? ' hl' : '') + '">' + (step === 1 ? '<span class="callout">1</span>' : '') +
+        '<span class="m-lab">Net flow (today) ' + hb(step === 2, 2) + '</span><span class="m-val m-neg">-$16,755.00</span><span class="m-note">Net Inflow (Surplus)</span></div>' +
+      '<div class="m-metric"><span class="m-lab">Leading flow ' + hb(false) + '</span><span class="m-val">$14,998.00</span><span class="m-note">Total withdrawals (today)</span></div>' +
+      '<div class="m-metric"><span class="m-lab">Net flow (FYTD) ' + hb(false) + '</span><span class="m-val m-pos">$108,932.00</span><span class="m-note">Fiscal year to date</span></div>' +
+      '</div></div>' +
+      (pop ? '<div class="m-pop' + (step === 3 ? ' hl' : '') + '">' + (step === 3 ? '<span class="callout">3</span>' : '') +
+        '<strong style="font-size:13px">Net transfers</strong>' +
+        '<span style="font-size:12px;color:var(--m-muted-foreground)">What the government paid out minus what it took in that day, with borrowing and debt repayment left out.</span>' +
+        '<span class="m-formula"><span>Total deposits = TGA deposits − public debt cash issues</span><span>Total withdrawals = TGA withdrawals − public debt cash redemptions</span><span>Net transfers = total withdrawals − total deposits</span></span>' +
+        '<span class="m-link' + (step === 4 ? ' hl' : '') + '">Read the full explanation' + (step === 4 ? '<span class="callout">4</span>' : '') + '</span></div>' : '') +
+      '</div>';
+  }
+
+  function methodology(step) {
+    var yoy = step === 6;
+    var toc = ['Start here','Reading a statement','Deposits and withdrawals','Net transfers','Comparing with a year ago','Lining up two years','Major spending','Major receipts','T-Bill interest','IRS tax refunds','Weekly comparison','Glossary'];
+    var on = yoy ? 4 : 3;
+    var tocHtml = '<div class="m-toc' + (yoy ? ' hl' : '') + '">' + (yoy ? '<span class="callout">6</span>' : '') + '<strong style="color:var(--m-foreground);font-size:11px">On this page</strong>' +
+      toc.map(function (t, i) { return '<span class="' + (i === on ? 'on' : '') + '">' + t + '</span>'; }).join('') + '</div>';
+    var body = yoy ?
+      '<div class="m-card hl"><h4>Comparing with a year ago</h4>' +
+      '<p class="m-desc">Difference = this year − last year. Change % divides by the size of last year\'s value, ignoring its sign.</p>' +
+      '<table class="m-table"><tr><th></th><th>Day 12 FYTD</th></tr><tr><td>FY 2027 (Oct 19, 2026)</td><td>$108,932.00</td></tr><tr><td>FY 2026 (Oct 17, 2025)</td><td>$94,000.00</td></tr><tr class="t"><td>Difference</td><td>+$14,932.00</td></tr><tr class="t"><td>Change</td><td>+15.89%</td></tr></table>' +
+      '<p class="m-desc">Common mistake: dividing by a negative base. Last year −50, this year −30 is +40%, an improvement, not −40%.</p></div>'
+      :
+      '<div class="m-card' + (step === 5 ? ' hl' : '') + '">' + (step === 5 ? '<span class="callout">5</span>' : '') + '<h4>Net transfers</h4>' +
+      '<p class="m-desc">Positive: more went out than came in, before borrowing (a deficit day). Negative: a surplus day.</p>' +
+      '<table class="m-table"><tr><th>Oct 19, 2026</th><th>Today</th><th>FYTD</th></tr>' +
+      '<tr><td>TGA deposits</td><td>$32,776.00</td><td>$1,949,405.00</td></tr><tr><td>− Debt cash issues</td><td>$1,023.00</td><td>$1,659,685.00</td></tr>' +
+      '<tr><td>TGA withdrawals</td><td>$16,223.00</td><td>$1,968,406.00</td></tr><tr><td>− Debt cash redemptions</td><td>$1,225.00</td><td>$1,569,754.00</td></tr>' +
+      '<tr class="t"><td>Net transfers</td><td>-$16,755.00</td><td>$108,932.00</td></tr></table></div>';
+    return '<div class="m-head">Methodology</div><div class="m-body"><div class="m-doc"><div style="display:flex;flex-direction:column;gap:0.8rem;min-width:0">' + body + '</div>' + tocHtml + '</div></div>';
+  }
+
+  var STEPS = [
+    { title: 'Open Single date for October 19, 2026', tag: 'Live today', page: 'single', url: 'daily/single-date' },
+    { title: 'Find the help button next to Net flow (today)', tag: 'Ships in Phase 3', page: 'single', url: 'daily/single-date' },
+    { title: 'Tap it: the formula opens in place', tag: 'Ships in Phase 3', page: 'single', url: 'daily/single-date' },
+    { title: 'Click Read the full explanation', tag: 'Ships in Phase 3', page: 'single', url: 'daily/single-date' },
+    { title: 'Land on Net transfers with the worked example', tag: 'Ships in Phase 2', page: 'method', url: 'methodology#net-transfers' },
+    { title: 'Jump to Comparing with a year ago', tag: 'Ships in Phase 2', page: 'method', url: 'methodology#yoy-percent' }
+  ];
+
+  var scenes = document.getElementById('scenes');
+  var shell = document.getElementById('t-shell');
+  STEPS.forEach(function (s, i) {
+    var wrap = document.createElement('div');
+    wrap.className = 'scene';
+    wrap.innerHTML = '<p class="nojs-step">Step ' + (i + 1) + ': ' + s.title + '</p>';
+    var app = shell.content.cloneNode(true);
+    var main = app.querySelector('.m-main');
+    main.innerHTML = s.page === 'single' ? single(i + 1) : methodology(i + 1);
+    app.querySelectorAll('[data-nav="' + (s.page === 'single' ? 'single' : 'method') + '"]').forEach(function (n) { n.classList.add('on'); });
+    wrap.appendChild(app);
+    scenes.appendChild(wrap);
+  });
+
+  var list = document.getElementById('steps');
+  STEPS.forEach(function (s, i) {
+    var li = document.createElement('li');
+    li.innerHTML = '<button type="button" id="step-' + (i + 1) + '"><span class="n">' + (i + 1) + '</span><span>' + s.title + '<span class="tag">' + s.tag + '</span></span></button>';
+    li.firstChild.addEventListener('click', function () { show(i); });
+    list.appendChild(li);
+  });
+
+  var cur = 0;
+  var prev = document.getElementById('prev'), next = document.getElementById('next');
+  function show(i) {
+    cur = Math.max(0, Math.min(STEPS.length - 1, i));
+    var all = scenes.querySelectorAll('.scene');
+    all.forEach(function (el, j) { el.classList.toggle('active', j === cur); });
+    list.querySelectorAll('button').forEach(function (b, j) { if (j === cur) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+    document.getElementById('instr').textContent = STEPS[cur].title + ' · ' + STEPS[cur].tag;
+    document.getElementById('url').textContent = 'dts-webapp.vercel.app/' + STEPS[cur].url;
+    document.getElementById('count').textContent = 'Step ' + (cur + 1) + ' of ' + STEPS.length;
+    prev.disabled = cur === 0; next.disabled = cur === STEPS.length - 1;
+  }
+  prev.addEventListener('click', function () { show(cur - 1); });
+  next.addEventListener('click', function () { show(cur + 1); });
+  document.getElementById('walk').addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') { show(cur + 1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { show(cur - 1); e.preventDefault(); }
+  });
+  show(0);
+})();
+</script>
