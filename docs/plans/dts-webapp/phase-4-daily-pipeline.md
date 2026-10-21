@@ -172,7 +172,7 @@ the Actions tab).
       `curl -sI` of `$U/categories/major-spending?...` right after shows `x-vercel-cache: HIT`.
 - [x] Open a PR that changes a schema field without regenerating the contract → `ci` fails at the
       `git diff --exit-code` step; regenerate → green.
-- [ ] `gh workflow run ingest -f full=true` completes inside the 120-minute timeout (record the
+- [x] `gh workflow run ingest -f full=true` completes inside the 120-minute timeout (record the
       duration in Notes).
 
 ## Notes
@@ -212,5 +212,18 @@ the Actions tab).
 - `cf r2 objects get` has no `--file`; the runbook downloads snapshots from the public r2.dev URL.
 - Actions warns that `checkout@v4`, `setup-node@v4` and `setup-uv@v6` target Node 20 (forced to
   24) — bump to their Node 24 majors when convenient.
-
-(record full-rebuild duration and any cf CLI quirks met in CI)
+- **Full rebuild** (run 39350200089, 2026-10-20): 4 m 42 s end to end, ~4 m of it ingestion —
+  far inside the 120-min timeout. 867,583 rows from 2005-10-03 to 2026-10-16, 22 fiscal years;
+  exactly the incremental artifact's count (867,348 + 235), so incremental and full agree.
+  The rebuilt file is 49.6 MB vs 66.3 MB for the incrementally grown one (DuckDB doesn't
+  compact on append) — a periodic full rebuild keeps the artifact and build download small.
+- **Warm-up bug, fixed:** the step waited for `latest_record_date` to match, which the outgoing
+  deployment already does on a full rebuild or rerun, so it warmed the old deployment (job
+  ended 00:57:05, new deploy ready ~00:57:50). It now records the live `build_date` before
+  firing the hook and waits for it to change; rerun 39350824714 waited 4 checks (~90 s) and then
+  warmed the new deployment.
+- Scheduler options if GitHub cron keeps slipping (not done yet): a Cloudflare Worker Cron
+  Trigger (Free: 5 per account, minute precision) calling the `workflow_dispatch` API with a
+  fine-grained token (Actions: write, this repo only); Vercel Cron on Hobby is once a day with
+  ±59 min precision and would add a trigger route to the read-only API. Keep GitHub's `schedule`
+  as a backup either way — duplicate runs queue on the `ingest` concurrency group and no-op.

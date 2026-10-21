@@ -59,18 +59,32 @@ jobs:
           put "snapshots/$D/treasury_data.duckdb"
           put latest/treasury_data.duckdb
       - name: Trigger Vercel deploy
+        id: deploy
         if: steps.ingest.outputs.changed == 'true'
-        run: curl -fsS -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
+        run: |
+          # The live build_date before the hook: the warm-up waits for it to change.
+          # Waiting on latest_record_date instead ends at once on a full rebuild or a
+          # rerun, which keep the date, and warms the outgoing deployment.
+          before=$(curl -fsS "https://dts-webapp.vercel.app/api/v1/meta/build?_=$(date +%s)" \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["build_date"])') || before=unknown
+          echo "build_date_before=$before" >> "$GITHUB_OUTPUT"
+          curl -fsS -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
       - name: Warm the CDN cache
         if: steps.ingest.outputs.changed == 'true'
         run: |
           # A cold Vercel function takes ~7 s (Phase 3 Notes). Wait until the new
           # deployment serves today's data, then request each page's default URLs so
-          # visitors get cache HITs. Extend URLS as Phases 5-6 add pages.
+          # visitors get cache HITs (in the runner's CDN region; other regions still hit a
+          # warm function).
           U=https://dts-webapp.vercel.app/api/v1
-          want="${{ steps.ingest.outputs.latest_record_date }}"
+          before="${{ steps.deploy.outputs.build_date_before }}"
           for i in $(seq 1 40); do
-            curl -fsS "$U/meta/build?_=$(date +%s)" | grep -q "\"latest_record_date\":\"$want\"" && break
+            now=$(curl -fsS "$U/meta/build?_=$(date +%s)" \
+              | python3 -c 'import json,sys; print(json.load(sys.stdin)["build_date"])') || now=
+            if [ -n "$now" ] && [ "$now" != "$before" ]; then
+              echo "new deployment live (build_date $now) after $i check(s)"; break
+            fi
+            [ "$i" = 40 ] && { echo "::warning::new deployment not live after 20 min; skipping warm-up"; exit 0; }
             sleep 30
           done
           FY=$(curl -fsS "$U/lookups/fiscal-years" | python3 -c 'import json,sys; print(json.load(sys.stdin)[0])')
