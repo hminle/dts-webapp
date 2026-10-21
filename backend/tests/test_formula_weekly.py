@@ -88,15 +88,15 @@ def test_comparing_a_year_with_itself_is_rejected() -> None:
         )
 
 
-def test_a_skipped_first_year_week_shortens_the_second_year() -> None:
-    # current behavior: the cut counts first-year points, not weeks. First year
-    # has weeks 1, 2 and 4 (3 points), so the second year keeps Fridays 1-3 and
-    # its week 4 is dropped; the page then pairs first-year week 4 with nothing.
+def test_a_skipped_first_year_week_keeps_the_second_years_matching_week() -> None:
+    # The first year has weeks 1, 2 and 4 (week 3 had no statement), so the
+    # second year is cut after week 4, not after 3 points, and every first-year
+    # week keeps its partner.
     conn = formula_db(
         {
             "deposits_withdrawals": [
                 *(_day(date(2025, 10, d), 2026) for d in (3, 10, 24)),
-                *(_day(date(2024, 10, d), 2025) for d in (4, 11, 18, 25)),
+                *(_day(date(2024, 10, d), 2025) for d in (4, 11, 18, 25, 31)),
             ]
         }
     )
@@ -105,4 +105,5 @@ def test_a_skipped_first_year_week_shortens_the_second_year() -> None:
         WeeklyComparisonRequest(first_fiscal_year=2026, second_fiscal_year=2025),
     )
     assert [p.week_number for p in result.first_year_data] == [1, 2, 4]
-    assert [p.week_number for p in result.second_year_data] == [1, 2, 3]
+    assert [p.week_number for p in result.second_year_data] == [1, 2, 3, 4]
+    assert result.comparison_weeks == 4

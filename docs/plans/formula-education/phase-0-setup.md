@@ -22,7 +22,7 @@ Phases 1–3 build on.
 | T-Bill interest = `Bills (-)` + `Bonds and Notes (-)` (`adjustment_public_debt.adj_fytd_amt`) | `categories.py:92`, `backend/app/services/categories.py:284` | Via API only |
 | IRS refunds = 4 `tax_refund_type`s from `income_tax_refunds` (Table V, not Table II) | `categories.py:105`, `services/categories.py:352` | Via API only |
 | Category daily YoY | `services/categories.py:427` `get_daily_yoy` | Via API only |
-| Weekly: Fridays of each FY (clipped to today), each Friday or up to 5 days earlier, second year truncated to first year's week count, same FY twice → `ValueError` | `backend/app/services/weekly.py:23,31,45,83` | Via API only |
+| Weekly: Fridays of each FY (clipped to today), each Friday or up to 5 days earlier, second year truncated at the first year's last week number, same FY twice → `ValueError` | `backend/app/services/weekly.py:23,31,45,83` | Via API only |
 | Fiscal year bounds / current FY | `backend/app/utils/fiscal.py` | Yes, `tests/test_fiscal.py` |
 
 Test conventions: flat `backend/tests/test_*.py`, plain `def test_…` functions, row builders in

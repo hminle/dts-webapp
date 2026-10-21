@@ -115,7 +115,7 @@ no typed-in figures.
 11. **Category comparison** (`category-comparison`) — any Treasury line item, FYTD per day,
     aligned by day number; replaces the deleted `MethodologyCard` content.
 12. **Weekly comparison** (`weekly-comparison`) — Friday snapshots of FYTD net transfers, up to
-    5 days back for holidays, second year cut to the first year's week count, weeks matched by
+    5 days back for holidays, second year cut at the first year's last week number, weeks matched by
     week number.
 13. **Known limits** — keep the three current bullets; add the payment-calendar effect if
     Phase 0's Social Security check is confirmed (see below).
