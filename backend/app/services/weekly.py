@@ -87,8 +87,8 @@ def get_comparison(
 
     Picks each Friday (or the closest earlier day with data) and runs
     the shared ``calculate_daily_net_transfers`` math on that day's
-    rows. The second year is truncated to the same number of weeks as
-    the first so the side-by-side comparison stays apples-to-apples.
+    rows. The second year is truncated to the first year's last week
+    number so the side-by-side comparison stays apples-to-apples.
     """
     if request.first_fiscal_year == request.second_fiscal_year:
         raise ValueError("First and second fiscal years must be different")
@@ -148,8 +148,11 @@ def get_comparison(
 
     first_year_data = _build_weekly_points(df, first_fridays)
 
-    # Limit second year to the same number of weeks as first year for a fair comparison.
-    comparison_weeks = len(first_year_data)
+    # Cut the second year at the first year's last week number, not its point
+    # count: a first-year week with no statement is skipped, so counting points
+    # would drop the second year's final week and leave the first year's
+    # unpaired.
+    comparison_weeks = first_year_data[-1].week_number if first_year_data else 0
     second_year_data = _build_weekly_points(df, second_fridays[:comparison_weeks])
 
     logger.info(

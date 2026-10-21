@@ -98,7 +98,7 @@ its `*Request` schema (read `app/schemas/treasury.py` for field names):
    and `start == datetime(fy-1, 10, 1)`).
 3. `_build_weekly_points`: a Friday holiday uses Thursday; Friday + 5 earlier days all empty →
    week skipped (no point, week numbers of later weeks unchanged).
-4. `get_comparison`: second year truncated to the first year's number of points; same year twice
+4. `get_comparison`: second year truncated to the first year's last week number; same year twice
    → `ValueError`.
 
 ### 7. `worked-examples.json` + `test_formula_examples.py`
@@ -166,10 +166,10 @@ the whole repo, so the path exists there.
   chosen line items appear (`DENSE_RANK` over the filtered rows, and `get_daily_yoy`'s own
   counter). In real data the line items appear on every statement, so the numbers agree; the
   Methodology should state the rule without alarming readers.
-- **Weekly truncation counts points, not weeks (pinned in
-  `test_a_skipped_first_year_week_shortens_the_second_year`):** if the first year has no
-  statement within 5 days of a Friday, its weeks are e.g. 1, 2, 4, and the second year is cut to
-  its first 3 Fridays, so first-year week 4 pairs with nothing. Only possible after a 6-day gap in
-  statements; worth a `fix/` branch (cut by the first year's last `week_number`) — not done here.
+- **Weekly truncation counted points, not weeks — fixed in `fix/weekly-week-alignment`:** if
+  the first year had no statement within 5 days of a Friday, its weeks were e.g. 1, 2, 4, and the
+  second year was cut to its first 3 Fridays, so first-year week 4 paired with nothing. The
+  service now cuts at the first year's last `week_number`
+  (`test_a_skipped_first_year_week_keeps_the_second_years_matching_week`).
 - Fallback sums include the debt rows before subtracting them, so borrowing cancels out on old
   statements too (`test_line_item_sums_include_the_debt_rows_before_subtracting_them`).
