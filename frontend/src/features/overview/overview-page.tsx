@@ -1,5 +1,13 @@
 import { Link } from '@tanstack/react-router'
-import { Activity, Calendar, CalendarRange, Database, TrendingUp } from 'lucide-react'
+import {
+  Activity,
+  BookOpen,
+  Calendar,
+  CalendarRange,
+  ChevronRight,
+  Database,
+  TrendingUp,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
   Card,
@@ -45,10 +53,26 @@ export function OverviewPage() {
           U.S. Treasury Daily Statement
         </h2>
         <p className='text-sm text-muted-foreground'>
-          Cash in and out of the Treasury General Account, every business day since
-          2005. Amounts are in millions of dollars.
+          Cash in and out of the Treasury General Account, every business day
+          since 2005. Amounts are in millions of dollars.
         </p>
       </div>
+
+      <Link
+        to='/methodology'
+        hash='start-here'
+        className='flex items-center gap-3 rounded-lg border p-4 transition-colors hover:bg-accent'
+      >
+        <BookOpen className='size-5 shrink-0 text-muted-foreground' />
+        <span className='flex min-w-0 flex-col gap-0.5'>
+          <span className='font-medium'>New to Treasury data?</span>
+          <span className='text-xs text-muted-foreground'>
+            Start with the Methodology: how to read a statement and how every
+            number here is calculated
+          </span>
+        </span>
+        <ChevronRight className='ms-auto size-4 shrink-0 text-muted-foreground' />
+      </Link>
 
       <QueryState query={statsQuery}>
         {(stats) => {
@@ -85,7 +109,9 @@ export function OverviewPage() {
                   icon={Activity}
                   value={
                     <span className='text-base'>
-                      {stats.last_updated ? formatDateTime(stats.last_updated) : 'Never'}
+                      {stats.last_updated
+                        ? formatDateTime(stats.last_updated)
+                        : 'Never'}
                     </span>
                   }
                   note='When the daily refresh last ran'
@@ -96,12 +122,17 @@ export function OverviewPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Available data sources</CardTitle>
-                    <CardDescription>Treasury tables in this dataset</CardDescription>
+                    <CardDescription>
+                      Treasury tables in this dataset
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ul className='flex flex-col gap-2'>
                       {dataSources.map((source) => (
-                        <li key={source} className='flex items-center gap-2 text-sm'>
+                        <li
+                          key={source}
+                          className='flex items-center gap-2 text-sm'
+                        >
                           <span className='size-1.5 rounded-full bg-primary' />
                           {dataSourceName(source)}
                         </li>

@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { FormulaHint } from '@/components/formula-hint'
 import { QueryState } from '@/components/query-state'
 import {
   formatBillions,
@@ -30,6 +31,7 @@ import { breakdownRows } from '../lib'
 import type { CategoryCardData } from '../lib'
 import { ACCENT, changeClass, signedPrefix } from './accent'
 import { BreakdownTable } from './breakdown-table'
+import { CATEGORY_FORMULA } from './category-card'
 
 const EXPLANATIONS: Partial<Record<CategoryCardData['categoryType'], string>> =
   {
@@ -87,7 +89,10 @@ export function CategoryDetailDialog({
       {category && (
         <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-3xl'>
           <DialogHeader>
-            <DialogTitle>{category.name}</DialogTitle>
+            <div className='flex items-center gap-1'>
+              <DialogTitle>{category.name}</DialogTitle>
+              <FormulaHint id={CATEGORY_FORMULA[category.categoryType]} />
+            </div>
             <DialogDescription>
               FY{currentFiscalYear} vs FY{previousFiscalYear} (
               {comparisonMode === 'calendar_date'

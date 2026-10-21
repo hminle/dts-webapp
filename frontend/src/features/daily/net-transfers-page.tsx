@@ -7,6 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { FiscalYearSelect } from '@/components/fiscal-year-select'
+import { FormulaHint } from '@/components/formula-hint'
 import { QueryState } from '@/components/query-state'
 import { useFiscalYears } from '@/features/lookups/api'
 import { useNetTransfersForFiscalYear } from './api'
@@ -17,9 +18,15 @@ function YearColumn({ year }: { year: number | null }) {
   return (
     <Card className='min-w-0'>
       <CardHeader>
-        <CardTitle>{year ? `FY ${year}` : 'Choose a fiscal year'}</CardTitle>
-        <CardDescription>
-          {days.data ? `${days.data.length} days of data` : 'Daily net transfers'}
+        <div className='flex items-center gap-1'>
+          <CardTitle>{year ? `FY ${year}` : 'Choose a fiscal year'}</CardTitle>
+          <FormulaHint id='net-transfers' />
+        </div>
+        <CardDescription className='flex items-center gap-1'>
+          {days.data
+            ? `${days.data.length} days of data`
+            : 'Daily net transfers'}
+          <FormulaHint id='day-of-fiscal-year' />
         </CardDescription>
       </CardHeader>
       <CardContent>
