@@ -1,4 +1,4 @@
-# Phase 2: Formula Registry & Methodology — ⬜ Not Started
+# Phase 2: Formula Registry & Methodology — ✅ Done
 
 **Goal**: Every formula is defined once in a typed registry, and `/methodology` becomes a
 long-form, beginner-friendly explainer built from that registry, with a table of contents, one
@@ -150,18 +150,42 @@ and both must be updated in the same commit."
 
 ## Verification
 
-- [ ] `pnpm typecheck && pnpm test && pnpm build` → pass; `formulas.test.ts` runs.
-- [ ] `grep -nE "[0-9]{1,3},[0-9]{3}" frontend/src/features/methodology/methodology-page.tsx` → no
+- [x] `pnpm typecheck && pnpm test && pnpm build` → pass; `formulas.test.ts` runs.
+- [x] `grep -nE "[0-9]{1,3},[0-9]{3}" frontend/src/features/methodology/methodology-page.tsx` → no
       output (no typed-in figures).
-- [ ] Browser (`scripts/dev.sh`, 1280 px and 375 px, light and dark): `/methodology` shows the
+- [x] Browser (`scripts/dev.sh`, 1280 px and 375 px, light and dark): `/methodology` shows the
       table of contents; clicking each entry scrolls its heading into view below the sticky
       header; `/methodology#tbill-interest` opened directly lands on that section; no horizontal
       scroll.
-- [ ] Every worked-example figure on the page matches `worked-examples.json`.
-- [ ] Category comparison page shows the link instead of the old card; it lands on
-      `#category-comparison`.
-- [ ] Lighthouse Accessibility ≥ 90 on `/methodology` (heading order h1 → h2 → h3 only).
+- [x] Every worked-example figure on the page matches `worked-examples.json`.
+- [x] Category comparison page shows the link instead of the old card; it lands on
+      `#any-line-item` (see Notes).
+- [x] Lighthouse Accessibility ≥ 90 on `/methodology` (heading order h1 → h2 → h3 only).
 
 ## Notes
 
-(record the Social Security check result and any reference-doc drift found)
+- **Social Security check: confirmed.** Payments over $5B in `SSA - Benefits Payments` by day 12:
+  FY2026 on 2025-10-03, 10-08 and 10-15 (the 3rd plus the 2nd and 3rd Wednesdays); FY2027 on
+  2026-10-02 and 10-14 (the 3rd Wednesday is 10-21, after day 12). Category FYTD 69,492 vs
+  94,379 (−26.37 %). Added as a `social_security` block in `worked-examples.json` (with
+  `benefit_payment_days`), checked by `test_social_security_example`, and written up in
+  Known limits.
+- **Chapter anchors differ from formula anchors.** Each `FormulaBlock` heading carries the
+  formula id (`#tbill-interest`, `#net-transfers`) for Phase 3's hints; chapter `h2`s use their
+  own ids (`start-here` … `source-and-schedule`) so no id appears twice. The category
+  comparison link therefore points at the chapter, `#any-line-item`.
+- **Direct `#hash` loads drifted.** The router scrolls (smoothly, `scroll-smooth` on `html`)
+  before web fonts load; the reflow left the heading 30–120 px off. `MethodologyPage` holds the
+  target in place with a `ResizeObserver` on `body` for up to 2 s, stopping on wheel, pointer,
+  key or `hashchange`. Measured: every direct load and TOC click lands at 80 px (below the
+  64 px header), 1280 and 375 px.
+- Added `components/arithmetic-table.tsx` (worked examples as sums) — not in the original file
+  list. `ProseSection` gained an optional `id`. `tsconfig.app.json` gained
+  `resolveJsonModule` for the JSON import. `formulas.test.ts` reads `categories.py` from
+  `process.cwd()` because jsdom's `URL` can't be read by `node:fs`.
+- Category `terms` use `term` = group, `meaning` = exact Treasury line name (T-Bill too), which is
+  what the backend-name test checks.
+- Lighthouse Accessibility (`lighthouse@12.8.2`, headless Chrome): 100. Headings h1 → h2 → h3.
+- Reference-doc drift confirmed: the code's Social Security lines are `SSA - Benefits Payments`,
+  `SSA - Supplemental Security Income`, `Social Security Admin (SSA) - misc`; the Customs
+  rename runs to 2025-11-07 (old) and from 2025-11-10 (new).

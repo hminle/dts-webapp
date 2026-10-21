@@ -128,6 +128,14 @@ def test_medicare_example() -> None:
     _assert_card(card, CATS["medicare"])
 
 
+def test_social_security_example() -> None:
+    ex = CATS["social_security"]
+    conn = formula_db({"deposits_withdrawals": _line_items("Withdrawals", ex)})
+    result = get_major_spending(conn.cursor(), MajorSpendingCategoriesRequest(**YEARS))
+    card = next(c for c in result.categories if c.name == "Social Security Benefits")
+    _assert_card(card, ex)
+
+
 def test_customs_example() -> None:
     conn = formula_db(
         {"deposits_withdrawals": _line_items("Deposits", CATS["customs"])}
