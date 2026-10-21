@@ -97,8 +97,9 @@ no typed-in figures.
    percent with |previous| and the negative-base example (+40 %, not −40 %); "no percent" when
    previous is 0; latest / average / largest / smallest across the days shown.
 6. **Lining up two years** (`comparison-modes`) — fiscal day vs calendar date with a two-column
-   table for day 12 (2026-10-19 ↔ 2025-10-17 vs 2026-10-19 ↔ 2025-10-19 Sunday); the two
-   different fallbacks (charts drop the date; category cards use the latest earlier statement);
+   table for day 12 (2026-10-19 ↔ 2025-10-17 vs 2026-10-19 ↔ 2025-10-19 Sunday); the three
+   calendar-date rules pinned in Phase 1 (the daily chart drops the date; category cards use the
+   latest earlier statement; the category detail chart compares the date with 0);
    when to use which (seasonal deadlines → calendar; pace of the year → fiscal day).
 7. **Major spending categories** (`major-spending`) — the four groups with their exact Treasury
    line items in a table; Medicare worked example; "Interest on Treasury Securities" is cash

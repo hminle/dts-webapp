@@ -1,4 +1,4 @@
-# Phase 1: Backend Formula Tests — ⬜ Not Started
+# Phase 1: Backend Formula Tests — ✅ Done
 
 **Goal**: Every financial formula in `backend/app/utils` and `backend/app/services` has direct
 unit tests covering its normal path and every fallback branch, and the Methodology worked
@@ -136,15 +136,40 @@ the whole repo, so the path exists there.
 
 ## Verification
 
-- [ ] `cd backend && uv run pytest -q` → all pass; `uv run pytest -q tests/test_formula_*.py`
+- [x] `cd backend && uv run pytest -q` → all pass; `uv run pytest -q tests/test_formula_*.py`
       runs ≥ 35 tests.
-- [ ] `uv run ruff check . && uv run ruff format --check .` → clean.
-- [ ] Mutation spot-check (local only, revert after): change `abs(previous)` to `previous` in
+- [x] `uv run ruff check . && uv run ruff format --check .` → clean.
+- [x] Mutation spot-check (local only, revert after): change `abs(previous)` to `previous` in
       `app/utils/yoy.py` → `test_formula_yoy.py` and `test_formula_examples.py` fail; change
       `- debt_issues_today` to `+` in `deposits_withdrawals.py` → net-transfer tests fail.
-- [ ] Editing any number in `worked-examples.json` makes `test_formula_examples.py` fail.
-- [ ] `git diff --stat main -- backend/app` → empty (no behavior change).
+- [x] Editing any number in `worked-examples.json` makes `test_formula_examples.py` fail.
+- [x] `git diff --stat main -- backend/app` → empty (no behavior change).
 
 ## Notes
 
-(record any bug a test exposes, with the pinned current behavior)
+- **52 formula tests** across the six files (108 in the suite), all passing; `backend/app` is
+  unchanged. Mutation checks: dropping `abs()` from `yoy_change` fails 3 tests; turning
+  `− debt_issues_today` into `+` fails 5; changing Medicare's difference in the JSON fails
+  `test_medicare_example`.
+- Fixtures added: `dw_row`, `catg_row` (a TGA line item carrying only FYTD), `apd_row`,
+  `itr_row`, `formula_db`. The JSON stores components as name → amount maps (not arrays as first
+  sketched) so the test can seed the right `transaction_catg`.
+- **Three calendar-date rules, all pinned** (Phase 2 must explain each where it shows):
+  1. Daily comparison chart (`services/yoy.py:get_daily_comparison`): keeps only MM-DD present
+     in both years.
+  2. Category cards (`utils/yoy.py:find_aligned_previous_date`): a missing MM-DD uses the latest
+     earlier statement (2025-10-19 → 2025-10-17).
+  3. Category detail chart (`services/categories.py:get_daily_yoy`): keeps the current date and
+     compares it with 0, percent `None`.
+- **Day numbering differs by query, pinned:** `daily_net_transfers` numbers every statement date
+  (a day without totals keeps its number); category queries rank only the dates on which the
+  chosen line items appear (`DENSE_RANK` over the filtered rows, and `get_daily_yoy`'s own
+  counter). In real data the line items appear on every statement, so the numbers agree; the
+  Methodology should state the rule without alarming readers.
+- **Weekly truncation counts points, not weeks (pinned in
+  `test_a_skipped_first_year_week_shortens_the_second_year`):** if the first year has no
+  statement within 5 days of a Friday, its weeks are e.g. 1, 2, 4, and the second year is cut to
+  its first 3 Fridays, so first-year week 4 pairs with nothing. Only possible after a 6-day gap in
+  statements; worth a `fix/` branch (cut by the first year's last `week_number`) — not done here.
+- Fallback sums include the debt rows before subtracting them, so borrowing cancels out on old
+  statements too (`test_line_item_sums_include_the_debt_rows_before_subtracting_them`).
