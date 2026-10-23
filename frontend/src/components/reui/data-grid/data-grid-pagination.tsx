@@ -156,7 +156,13 @@ function DataGridPagination(props: DataGridPaginationProps): JSX.Element {
                 table.setPageSize(newPageSize)
               }}
             >
-              <SelectTrigger className="w-16" size="sm">
+              {/* Local: a combobox is named by its label, not its value, so
+                  name it after the visible "Rows per page" text. */}
+              <SelectTrigger
+                className="w-16"
+                size="sm"
+                aria-label={mergedProps.rowsPerPageLabel}
+              >
                 <SelectValue />
               </SelectTrigger>
               {/* Local: Radix positions with `position="popper"` and exposes the
