@@ -60,7 +60,10 @@ right). No other prop changes.
       tapping a category card's hint opens the popover without opening the dialog; the popover
       never overflows the viewport; "Read the full explanation" lands on the right section.
 - [x] No console errors; no horizontal scroll on any page.
-- [ ] Production after merge: same checks on `https://dts-webapp.vercel.app`.
+- [x] Production after merge: same checks on `https://dts-webapp.vercel.app` (2026-10-23,
+      bundle `index-CAPG0-uV.js`, same hint counts as local on every page). The only console
+      error is `/_vercel/insights/script.js` served as HTML: Vercel Web Analytics is not enabled
+      in the dashboard yet (an on-hold launch step), unrelated to the hints.
 
 ## Notes
 
