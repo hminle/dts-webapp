@@ -225,7 +225,7 @@ table.grid code { font-family: var(--font-mono); font-size: 0.8rem; }
     <span class="eyebrow">DTS Analysis · plan</span>
     <h1>Every number explains itself</h1>
     <p class="lede">Tests for every Treasury formula in the app, one place where each formula is written down, and a "How is this calculated?" button next to every figure.</p>
-    <div class="meta"><span>Plan folder: formula-education</span><span>4 phases (3 done)</span><span>Amounts in millions of dollars, as the Treasury reports them</span></div>
+    <div class="meta"><span>Plan folder: formula-education</span><span>4 phases (all done)</span><span>Amounts in millions of dollars, as the Treasury reports them</span></div>
   </header>
 
   <!-- PART 1 -->
@@ -316,7 +316,7 @@ table.grid code { font-family: var(--font-mono); font-size: 0.8rem; }
         <div class="browser">
           <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="url" id="url">dts-webapp.vercel.app/daily/single-date</span><span class="mocklabel">Mockup — not the live app</span></div>
           <div id="scenes"></div>
-          <noscript><ol class="instr" style="margin:0.75rem;padding-left:2rem"><li>Open Single date for October 19, 2026 (live today).</li><li>Find the help button next to Net flow (today) (Phase 3).</li><li>Tap it: the net-transfers formula opens in place (Phase 3).</li><li>Click Read the full explanation (Phase 3).</li><li>Land on Net transfers with the worked example: −16,755 today, 108,932 year to date (live).</li><li>Jump to Comparing with a year ago: +14,932, +15.89% (live).</li></ol></noscript>
+          <noscript><ol class="instr" style="margin:0.75rem;padding-left:2rem"><li>Open Single date for October 19, 2026 (live).</li><li>Find the help button next to Net flow (today) (live).</li><li>Tap it: the net-transfers formula opens in place (live).</li><li>Click Read the full explanation (live).</li><li>Land on Net transfers with the worked example: −16,755 today, 108,932 year to date (live).</li><li>Jump to Comparing with a year ago: +14,932, +15.89% (live).</li></ol></noscript>
         </div>
       </div>
     </div>
@@ -360,12 +360,12 @@ table.grid code { font-family: var(--font-mono); font-size: 0.8rem; }
         <li><b>Test functions, not routes.</b> API tests exist; these call the formula functions on small in-memory DuckDB files built by the real schema code.</li>
         <li><b>Pin, don't fix.</b> Surprising behavior is recorded and explained: calendar-date charts drop a date the other year lacks, while category cards fall back to the latest earlier statement.</li>
         <li><b>The examples file sits in the frontend.</b> Vercel builds the web service from <code class="mono">frontend/</code>, so the page must own the file; the backend test reads it by repo path, which CI checks out in full.</li>
-        <li><b>Popover over tooltip.</b> It opens on tap, holds a link, and is keyboard reachable. The category card hint stops click propagation so it doesn't open the card's dialog.</li>
+        <li><b>Popover over tooltip.</b> It opens on tap, holds a link, and is keyboard reachable. On a category card the name is the button that opens the dialog (stretched over the card), and the hint sits beside it, so the two never nest and a tap on the hint never opens the dialog.</li>
         <li><b>Code wins over the reference docs.</b> The reference names Social Security components that the code no longer uses; copy is written from <code class="mono">categories.py</code>, and a test checks the names.</li>
       </ul>
 
       <h3>Phase order</h3>
-      <div class="dag"><span class="box">0 Setup ✓</span><span class="arrow">→</span><span class="box">1 Backend formula tests</span><span class="arrow">→</span><span class="box">2 Registry &amp; Methodology</span><span class="arrow">→</span><span class="box">3 In-context hints</span></div>
+      <div class="dag"><span class="box">0 Setup ✓</span><span class="arrow">→</span><span class="box">1 Backend formula tests ✓</span><span class="arrow">→</span><span class="box">2 Registry &amp; Methodology ✓</span><span class="arrow">→</span><span class="box">3 In-context hints ✓</span></div>
 
       <h3>Risks</h3>
       <ul>
@@ -401,7 +401,7 @@ table.grid code { font-family: var(--font-mono); font-size: 0.8rem; }
 (function () {
   document.documentElement.classList.add('js');
   var help = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>';
-  function hb(on, n) { return '<span class="m-help' + (on ? ' hl' : '') + '" role="img" aria-label="How is net transfers calculated?">' + help + (on ? '<span class="callout">' + n + '</span>' : '') + '</span>'; }
+  function hb(on, n) { return '<span class="m-help' + (on ? ' hl' : '') + '" role="img" aria-label="Net transfers: how is this calculated?">' + help + (on ? '<span class="callout">' + n + '</span>' : '') + '</span>'; }
 
   function single(step) {
     var pop = step === 3 || step === 4;
@@ -415,8 +415,8 @@ table.grid code { font-family: var(--font-mono); font-size: 0.8rem; }
       '</div></div>' +
       (pop ? '<div class="m-pop' + (step === 3 ? ' hl' : '') + '">' + (step === 3 ? '<span class="callout">3</span>' : '') +
         '<strong style="font-size:13px">Net transfers</strong>' +
-        '<span style="font-size:12px;color:var(--m-muted-foreground)">What the government paid out minus what it took in that day, with borrowing and debt repayment left out.</span>' +
-        '<span class="m-formula"><span>Total deposits = TGA deposits − public debt cash issues</span><span>Total withdrawals = TGA withdrawals − public debt cash redemptions</span><span>Net transfers = total withdrawals − total deposits</span></span>' +
+        '<span style="font-size:12px;color:var(--m-muted-foreground)">Withdrawals minus deposits, both without borrowing. Positive means more went out than came in: a deficit day.</span>' +
+        '<span class="m-formula"><span>Net transfers = total withdrawals − total deposits</span></span>' +
         '<span class="m-link' + (step === 4 ? ' hl' : '') + '">Read the full explanation' + (step === 4 ? '<span class="callout">4</span>' : '') + '</span></div>' : '') +
       '</div>';
   }
@@ -443,10 +443,10 @@ table.grid code { font-family: var(--font-mono); font-size: 0.8rem; }
   }
 
   var STEPS = [
-    { title: 'Open Single date for October 19, 2026', tag: 'Live today', page: 'single', url: 'daily/single-date' },
-    { title: 'Find the help button next to Net flow (today)', tag: 'Ships in Phase 3', page: 'single', url: 'daily/single-date' },
-    { title: 'Tap it: the formula opens in place', tag: 'Ships in Phase 3', page: 'single', url: 'daily/single-date' },
-    { title: 'Click Read the full explanation', tag: 'Ships in Phase 3', page: 'single', url: 'daily/single-date' },
+    { title: 'Open Single date for October 19, 2026', tag: 'Live', page: 'single', url: 'daily/single-date' },
+    { title: 'Find the help button next to Net flow (today)', tag: 'Live', page: 'single', url: 'daily/single-date' },
+    { title: 'Tap it: the formula opens in place', tag: 'Live', page: 'single', url: 'daily/single-date' },
+    { title: 'Click Read the full explanation', tag: 'Live', page: 'single', url: 'daily/single-date' },
     { title: 'Land on Net transfers with the worked example', tag: 'Live', page: 'method', url: 'methodology#net-transfers' },
     { title: 'Jump to Comparing with a year ago', tag: 'Live', page: 'method', url: 'methodology#yoy-percent' }
   ];

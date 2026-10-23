@@ -1,3 +1,4 @@
+import { FormulaHint } from '@/components/formula-hint'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -51,7 +52,10 @@ export function ChartControls({
         onChange={onPreviousYearChange}
       />
       <div className='flex flex-col gap-2'>
-        <Label htmlFor='comparison-mode'>Compare by</Label>
+        <div className='flex items-center gap-1'>
+          <Label htmlFor='comparison-mode'>Compare by</Label>
+          <FormulaHint id='comparison-modes' className='-my-1' />
+        </div>
         <Select
           value={comparisonMode}
           onValueChange={(value) =>

@@ -1,5 +1,7 @@
 import { ArrowDown, ArrowUp } from 'lucide-react'
+import { FormulaHint } from '@/components/formula-hint'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import type { FormulaId } from '@/features/methodology/formulas'
 import { formatCurrency } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { WeeklyComparison } from '../api'
@@ -9,14 +11,19 @@ function Figure({
   label,
   value,
   className,
+  hint,
 }: {
   label: string
   value: React.ReactNode
   className?: string
+  hint?: FormulaId
 }) {
   return (
     <div className='flex flex-col gap-1'>
-      <p className='text-sm text-muted-foreground'>{label}</p>
+      <div className='flex items-center gap-1'>
+        <p className='text-sm text-muted-foreground'>{label}</p>
+        {hint && <FormulaHint id={hint} />}
+      </div>
       <p className={cn('text-2xl font-semibold tabular-nums', className)}>
         {value}
       </p>
@@ -57,6 +64,7 @@ export function SummaryStats({
             <Figure label='Weekly data points' value={weeks} />
             <Figure
               label='Latest weekly net transfers FYTD'
+              hint='weekly-comparison'
               value={formatCurrency(total)}
             />
           </div>
@@ -65,10 +73,12 @@ export function SummaryStats({
           <h3 className='font-medium'>Year-over-year</h3>
           <Figure
             label='Weekly YoY difference'
+            hint='yoy-difference'
             value={formatCurrency(stats.difference)}
           />
           <Figure
             label='Change'
+            hint='yoy-percent'
             className={cn(
               'flex items-center gap-1',
               pct === null

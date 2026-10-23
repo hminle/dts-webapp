@@ -1,11 +1,13 @@
 import { useState, type ReactNode } from 'react'
-import { CircleAlert } from 'lucide-react'
+import { CircleAlert, Info } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ChartControls } from '@/components/charts/chart-controls'
 import { YoYDifferenceLineChart } from '@/components/charts/yoy-difference-line-chart'
+import { FormulaHint } from '@/components/formula-hint'
 import { QueryState } from '@/components/query-state'
 import { StatCard } from '@/components/stat-card'
 import { useFiscalYears } from '@/features/lookups/api'
+import { FORMULAS, type FormulaId } from '@/features/methodology/formulas'
 import { currentFiscalYear } from '@/lib/fiscal'
 import { formatSignedPercent, formatTreasuryValue } from '@/lib/format'
 import { useYoYDailyComparison } from './api'
@@ -17,8 +19,8 @@ type YoYAnalysisLayoutProps = {
   title: string
   description: string
   metric: YoYMetric
-  /** A note above the controls, e.g. how the metric is calculated. */
-  infoAlert?: ReactNode
+  /** How the metric is calculated; its summary is shown above the controls. */
+  formula: FormulaId
   /** A caption under the latest-change card. */
   latestNote?: string
   /** Category cards shown between the summary and the chart. */
@@ -32,7 +34,7 @@ export function YoYAnalysisLayout({
   title,
   description,
   metric,
-  infoAlert,
+  formula,
   latestNote,
   renderCategoriesSection,
 }: YoYAnalysisLayoutProps) {
@@ -54,7 +56,15 @@ export function YoYAnalysisLayout({
   return (
     <div className='flex flex-col gap-6'>
       <p className='text-sm text-muted-foreground'>{description}</p>
-      {infoAlert}
+      <Alert>
+        <Info />
+        <AlertDescription>
+          <p>
+            {FORMULAS[formula].summary}{' '}
+            <FormulaHint id={formula} className='-my-1 align-middle' />
+          </p>
+        </AlertDescription>
+      </Alert>
 
       <ChartControls
         currentFiscalYear={current}
@@ -93,6 +103,7 @@ export function YoYAnalysisLayout({
                 <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
                   <StatCard
                     title='Latest YoY change'
+                    hint='yoy-percent'
                     value={signed(summary.latestDifference)}
                     valueClassName={changeClass(summary.latestDifference)}
                     note={
@@ -108,16 +119,19 @@ export function YoYAnalysisLayout({
                   />
                   <StatCard
                     title='Average YoY change'
+                    hint='yoy-summary'
                     value={signed(summary.averageDifference)}
                     valueClassName={changeClass(summary.averageDifference)}
                   />
                   <StatCard
                     title='Largest YoY change'
+                    hint='yoy-summary'
                     value={signed(summary.maxDifference)}
                     valueClassName={changeClass(summary.maxDifference)}
                   />
                   <StatCard
                     title='Smallest YoY change'
+                    hint='yoy-summary'
                     value={signed(summary.minDifference)}
                     valueClassName={changeClass(summary.minDifference)}
                   />
@@ -137,10 +151,12 @@ export function YoYAnalysisLayout({
                 <div className='grid gap-4 md:grid-cols-2'>
                   <StatCard
                     title={`FY ${current} latest FYTD`}
+                    hint='comparison-modes'
                     value={formatTreasuryValue(summary.latestCurrentValue)}
                   />
                   <StatCard
                     title={`FY ${previous} at the same point`}
+                    hint='comparison-modes'
                     value={formatTreasuryValue(summary.latestPreviousValue)}
                   />
                 </div>

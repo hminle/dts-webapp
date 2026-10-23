@@ -6,6 +6,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { FormulaHint } from '@/components/formula-hint'
 import {
   Card,
   CardContent,
@@ -50,10 +51,13 @@ export function ComparisonChart({ data }: { data: YoYCategoryComparison }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
-          YoY difference: FY{data.current_fiscal_year} − FY
-          {data.previous_fiscal_year}
-        </CardTitle>
+        <div className='flex items-center gap-1'>
+          <CardTitle>
+            YoY difference: FY{data.current_fiscal_year} − FY
+            {data.previous_fiscal_year}
+          </CardTitle>
+          <FormulaHint id='category-comparison' />
+        </div>
         <CardDescription>
           Above zero means the current year is higher · {series.length} days
           compared · millions of dollars
