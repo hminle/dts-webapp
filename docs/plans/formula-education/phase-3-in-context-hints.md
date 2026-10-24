@@ -91,4 +91,5 @@ right). No other prop changes.
 - **Lighthouse accessibility** on `/yoy/withdrawals` 95, `/weekly` 93, `/daily/net-transfers` 89.
   Every failure predates this phase and none is a hint: `text-success` (#00bc7d on white, 2.47:1)
   fails `color-contrast`; the data grid's page-size select has no name (`button-name`); the
-  weekly summary's `h3` skips a level (`heading-order`).
+  weekly summary's `h3` skips a level (`heading-order`). All three were fixed afterwards on
+  `fix/a11y-contrast`; every page now scores 100.

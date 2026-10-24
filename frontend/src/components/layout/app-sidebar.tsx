@@ -16,7 +16,14 @@ export function AppSidebar() {
   const href = useLocation({ select: (location) => location.href })
 
   return (
-    <Sidebar collapsible='icon' variant='inset'>
+    // A landmark, so screen-reader users can jump to the menu; on phones the
+    // sidebar is a sheet (a dialog) and Sidebar doesn't pass these through.
+    <Sidebar
+      collapsible='icon'
+      variant='inset'
+      role='navigation'
+      aria-label='Main'
+    >
       <SidebarHeader>
         <AppTitle />
       </SidebarHeader>

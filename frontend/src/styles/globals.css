@@ -134,7 +134,9 @@
 
   /* Extended colors */
   --destructive-foreground: var(--color-red-800);
-  --success: var(--color-emerald-500);
+  /* Darker than family-financial-app's emerald-500 (2.5:1 on white): the
+     success green carries small text here, which needs 4.5:1. */
+  --success: var(--color-emerald-700);
   --success-foreground: var(--color-emerald-900);
   --info: var(--color-violet-500);
   --info-foreground: var(--color-violet-900);

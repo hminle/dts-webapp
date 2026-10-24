@@ -42,7 +42,10 @@ export function SummaryStats({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Weekly summary</CardTitle>
+        {/* A heading, so the year blocks' h3s sit under an h2, not the page h1. */}
+        <CardTitle>
+          <h2>Weekly summary</h2>
+        </CardTitle>
       </CardHeader>
       <CardContent className='grid gap-6 md:grid-cols-3'>
         {[
