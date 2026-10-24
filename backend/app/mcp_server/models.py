@@ -38,3 +38,13 @@ class ApiCallResult(BaseModel):
     # The resolved path and query string actually requested.
     path: str
     body: Any
+
+
+class SkillSummary(BaseModel):
+    name: str
+    description: str
+
+
+class Skill(SkillSummary):
+    formulas: list[str]
+    body: str

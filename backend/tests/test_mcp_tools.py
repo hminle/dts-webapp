@@ -13,7 +13,7 @@ from app.services import meta
 
 async def test_tool_names(mcp_client: Client) -> None:
     names = {t.name for t in await mcp_client.list_tools()}
-    assert names == {"list_api", "describe_api", "call_api", "run_query"}
+    assert names == {"list_api", "describe_api", "call_api", "run_query", "get_skills"}
 
 
 async def test_tools_are_read_only(mcp_client: Client) -> None:
