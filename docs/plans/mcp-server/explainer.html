@@ -1,0 +1,392 @@
+<title>DTS MCP Server Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one ledger-page reading column; Part 1 is a grid of picture panels, Part 2 a briefing with wide figures. */
+:root {
+  --paper: #f3f5f7;
+  --sheet: #ffffff;
+  --ink: #18202a;
+  --ink-soft: #566170;
+  --rule: #d6dce3;
+  --accent: #2f5b8a;
+  --accent-wash: #e4ecf5;
+  --ok: #2c6a4d;
+  --ok-wash: #e3efe8;
+  --stop: #a63d2c;
+  --stop-wash: #f6e6e2;
+  --font-display: "Public Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Public Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.75rem;
+  --step-3: 2.5rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f141a; --sheet: #161d25; --ink: #e2e8ee; --ink-soft: #9aa6b3; --rule: #2a3440;
+    --accent: #8fb6e0; --accent-wash: #1c2a3a; --ok: #74c29a; --ok-wash: #1d2d25;
+    --stop: #e0806d; --stop-wash: #35201b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f141a; --sheet: #161d25; --ink: #e2e8ee; --ink-soft: #9aa6b3; --rule: #2a3440;
+  --accent: #8fb6e0; --accent-wash: #1c2a3a; --ok: #74c29a; --ok-wash: #1d2d25;
+  --stop: #e0806d; --stop-wash: #35201b; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: var(--step-0); line-height: 1.55;
+}
+.page {
+  max-width: 60rem; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 3rem 5rem;
+  display: flex; flex-direction: column; gap: 3rem;
+}
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.2; }
+h1 { font-size: var(--step-3); font-weight: 800; letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); font-weight: 800; }
+h3 { font-size: var(--step-1); font-weight: 600; }
+p { margin: 0; max-width: 65ch; }
+code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: var(--step--1); text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--accent);
+}
+.lede { font-size: var(--step-1); color: var(--ink-soft); max-width: 55ch; }
+header { display: flex; flex-direction: column; gap: 1rem; }
+
+.part-head {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  border-top: 2px solid var(--ink); padding-top: 1rem;
+}
+
+/* Part 1 panels */
+.panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; }
+.panel {
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; min-width: 0;
+}
+.panel h3 { font-size: var(--step-0); font-weight: 600; }
+.panel p { color: var(--ink-soft); font-size: 0.95rem; }
+.pic { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; min-height: 6rem; }
+.pic.col { flex-direction: column; align-items: stretch; }
+.box {
+  border: 1.5px solid var(--ink); border-radius: 4px; padding: 0.35rem 0.6rem;
+  font-size: var(--step--1); font-weight: 500; background: var(--sheet); text-align: center;
+}
+.box.accent { border-color: var(--accent); background: var(--accent-wash); color: var(--ink); }
+.box.ok { border-color: var(--ok); background: var(--ok-wash); }
+.box.stop { border-color: var(--stop); background: var(--stop-wash); }
+.box.ghost { border-style: dashed; color: var(--ink-soft); }
+.arrow { color: var(--ink-soft); font-size: 1.1rem; }
+.row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.tag { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-soft); }
+.fan { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; width: 100%; }
+
+/* Part 2 */
+.brief { display: flex; flex-direction: column; gap: 2.5rem; }
+.brief section { display: flex; flex-direction: column; gap: 1rem; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--font-mono); font-size: var(--step--1); font-weight: 500; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.06em; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+ul.decisions { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.6rem; max-width: 70ch; }
+
+.arch {
+  display: grid; gap: 0.75rem; min-width: 40rem;
+  grid-template-columns: 10rem 1fr 1fr;
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 1.25rem;
+}
+.arch .lane { display: flex; flex-direction: column; gap: 0.5rem; }
+.arch .lane-label { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
+.arch .box { text-align: left; }
+.arch .db { border-radius: 999px / 14px; text-align: center; }
+
+.seq { min-width: 40rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 1rem; }
+.seq svg { display: block; width: 100%; height: auto; }
+.seq text { font-family: var(--font-mono); font-size: 12px; fill: var(--ink); }
+.seq .soft { fill: var(--ink-soft); }
+.seq line, .seq path { stroke: var(--ink-soft); }
+.seq .life { stroke: var(--rule); stroke-dasharray: 4 4; }
+.seq .actor { fill: var(--accent-wash); stroke: var(--accent); }
+.seq .stopfill { fill: var(--stop); }
+
+.chain { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0.5rem; }
+.phase {
+  flex: 1 1 10rem; min-width: 0; background: var(--sheet); border: 1px solid var(--rule);
+  border-radius: 6px; padding: 0.85rem; display: flex; flex-direction: column; gap: 0.35rem;
+}
+.phase .n { font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent); }
+.phase b { font-size: 0.95rem; }
+.phase span { font-size: 0.85rem; color: var(--ink-soft); }
+.phase.optional { border-style: dashed; }
+.status { font-family: var(--font-mono); font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 3px; align-self: flex-start; background: var(--accent-wash); color: var(--accent); }
+.status.done { background: var(--ok-wash); color: var(--ok); }
+
+.risk { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--sheet); }
+.risk div { padding: 0.75rem 1rem; border-bottom: 1px solid var(--rule); font-size: 0.92rem; }
+.risk div:nth-child(odd) { font-weight: 600; border-right: 1px solid var(--rule); }
+.risk div:nth-last-child(-n+2) { border-bottom: 0; }
+
+@media (max-width: 40rem) {
+  .risk { grid-template-columns: 1fr; }
+  .risk div:nth-child(odd) { border-right: 0; border-bottom: 0; padding-bottom: 0.25rem; }
+}
+</style>
+
+<div class="page">
+  <header>
+    <span class="eyebrow">Plan · mcp-server</span>
+    <h1>An MCP server for the Treasury data</h1>
+    <p class="lede">An AI assistant gets five tools for asking the app's data questions directly. It runs on your machine first and is built so it can go public later.</p>
+  </header>
+
+  <!-- PART 1 -->
+  <div class="part-head">
+    <span class="eyebrow">Part 1</span>
+    <h2>The picture</h2>
+  </div>
+
+  <div class="panels">
+    <article class="panel">
+      <div class="pic">
+        <span class="box">You</span><span class="arrow">→</span>
+        <span class="box">Website charts</span>
+      </div>
+      <h3>What exists today</h3>
+      <p>The data is the U.S. Treasury's daily cash statement. Today a person reads it only through the website's charts and tables.</p>
+    </article>
+
+    <article class="panel">
+      <div class="pic">
+        <span class="box">AI assistant</span><span class="arrow">→</span>
+        <span class="box stop">no way in</span>
+      </div>
+      <h3>What's missing</h3>
+      <p>An assistant like Claude can't look at the numbers. It can only guess, or ask you to copy figures from the site.</p>
+    </article>
+
+    <article class="panel">
+      <div class="pic">
+        <span class="box">AI assistant</span><span class="arrow">↔</span>
+        <span class="box accent">MCP server</span><span class="arrow">↔</span>
+        <span class="box">Treasury data</span>
+      </div>
+      <h3>The idea in one picture</h3>
+      <p>MCP (Model Context Protocol) is a standard way to give an assistant tools. The server gives it a small set of read-only tools for this data.</p>
+    </article>
+
+    <article class="panel">
+      <div class="pic">
+        <div class="fan">
+          <span class="box accent">list the questions</span>
+          <span class="box accent">describe one</span>
+          <span class="box accent">ask the app</span>
+          <span class="box accent">ask in SQL</span>
+          <span class="box accent">read a guide</span>
+        </div>
+      </div>
+      <h3>Five tools</h3>
+      <p>Three tools reach the same 20 data questions the website uses. One runs a custom database query. One reads guides that explain how each number is calculated.</p>
+    </article>
+
+    <article class="panel">
+      <div class="pic col">
+        <div class="row"><span class="box">"Net transfers this fiscal year?"</span></div>
+        <div class="row"><span class="arrow">↓</span><span class="box accent">read the net-transfers guide</span></div>
+        <div class="row"><span class="arrow">↓</span><span class="box accent">ask the app</span><span class="arrow">→</span><span class="box ok">$108,932 million FYTD</span></div>
+      </div>
+      <h3>One question, start to finish</h3>
+      <p>The assistant reads the guide, asks the app, and gets the same figure the website shows. Amounts are in millions of dollars.</p>
+    </article>
+
+    <article class="panel">
+      <div class="pic col">
+        <div class="row"><span class="box ok">read rows</span><span class="tag">allowed</span></div>
+        <div class="row"><span class="box stop">change data</span><span class="box stop">open files</span><span class="box stop">reach the internet</span></div>
+      </div>
+      <h3>Custom queries are fenced in</h3>
+      <p>A query can only read the database. It can't change anything, open other files, or reach the internet. It stops after 10 seconds and returns at most 2,000 rows.</p>
+    </article>
+
+    <article class="panel">
+      <div class="pic">
+        <span class="box">guide text</span><span class="arrow">+</span>
+        <span class="box ok">numbers from the code</span>
+      </div>
+      <h3>The guides can't go stale</h3>
+      <p>The guides don't hold hand-copied facts. Table layouts, category line items and example numbers are filled in from the app's own code each time a guide is read.</p>
+    </article>
+
+    <article class="panel">
+      <div class="pic">
+        <span class="box">your laptop</span><span class="arrow">→</span>
+        <span class="box ghost">later: the public site</span>
+      </div>
+      <h3>Local first, public later</h3>
+      <p>First it runs on your machine for Claude Code. Every limit is already set for public use, so going public only means turning it on in the live app.</p>
+    </article>
+  </div>
+
+  <!-- PART 2 -->
+  <div class="part-head">
+    <span class="eyebrow">Part 2</span>
+    <h2>Developer briefing</h2>
+  </div>
+
+  <div class="brief">
+    <section>
+      <h3>Goal</h3>
+      <p>Add <code>backend/app/mcp_server/</code>, a FastMCP 4 server (<code>fastmcp&gt;=4.1.3,&lt;5</code>) with five generic tools over the existing FastAPI app and the read-only DuckDB artifact. It runs over stdio from <code>.mcp.json</code> (<code>uv run python -m app.mcp_server</code>). Phase 4 can later mount the same server as stateless streamable HTTP at <code>/api/mcp/</code>. No new FastAPI routes, so <code>docs/contracts/openapi.json</code> never changes.</p>
+    </section>
+
+    <section>
+      <h3>Architecture</h3>
+      <div class="scroll">
+        <div class="arch">
+          <div class="lane">
+            <span class="lane-label">Client</span>
+            <span class="box">Claude Code<br><span class="tag">stdio · Phases 2–3</span></span>
+            <span class="box ghost">Any MCP client<br><span class="tag">HTTP /api/mcp/ · Phase 4</span></span>
+          </div>
+          <div class="lane">
+            <span class="lane-label">app/mcp_server · build_server(app)</span>
+            <span class="box accent"><code>list_api</code> · <code>describe_api</code><br><span class="tag">app.openapi()</span></span>
+            <span class="box accent"><code>call_api</code><br><span class="tag">httpx.ASGITransport → routers</span></span>
+            <span class="box accent"><code>run_query</code><br><span class="tag">services/sql.py run_select</span></span>
+            <span class="box accent"><code>get_skills</code><br><span class="tag">skills/*.md + placeholders</span></span>
+          </div>
+          <div class="lane">
+            <span class="lane-label">Existing app</span>
+            <span class="box">routers → services</span>
+            <span class="box">app/constants/categories.py</span>
+            <span class="box">worked-examples.json (backend copy)</span>
+            <span class="box db ok">get_connection()<br><span class="tag">read_only · external access off · config locked</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h3>Tools</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Tool</th><th>Arguments</th><th>Returns / rule</th></tr></thead>
+          <tbody>
+            <tr><td><code>list_api</code></td><td><code>query?</code></td><td>The 20 <code>GET /api/v1/*</code> operations; <code>query</code> is a case-insensitive substring filter. It replaces a separate <code>search_api</code>.</td></tr>
+            <tr><td><code>describe_api</code></td><td><code>operation_id</code></td><td>Parameters (path/query, required, schema) and the 200 response schema, with every <code>$ref</code> it reaches inlined.</td></tr>
+            <tr><td><code>call_api</code></td><td><code>operation_id</code>, <code>params?</code></td><td>Calls the app in-process. Unknown params are rejected, because FastAPI ignores them silently. Non-2xx responses and bodies over 256 KiB raise <code>ToolError</code>.</td></tr>
+            <tr><td><code>run_query</code></td><td><code>sql</code>, <code>max_rows?</code></td><td>One <code>SELECT</code>, wrapped in <code>LIMIT max_rows+1</code>; returns <code>truncated</code>. Runs in a worker thread.</td></tr>
+            <tr><td><code>get_skills</code></td><td><code>name?</code></td><td>No name: the skill list. With a name: the body, with <code>{{schema}}</code>, <code>{{categories}}</code> and <code>{{example:…}}</code> rendered.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h3>One <code>run_query</code> call</h3>
+      <div class="scroll">
+        <div class="seq">
+          <svg viewBox="0 0 760 330" role="img" aria-label="Sequence: agent calls run_query, the tool runs run_select in a thread, which checks the SQL, takes a slot, starts a timer and queries DuckDB">
+            <rect class="actor" x="10" y="10" width="120" height="30" rx="4"/>
+            <text x="70" y="30" text-anchor="middle">Agent</text>
+            <rect class="actor" x="200" y="10" width="140" height="30" rx="4"/>
+            <text x="270" y="30" text-anchor="middle">run_query tool</text>
+            <rect class="actor" x="410" y="10" width="140" height="30" rx="4"/>
+            <text x="480" y="30" text-anchor="middle">run_select</text>
+            <rect class="actor" x="620" y="10" width="130" height="30" rx="4"/>
+            <text x="685" y="30" text-anchor="middle">DuckDB</text>
+            <line class="life" x1="70" y1="40" x2="70" y2="320"/>
+            <line class="life" x1="270" y1="40" x2="270" y2="320"/>
+            <line class="life" x1="480" y1="40" x2="480" y2="320"/>
+            <line class="life" x1="685" y1="40" x2="685" y2="320"/>
+            <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" stroke="none" style="fill: var(--ink-soft)"/></marker></defs>
+            <line x1="70" y1="70" x2="268" y2="70" marker-end="url(#ah)"/>
+            <text x="80" y="64">run_query(sql, max_rows)</text>
+            <line x1="270" y1="100" x2="478" y2="100" marker-end="url(#ah)"/>
+            <text x="280" y="94">anyio.to_thread.run_sync</text>
+            <text x="490" y="128" class="soft">extract_statements → 1 SELECT?</text>
+            <text x="490" y="148" class="soft">slot free? (2 per process)</text>
+            <text x="490" y="168" class="soft">Timer(10s, cur.interrupt)</text>
+            <line x1="480" y1="190" x2="683" y2="190" marker-end="url(#ah)"/>
+            <text x="490" y="184">SELECT * FROM (q) LIMIT n+1</text>
+            <line x1="685" y1="220" x2="482" y2="220" marker-end="url(#ah)"/>
+            <text x="560" y="214">rows</text>
+            <line x1="480" y1="250" x2="272" y2="250" marker-end="url(#ah)"/>
+            <text x="290" y="244">QueryResult(truncated)</text>
+            <text x="280" y="272" class="soft">JSON &gt; 256 KiB → ToolError</text>
+            <line x1="270" y1="300" x2="72" y2="300" marker-end="url(#ah)"/>
+            <text x="90" y="294">result or ToolError</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h3>Key decisions</h3>
+      <ul class="decisions">
+        <li><b>The lockdown goes on the one shared connection.</b> DuckDB 1.5.6 refuses a second connection to the same file with a different config, so <code>get_connection()</code> itself runs <code>SET enable_external_access = false</code> and then <code>SET lock_configuration = true</code>. Both are set after <code>connect</code>, because passing them in <code>config</code> makes DuckDB reject <code>temp_directory</code>.</li>
+        <li><b>Only a single <code>SELECT</code>.</b> <code>DESCRIBE</code>, <code>SHOW</code>, <code>SUMMARIZE</code>, <code>FROM t</code> and <code>VALUES</code> parse as SELECT and are allowed. <code>PIVOT</code> parses as CREATE + SELECT and gets its own message.</li>
+        <li><b>Limits fail loudly.</b> Hitting the row cap sets <code>truncated: true</code>. A timeout, the byte cap or busy slots raise <code>ToolError</code> with a way to narrow the query.</li>
+        <li><b>Skills render from code.</b> The schema comes from <code>information_schema</code>, categories from <code>CATEGORY_REGISTRY</code>, and numbers from <code>app/mcp_server/worked-examples.json</code>, a copy that a test keeps byte-equal to the frontend file. Every <code>```sql</code> block in a skill runs in CI.</li>
+        <li><b>No circular import.</b> <code>build_server(api)</code> takes the FastAPI app as an argument. The stdio entrypoint and <code>app/main.py</code> both call it, and <code>app/mcp_server</code> never imports <code>app.main</code>.</li>
+        <li><b>Public mode has no auth.</b> The data is public domain. The query limits and the existing <code>api-per-ip</code> WAF rule (300 per minute on <code>/api/</code>) handle abuse.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h3>Limits</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Setting (APP_…)</th><th>Default</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td><code>duckdb_memory_limit</code></td><td class="num">1GB</td><td>Half of a 2 GB function</td></tr>
+            <tr><td><code>query_default_rows</code></td><td class="num">200</td><td>A fiscal year of aggregated daily rows</td></tr>
+            <tr><td><code>query_max_rows</code></td><td class="num">2,000</td><td>Keeps results under the byte cap</td></tr>
+            <tr><td><code>query_timeout_seconds</code></td><td class="num">10</td><td>A third of <code>maxDuration: 30</code></td></tr>
+            <tr><td><code>query_concurrency</code></td><td class="num">2</td><td>One heavy query can't starve the API</td></tr>
+            <tr><td><code>mcp_max_response_bytes</code></td><td class="num">262,144</td><td>About 60k tokens</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h3>Phase order</h3>
+      <div class="chain">
+        <div class="phase"><span class="n">Phase 0</span><b>Setup</b><span>Existing state, tool contracts, limits</span><span class="status done">Done</span></div>
+        <div class="phase"><span class="n">Phase 1 · feat/query-guard</span><b>Query guard</b><span>Lockdown, <code>run_select</code>, tests</span><span class="status">Not started</span></div>
+        <div class="phase"><span class="n">Phase 2 · feat/mcp-server</span><b>Local MCP server</b><span>4 tools, stdio, <code>.mcp.json</code></span><span class="status">Not started</span></div>
+        <div class="phase"><span class="n">Phase 3 · feat/mcp-skills</span><b>Skills</b><span><code>get_skills</code>, 5 guides, drift tests</span><span class="status">Not started</span></div>
+        <div class="phase optional"><span class="n">Phase 4 · feat/mcp-public</span><b>Public endpoint</b><span>Mount at <code>/api/mcp/</code>, preview check</span><span class="status">When you decide</span></div>
+      </div>
+      <p>The phases run strictly in order. Phases 1–3 give you a complete local server, and Phase 4 is optional.</p>
+    </section>
+
+    <section>
+      <h3>Risks</h3>
+      <div class="risk">
+        <div>The lockdown breaks DuckDB spilling to <code>/tmp/duckdb</code></div>
+        <div>Phase 1 runs a manual check with <code>APP_DUCKDB_MEMORY_LIMIT=50MB</code>. If spilling is off, the memory limit still protects the process.</div>
+        <div>FastAPI ignores unknown query params, so a typo returns unfiltered data</div>
+        <div><code>call_api</code> checks every param name against the spec first.</div>
+        <div>A mount at <code>/api/mcp</code> redirects requests without the trailing slash (307)</div>
+        <div>Docs use <code>/api/mcp/</code>. A test records the behaviour, and no second route is added to hide it.</div>
+        <div>Skill facts drift from the app</div>
+        <div>Placeholders fill facts in from the code. The worked-examples copy is checked byte for byte, and every SQL block runs in tests.</div>
+        <div>A cross join ties up the function</div>
+        <div>A 10 s interrupt, 2 query slots, a 1 GB memory limit and the WAF rate limit.</div>
+      </div>
+    </section>
+  </div>
+</div>
