@@ -1,4 +1,4 @@
-# Phase 2: Local MCP server — ⬜ Not Started
+# Phase 2: Local MCP server — ✅ Done
 
 **Goal**: A FastMCP server with `list_api`, `describe_api`, `call_api` and `run_query` that
 Claude Code starts over stdio from `.mcp.json` and uses against the local artifact.
@@ -171,7 +171,7 @@ from app.mcp_server.server import build_server
 
 
 def main() -> None:
-    build_server(app).run()
+    build_server(app).run(show_banner=False)
 
 
 if __name__ == "__main__":
@@ -264,11 +264,11 @@ Code asks once before it trusts a project `.mcp.json`.
 
 ## Verification
 
-- [ ] `cd backend && uv run pytest tests/test_mcp_catalog.py tests/test_mcp_tools.py -x` — all pass.
-- [ ] `cd backend && uv run pytest` — full suite passes.
-- [ ] `cd backend && uv run ruff check . && uv run ruff format --check .` — clean.
-- [ ] `git diff --exit-code docs/contracts/openapi.json` — no change.
-- [ ] Stdio smoke test against the real artifact (from `backend/`; fetch it first if missing):
+- [x] `cd backend && uv run pytest tests/test_mcp_catalog.py tests/test_mcp_tools.py -x` — all pass.
+- [x] `cd backend && uv run pytest` — full suite passes.
+- [x] `cd backend && uv run ruff check . && uv run ruff format --check .` — clean.
+- [x] `git diff --exit-code docs/contracts/openapi.json` — no change.
+- [x] Stdio smoke test against the real artifact (from `backend/`; fetch it first if missing):
       ```bash
       uv run python - <<'EOF'
       import asyncio
@@ -296,3 +296,19 @@ Code asks once before it trusts a project `.mcp.json`.
   builds the server inside `app/main.py`, and an import from the other side would be circular.
 - If a FastMCP 4.x release renames `annotations` keys or the `Client` error type, follow the
   installed version's docs and record the difference here.
+- **FastMCP 4.1.3 differences found on landing.**
+  - Tool results are dumped without `by_alias`, so `ParameterInfo` sets
+    `ConfigDict(serialize_by_alias=True, validate_by_name=True)`; without it the wire key is
+    `json_schema`, not `schema`.
+  - `ToolAnnotations.readOnlyHint` is deprecated on the client side in favour of
+    `read_only_hint`; the test reads the new name. `annotations={"readOnlyHint": ...}` on the
+    server still works without a warning.
+  - `run()` prints a banner to stderr; `show_banner=False` keeps the Claude Code MCP log quiet.
+    stdout carries only JSON-RPC either way (checked by piping an `initialize` request).
+- No operation takes a boolean today, so `test_build_path_lowercases_bools` tests
+  `_encode_value` directly. `test_build_path_repeats_list_values` was added for
+  `category_descriptions`, the one list parameter.
+- Verified on landing: the stdio smoke test against the real artifact listed the four tools,
+  `run_query` returned `2026-10-19`, and `call_api("net_transfers_get_for_date")` for that date
+  returned 200. 24 new tests; full suite 162 passed. The Claude Code `/mcp` check needs a fresh
+  session at the repo root that trusts `.mcp.json`; it is left for the owner.

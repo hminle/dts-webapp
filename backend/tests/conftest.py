@@ -4,13 +4,14 @@ Settings and the cached DuckDB connection are module-level singletons, so every
 client fixture points ``APP_DUCKDB_PATH`` at its file and resets both.
 """
 
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 from datetime import date
 from pathlib import Path
 
 import duckdb
 import pytest
 from fastapi.testclient import TestClient
+from fastmcp import Client
 
 from app.constants.endpoints import ENDPOINT_TABLES
 from app.core.config import get_settings
@@ -19,6 +20,7 @@ from app.core.schema import SCHEMA_VERSION, create_schema
 from app.ingest.insert import insert_frame
 from app.ingest.populate import populate_fiscal_years
 from app.main import app
+from app.mcp_server.server import build_server
 from tests.fixtures import dw_day, endpoint_row
 
 # Two business days a week apart in each FY, plus the first day of the FY, so the
@@ -95,3 +97,16 @@ def empty_client(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> Iterator[TestClient]:
     yield from _client_for(tmp_path / "missing.duckdb", monkeypatch)
+
+
+@pytest.fixture
+async def mcp_client(
+    seeded_db: Path, monkeypatch: pytest.MonkeyPatch
+) -> AsyncIterator[Client]:
+    monkeypatch.setenv("APP_DUCKDB_PATH", str(seeded_db))
+    get_settings.cache_clear()
+    reset_connection_for_tests()
+    async with Client(build_server(app)) as client:
+        yield client
+    reset_connection_for_tests()
+    get_settings.cache_clear()
