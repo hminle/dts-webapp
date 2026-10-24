@@ -108,7 +108,7 @@ server with no circular import.
 
 ## Tool Contracts
 
-All tools are synchronous functions, annotated `readOnlyHint=True`, and raise
+All tools are annotated `readOnlyHint=True`, and raise
 `fastmcp.exceptions.ToolError` with an actionable message on any failure.
 
 | Tool | Arguments | Returns |

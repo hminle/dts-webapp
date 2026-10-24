@@ -64,6 +64,7 @@ uv run python -m scripts.export_openapi       # regenerate docs/contracts/openap
 uv run python -m scripts.fetch_artifact       # download latest.duckdb from R2 into data/
 uv run python -m app.ingest --db data/treasury_data.duckdb            # incremental update
 uv run python -m app.ingest --db data/treasury_data.duckdb --full     # rebuild from 2005
+uv run python -m app.mcp_server                # MCP server over stdio (Claude Code loads it from .mcp.json)
 ```
 
 Frontend (from `frontend/`, pnpm — not npm):
@@ -111,6 +112,11 @@ Layering: `app/api/routers` (HTTP, validation, cache headers) → `app/services`
   starts Oct 1 (`app/utils/fiscal.py:current_fiscal_year`).
 - **Ingestion is fetch-then-swap**: it builds into a temp file, validates it, and only then
   replaces the artifact. A failed run leaves yesterday's file untouched and exits non-zero.
+- **MCP server** (`app/mcp_server/`): generic tools over the same app — `list_api`/`describe_api`
+  read `app.openapi()`, `call_api` calls the app in-process via `httpx.ASGITransport`, `run_query`
+  goes through `app/services/sql.py`. Agent SQL runs on the shared connection, which is why
+  `app/core/duckdb.py` locks it down. Build with `build_server(app)`; never import the FastAPI app
+  from inside `app/mcp_server/`.
 
 Tests run against a small seeded DuckDB file built by the real schema code
 (`tests/conftest.py`); they never touch the network or the real artifact.
