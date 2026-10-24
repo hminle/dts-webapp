@@ -1,4 +1,4 @@
-# Phase 1: Query guard — ⬜ Not Started
+# Phase 1: Query guard — ✅ Done
 
 **Goal**: A service function that safely runs one agent-written `SELECT` against the shared
 read-only connection, with the connection locked so SQL cannot reach files, the network, or
@@ -187,19 +187,22 @@ Tests (one function each):
 
 ## Verification
 
-- [ ] `cd backend && uv run pytest tests/test_sql_guard.py -x` — all pass.
-- [ ] `cd backend && uv run pytest` — the full suite passes (the lockdown breaks no existing endpoint).
-- [ ] `cd backend && uv run ruff check . && uv run ruff format --check .` — clean.
-- [ ] `git diff --exit-code docs/contracts/openapi.json` — no change.
-- [ ] Spill still works under lockdown, run once by hand against a real artifact
+- [x] `cd backend && uv run pytest tests/test_sql_guard.py -x` — all pass.
+- [x] `cd backend && uv run pytest` — the full suite passes (the lockdown breaks no existing endpoint).
+- [x] `cd backend && uv run ruff check . && uv run ruff format --check .` — clean.
+- [x] `git diff --exit-code docs/contracts/openapi.json` — no change.
+- [x] Spill still works under lockdown, run once by hand against a real artifact
       (`uv run python -m scripts.fetch_artifact` first if `data/treasury_data.duckdb` is missing):
       `APP_DUCKDB_MEMORY_LIMIT=50MB uv run python -c "from app.core.duckdb import get_connection as g; from app.services.sql import run_select as r; print(r(g().cursor(), 'SELECT * FROM deposits_withdrawals ORDER BY transaction_catg_desc, record_date', 5).row_count)"`
       prints `5` and raises no `PermissionException`. If it raises "Out of Memory" instead, spilling
       is off: record that in Notes and keep `1GB` (the limit still protects the process).
-- [ ] `uv run fastapi dev` then open `http://localhost:8000/api/v1/meta/stats` — 200.
+- [x] `uv run fastapi dev` then open `http://localhost:8000/api/v1/meta/stats` — 200.
 
 ## Notes
 
 - `memory_limit` and the lockdown apply to the API as well. That is intended: the API reads only
   its own file.
 - `duckdb.InterruptException` is a subclass of `duckdb.Error`, so catch it **first**.
+- Verified on landing: the spill check against the real artifact with
+  `APP_DUCKDB_MEMORY_LIMIT=50MB` printed `5` with no `PermissionException`, so spilling to
+  `/tmp/duckdb` works under the lockdown. 29 guard tests; full suite 138 passed.
