@@ -4,6 +4,10 @@
       "type": "stdio",
       "command": "uv",
       "args": ["run", "--directory", "backend", "python", "-m", "app.mcp_server"]
+    },
+    "dts-public": {
+      "type": "http",
+      "url": "https://dts-webapp.vercel.app/api/mcp/"
     }
   }
 }
