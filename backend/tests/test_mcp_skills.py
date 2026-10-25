@@ -75,6 +75,7 @@ def test_categories_placeholder(cur: duckdb.DuckDBPyConnection) -> None:
     rendered = render(load_skills()["categories"].body, cur)
     assert "### Medicare" in rendered
     assert "HHS - Medicare Prescription Drugs" in rendered
+    assert "Comparable from: 2021-07-19" in rendered
 
 
 def test_example_placeholder(cur: duckdb.DuckDBPyConnection) -> None:

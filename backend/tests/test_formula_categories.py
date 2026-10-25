@@ -5,6 +5,7 @@ from datetime import date
 import pytest
 
 from app.constants.categories import (
+    CATEGORY_REGISTRY,
     IRS_REFUND_CATEGORY,
     MAJOR_RECEIPT_CATEGORIES,
     MAJOR_SPENDING_CATEGORIES,
@@ -33,6 +34,7 @@ MEDICARE = {
     "HHS - Federal Supple Med Insr Trust Fund": (42077, 38413),
     "HHS - Medicare Prescription Drugs": (10505, 6969),
 }
+OLDEST_CUSTOMS = "Customs and Certain Excise Taxes"
 OLD_CUSTOMS = "DHS - Customs and Certain Excise Taxes"
 NEW_CUSTOMS = "DHS - Customs Duties, Taxes, and Fees"
 
@@ -61,14 +63,28 @@ def test_the_category_groups_match_the_methodology() -> None:
             "Social Security Admin (SSA) - misc",
         ),
         "Medicare": tuple(MEDICARE),
-        "Medicaid": ("HHS - Grants to States for Medicaid",),
+        # Renamed in March 2020; the FYTD carried forward, so both names are summed.
+        "Medicaid": ("HHS - Grants to States for Medicaid", "Medicaid"),
         "Interest on Treasury Securities": ("Interest on Treasury Securities",),
     }
     assert {c.name: c.components for c in MAJOR_RECEIPT_CATEGORIES} == {
         "Employment & Withholding Tax": ("Taxes - Withheld Individual/FICA",),
-        # Treasury renamed the customs line in November 2025; both names are summed
-        # so a fiscal year that spans the rename, and the year before it, compare.
-        "Customs & Duties (Tariffs)": (OLD_CUSTOMS, NEW_CUSTOMS),
+        # Treasury renamed the customs line in May 2020 and November 2025; every
+        # name is summed so a fiscal year that spans a rename, and the year before
+        # it, compare.
+        "Customs & Duties (Tariffs)": (NEW_CUSTOMS, OLD_CUSTOMS, OLDEST_CUSTOMS),
+    }
+    assert {
+        name: cat.available_from.isoformat() for name, cat in CATEGORY_REGISTRY.items()
+    } == {
+        "Social Security Benefits": "2021-07-19",
+        "Medicare": "2020-03-09",
+        "Medicaid": "2005-10-03",
+        "Interest on Treasury Securities": "2005-10-03",
+        "Employment & Withholding Tax": "2023-02-14",
+        "Customs & Duties (Tariffs)": "2005-10-03",
+        "T-Bill Interest": "2022-09-12",
+        "IRS Tax Refunds": "2023-02-14",
     }
     assert TBILL_INTEREST_CATEGORY.components == ("Bills (-)", "Bonds and Notes (-)")
     assert set(IRS_REFUND_CATEGORY.components) == {
@@ -230,15 +246,107 @@ def test_category_detail_sums_components_per_day_by_fiscal_day() -> None:
     assert result.data_points[0].yoy_percent_change == pytest.approx(87.5)
 
 
-def test_category_detail_calendar_mode_compares_a_missing_date_with_zero() -> None:
-    # current behavior: unlike the daily comparison chart (which drops the date)
-    # and the cards (which use the statement before), the detail chart keeps the
-    # current date and treats last year's value as 0 with no percent change.
+def test_category_detail_calendar_mode_has_no_previous_for_a_missing_date() -> None:
+    # Unlike the daily comparison chart (which drops the date) and the cards (which
+    # use the statement before), the detail chart keeps the current date with no
+    # previous value, so the line shows a gap instead of a fake comparison with 0.
     result = _detail(_medicare_days(), "calendar_date")
     last = result.data_points[-1]
     assert (last.current_date, last.previous_date, last.previous_fytd) == (
         "2026-10-05",
         None,
-        0.0,
+        None,
     )
+    assert last.yoy_change is None
     assert last.yoy_percent_change is None
+
+
+def test_a_total_before_available_from_is_none() -> None:
+    withheld = "Taxes - Withheld Individual/FICA"
+    conn = formula_db(
+        {
+            "deposits_withdrawals": [
+                _deposit(CUR, 2027, withheld, 205803),
+                # Before 2023-02-14 the withheld taxes were reported elsewhere.
+                _deposit(date(2023, 2, 10), 2023, withheld, 1),
+            ]
+        }
+    )
+    result = get_major_receipts(
+        conn.cursor(),
+        MajorReceiptCategoriesRequest(
+            current_fiscal_year=2027, previous_fiscal_year=2023
+        ),
+    )
+    tax = _by_name(result.categories)["Employment & Withholding Tax"]
+    assert tax.current_fytd == 205803
+    assert tax.previous_fytd is None
+    assert tax.yoy_change is None
+    assert tax.yoy_percent_change is None
+    assert tax.available_from == "2023-02-14"
+
+
+def test_medicaid_sums_its_old_name() -> None:
+    conn = formula_db(
+        {
+            "deposits_withdrawals": [
+                _withdrawal(
+                    date(2020, 10, 1), 2021, "HHS - Grants to States for Medicaid", 1200
+                ),
+                _withdrawal(date(2019, 10, 1), 2020, "Medicaid", 1000),
+            ]
+        }
+    )
+    result = get_major_spending(
+        conn.cursor(),
+        MajorSpendingCategoriesRequest(
+            current_fiscal_year=2021, previous_fiscal_year=2020
+        ),
+    )
+    medicaid = _by_name(result.categories)["Medicaid"]
+    assert (medicaid.current_fytd, medicaid.previous_fytd) == (1200, 1000)
+    assert medicaid.yoy_change == 200
+
+
+def test_customs_compares_across_the_2020_rename() -> None:
+    conn = formula_db(
+        {
+            "deposits_withdrawals": [
+                _deposit(date(2019, 10, 1), 2020, OLD_CUSTOMS, 6000),
+                _deposit(date(2018, 10, 1), 2019, OLDEST_CUSTOMS, 5000),
+            ]
+        }
+    )
+    result = get_major_receipts(
+        conn.cursor(),
+        MajorReceiptCategoriesRequest(
+            current_fiscal_year=2020, previous_fiscal_year=2019
+        ),
+    )
+    customs = _by_name(result.categories)["Customs & Duties (Tariffs)"]
+    assert (customs.current_fytd, customs.previous_fytd) == (6000, 5000)
+    assert customs.yoy_percent_change == pytest.approx(20.0)
+
+
+def test_category_detail_is_none_before_available_from() -> None:
+    rows = [
+        apd_row(d, fy, adj_type="Bills (-)", fytd=v)
+        for d, fy, v in ((date(2022, 10, 3), 2023, 40), (date(2021, 10, 1), 2022, 30))
+    ]
+    # FY2022's statements before 2022-09-12 used the old discount line.
+    rows.append(apd_row(date(2022, 9, 9), 2022, adj_type="Bills (-)", fytd=99))
+    conn = formula_db({"adjustment_public_debt": rows})
+    result = get_daily_yoy(
+        conn.cursor(),
+        CategoryDailyYoYRequest(
+            category_name="T-Bill Interest",
+            category_type="tbill",
+            current_fiscal_year=2023,
+            previous_fiscal_year=2022,
+        ),
+    )
+    first = result.data_points[0]
+    assert (first.current_fytd, first.previous_date) == (40, "2021-10-01")
+    assert first.previous_fytd is None
+    assert first.yoy_change is None
+    assert result.available_from == "2022-09-12"

@@ -12,9 +12,11 @@ from fastapi import HTTPException
 
 from app.constants.categories import (
     CATEGORY_REGISTRY,
+    IRS_REFUND_CATEGORY,
     IRS_REFUND_COMPONENT_NAMES,
     MAJOR_RECEIPT_CATEGORIES,
     MAJOR_SPENDING_CATEGORIES,
+    TBILL_INTEREST_CATEGORY,
     TBILL_INTEREST_COMPONENT_NAMES,
     CategoryDef,
 )
@@ -39,10 +41,11 @@ from app.schemas.treasury import (
 from app.utils.yoy import (
     ComparisonMode,
     FYTDSource,
+    covered,
     fetch_component_fytd,
     find_aligned_previous_date,
     latest_date_for_fy,
-    yoy_change,
+    nullable_yoy,
 )
 
 logger = logging.getLogger(__name__)
@@ -161,6 +164,20 @@ def _build_subcategory_breakdown(
     return rows, total_current, total_previous
 
 
+def _covered_totals(
+    cat: CategoryDef,
+    current_date: str,
+    previous_date: str,
+    total_current: float,
+    total_previous: float,
+) -> tuple[float | None, float | None]:
+    """The totals, or ``None`` for a side whose date predates the category."""
+    return (
+        total_current if covered(cat.available_from, current_date) else None,
+        total_previous if covered(cat.available_from, previous_date) else None,
+    )
+
+
 # ── Endpoints ─────────────────────────────────────────────────────────
 
 
@@ -196,14 +213,18 @@ def get_major_spending(
         subcategories, total_current, total_previous = _build_subcategory_breakdown(
             cur, _SPENDING_SOURCE, major_cat.components, current_date, previous_date
         )
-        delta, pct = yoy_change(total_current, total_previous)
+        current_total, previous_total = _covered_totals(
+            major_cat, current_date, previous_date, total_current, total_previous
+        )
+        delta, pct = nullable_yoy(current_total, previous_total)
         categories.append(
             MajorSpendingCategory(
                 name=major_cat.name,
-                current_fytd=total_current,
-                previous_fytd=total_previous,
+                current_fytd=current_total,
+                previous_fytd=previous_total,
                 yoy_change=delta,
                 yoy_percent_change=pct,
+                available_from=major_cat.available_from.isoformat(),
                 subcategories=subcategories,
             )
         )
@@ -252,14 +273,18 @@ def get_major_receipts(
         subcategories, total_current, total_previous = _build_subcategory_breakdown(
             cur, _RECEIPT_SOURCE, major_cat.components, current_date, previous_date
         )
-        delta, pct = yoy_change(total_current, total_previous)
+        current_total, previous_total = _covered_totals(
+            major_cat, current_date, previous_date, total_current, total_previous
+        )
+        delta, pct = nullable_yoy(current_total, previous_total)
         categories.append(
             MajorReceiptCategory(
                 name=major_cat.name,
-                current_fytd=total_current,
-                previous_fytd=total_previous,
+                current_fytd=current_total,
+                previous_fytd=previous_total,
                 yoy_change=delta,
                 yoy_percent_change=pct,
+                available_from=major_cat.available_from.isoformat(),
                 subcategories=subcategories,
             )
         )
@@ -326,7 +351,14 @@ def get_tbill_interest(
         total_current += current_val
         total_previous += previous_val
 
-    total_delta, total_pct = yoy_change(total_current, total_previous)
+    current_total, previous_total = _covered_totals(
+        TBILL_INTEREST_CATEGORY,
+        current_date,
+        previous_date,
+        total_current,
+        total_previous,
+    )
+    total_delta, total_pct = nullable_yoy(current_total, previous_total)
 
     logger.info(
         "T-Bill interest: FY%s (%s) vs FY%s (%s)",
@@ -341,10 +373,11 @@ def get_tbill_interest(
         current_date=current_date,
         previous_date=previous_date,
         comparison_mode=comparison_mode,
-        total_current_fytd=total_current,
-        total_previous_fytd=total_previous,
+        total_current_fytd=current_total,
+        total_previous_fytd=previous_total,
         total_yoy_change=total_delta,
         total_yoy_percent_change=total_pct,
+        available_from=TBILL_INTEREST_CATEGORY.available_from.isoformat(),
         components=components,
     )
 
@@ -401,7 +434,10 @@ def get_irs_tax_refunds(
         total_current += current_val
         total_previous += previous_val
 
-    total_delta, total_pct = yoy_change(total_current, total_previous)
+    current_total, previous_total = _covered_totals(
+        IRS_REFUND_CATEGORY, current_date, previous_date, total_current, total_previous
+    )
+    total_delta, total_pct = nullable_yoy(current_total, previous_total)
 
     logger.info(
         "IRS Tax Refunds: FY%s (%s) vs FY%s (%s)",
@@ -416,10 +452,11 @@ def get_irs_tax_refunds(
         current_date=current_date,
         previous_date=previous_date,
         comparison_mode=comparison_mode,
-        total_current_fytd=total_current,
-        total_previous_fytd=total_previous,
+        total_current_fytd=current_total,
+        total_previous_fytd=previous_total,
         total_yoy_change=total_delta,
         total_yoy_percent_change=total_pct,
+        available_from=IRS_REFUND_CATEGORY.available_from.isoformat(),
         components=components,
     )
 
@@ -511,6 +548,14 @@ def get_daily_yoy(
         date_str = format_date(date)
         previous_data[date_str] = {"fytd": float(fytd) if fytd else 0.0, "day": i + 1}
 
+    def previous_point(prev_info: dict) -> tuple[str | None, float | None]:
+        # A missing aligned date or one before the category's coverage has
+        # no comparable total, which is not the same as a total of 0.
+        prev_date = prev_info["date"]
+        if not covered(cat_info.available_from, prev_date):
+            return prev_date, None
+        return prev_date, prev_info["fytd"]
+
     data_points = []
 
     if comparison_mode == "fiscal_day":
@@ -520,14 +565,15 @@ def get_daily_yoy(
 
         for curr_date, curr_info in sorted(current_data.items()):
             day_num = curr_info["day"]
-            curr_fytd = curr_info["fytd"]
+            curr_fytd = (
+                curr_info["fytd"]
+                if covered(cat_info.available_from, curr_date)
+                else None
+            )
 
-            prev_info = previous_by_day.get(day_num, {"date": None, "fytd": 0.0})
-            prev_date = prev_info["date"]
-            prev_fytd = prev_info["fytd"]
-
-            yoy_delta = curr_fytd - prev_fytd
-            yoy_percent = (yoy_delta / abs(prev_fytd) * 100) if prev_fytd != 0 else None
+            prev_info = previous_by_day.get(day_num, {"date": None, "fytd": None})
+            prev_date, prev_fytd = previous_point(prev_info)
+            yoy_delta, yoy_percent = nullable_yoy(curr_fytd, prev_fytd)
 
             data_points.append(
                 CategoryDailyYoYDataPoint(
@@ -549,15 +595,16 @@ def get_daily_yoy(
 
         for curr_date, curr_info in sorted(current_data.items()):
             day_num = curr_info["day"]
-            curr_fytd = curr_info["fytd"]
+            curr_fytd = (
+                curr_info["fytd"]
+                if covered(cat_info.available_from, curr_date)
+                else None
+            )
             mm_dd = curr_date[5:10]
 
-            prev_info = previous_by_mmdd.get(mm_dd, {"date": None, "fytd": 0.0})
-            prev_date = prev_info["date"]
-            prev_fytd = prev_info["fytd"]
-
-            yoy_delta = curr_fytd - prev_fytd
-            yoy_percent = (yoy_delta / abs(prev_fytd) * 100) if prev_fytd != 0 else None
+            prev_info = previous_by_mmdd.get(mm_dd, {"date": None, "fytd": None})
+            prev_date, prev_fytd = previous_point(prev_info)
+            yoy_delta, yoy_percent = nullable_yoy(curr_fytd, prev_fytd)
 
             data_points.append(
                 CategoryDailyYoYDataPoint(
@@ -586,5 +633,6 @@ def get_daily_yoy(
         previous_fiscal_year=previous_fy,
         comparison_mode=comparison_mode,
         comparison_days=len(data_points),
+        available_from=cat_info.available_from.isoformat(),
         data_points=data_points,
     )

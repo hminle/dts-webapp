@@ -45,10 +45,13 @@ export type CategoryAccent = 'increase' | 'decrease' | 'receipt'
 
 export type CategoryCardData = {
   name: string
-  current_fytd: number
-  previous_fytd: number
-  yoy_change: number
+  /** Null when the date predates `availableFrom`. */
+  current_fytd: number | null
+  previous_fytd: number | null
+  yoy_change: number | null
   yoy_percent_change: number | null
+  /** First date (ISO) the category's lines have their current shape. */
+  availableFrom: string
   subcategories?: SubcategoryBreakdown[]
   tbillComponents?: TBillInterestComponent[]
   irsRefundComponents?: IrsRefundComponent[]
@@ -56,9 +59,10 @@ export type CategoryCardData = {
   accent: CategoryAccent
 }
 
-// Spending: more is drawn as the primary series color, less as a warning.
-const spendingAccent = (delta: number): CategoryAccent =>
-  delta >= 0 ? 'increase' : 'decrease'
+// Spending: more is drawn as the primary series color, less as a warning. A
+// change that cannot be computed gets the neutral border.
+const spendingAccent = (delta: number | null): CategoryAccent =>
+  delta === null || delta >= 0 ? 'increase' : 'decrease'
 
 /** Spending cards: the major categories, then T-bill interest, then IRS refunds. */
 export function spendingCards(
@@ -72,6 +76,7 @@ export function spendingCards(
     previous_fytd: cat.previous_fytd,
     yoy_change: cat.yoy_change,
     yoy_percent_change: cat.yoy_percent_change ?? null,
+    availableFrom: cat.available_from,
     subcategories: cat.subcategories,
     categoryType: 'spending',
     accent: spendingAccent(cat.yoy_change),
@@ -83,6 +88,7 @@ export function spendingCards(
       previous_fytd: tbill.total_previous_fytd,
       yoy_change: tbill.total_yoy_change,
       yoy_percent_change: tbill.total_yoy_percent_change ?? null,
+      availableFrom: tbill.available_from,
       tbillComponents: tbill.components,
       categoryType: 'tbill',
       accent: spendingAccent(tbill.total_yoy_change),
@@ -95,6 +101,7 @@ export function spendingCards(
       previous_fytd: irs.total_previous_fytd,
       yoy_change: irs.total_yoy_change,
       yoy_percent_change: irs.total_yoy_percent_change ?? null,
+      availableFrom: irs.available_from,
       irsRefundComponents: irs.components,
       categoryType: 'irs_refund',
       accent: spendingAccent(irs.total_yoy_change),
@@ -112,6 +119,7 @@ export function receiptCards(
     previous_fytd: cat.previous_fytd,
     yoy_change: cat.yoy_change,
     yoy_percent_change: cat.yoy_percent_change ?? null,
+    availableFrom: cat.available_from,
     subcategories: cat.subcategories,
     categoryType: 'receipt',
     accent: 'receipt',
@@ -130,8 +138,18 @@ export type BreakdownRow = {
   change: number
 }
 
-/** One row shape for subcategories, T-bill components and IRS components. */
+/**
+ * One row shape for subcategories, T-bill components and IRS components. A
+ * row that is 0 in both years is an old line name absent from both, so it is
+ * dropped.
+ */
 export function breakdownRows(card: CategoryCardData): BreakdownRow[] {
+  return componentRows(card).filter(
+    (row) => row.current !== 0 || row.previous !== 0
+  )
+}
+
+function componentRows(card: CategoryCardData): BreakdownRow[] {
   if (card.tbillComponents?.length) {
     return card.tbillComponents.map((c) => ({
       key: c.adj_type,

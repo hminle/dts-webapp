@@ -19,6 +19,7 @@ export type FormulaId =
   | 'major-receipts'
   | 'tbill-interest'
   | 'irs-refunds'
+  | 'category-coverage'
   | 'category-comparison'
   | 'weekly-comparison'
 
@@ -251,6 +252,7 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
       { term: 'Medicare', meaning: 'HHS - Federal Supple Med Insr Trust Fund' },
       { term: 'Medicare', meaning: 'HHS - Medicare Prescription Drugs' },
       { term: 'Medicaid', meaning: 'HHS - Grants to States for Medicaid' },
+      { term: 'Medicaid', meaning: 'Medicaid' },
       {
         term: 'Interest on Treasury Securities',
         meaning: 'Interest on Treasury Securities',
@@ -266,7 +268,7 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
     id: 'major-receipts',
     title: 'Major receipt categories',
     summary:
-      'Two groups of deposit line items. Customs sums the old and new line names so years on either side of the 2025 rename compare.',
+      'Two groups of deposit line items. Customs sums every name its line has had, so years on either side of a rename compare.',
     expression: ['Category FYTD = Σ FYTD of its deposit line items'],
     terms: [
       {
@@ -275,15 +277,19 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
       },
       {
         term: 'Customs & Duties (Tariffs)',
+        meaning: 'DHS - Customs Duties, Taxes, and Fees',
+      },
+      {
+        term: 'Customs & Duties (Tariffs)',
         meaning: 'DHS - Customs and Certain Excise Taxes',
       },
       {
         term: 'Customs & Duties (Tariffs)',
-        meaning: 'DHS - Customs Duties, Taxes, and Fees',
+        meaning: 'Customs and Certain Excise Taxes',
       },
     ],
     pitfalls: [
-      'The Treasury renamed the customs line in November 2025; reading only one name would make customs look like it vanished.',
+      'The Treasury renamed the customs line in May 2020 and November 2025; reading only one name would make customs look like it vanished.',
     ],
     source: DEPOSITS_TABLE,
   },
@@ -327,6 +333,36 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
       'Table II lists only the EFT refund lines, so adding them up there misses every refund paid by check.',
     ],
     source: 'Income Tax Refunds Issued (Table V)',
+  },
+  'category-coverage': {
+    id: 'category-coverage',
+    title: 'When a category can be compared',
+    summary:
+      'A category is compared only from the date its Treasury lines took their current shape; earlier totals are blank, not zero.',
+    expression: [
+      'Total on a date = Σ FYTD of its lines, if date ≥ first comparable date',
+      'Otherwise: no value',
+    ],
+    terms: [
+      { term: 'Social Security Benefits', meaning: 'Comparable from 2021-07-19' },
+      { term: 'Medicare', meaning: 'Comparable from 2020-03-09' },
+      { term: 'Medicaid', meaning: 'October 2005 (all data)' },
+      {
+        term: 'Interest on Treasury Securities',
+        meaning: 'October 2005 (all data)',
+      },
+      {
+        term: 'Employment & Withholding Tax',
+        meaning: 'Comparable from 2023-02-14',
+      },
+      { term: 'Customs & Duties (Tariffs)', meaning: 'October 2005 (all data)' },
+      { term: 'T-Bill Interest', meaning: 'Comparable from 2022-09-12' },
+      { term: 'IRS Tax Refunds', meaning: 'Comparable from 2023-02-14' },
+    ],
+    pitfalls: [
+      'A renamed line is summed under every name it has had; only one name exists on any date.',
+    ],
+    source: DEPOSITS_TABLE,
   },
   'category-comparison': {
     id: 'category-comparison',
@@ -376,6 +412,7 @@ export const FORMULA_ORDER: FormulaId[] = [
   'major-receipts',
   'tbill-interest',
   'irs-refunds',
+  'category-coverage',
   'category-comparison',
   'weekly-comparison',
 ]

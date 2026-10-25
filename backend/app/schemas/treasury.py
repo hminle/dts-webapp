@@ -369,15 +369,31 @@ class MajorSpendingCategory(BaseModel):
     name: str = Field(
         ..., description="Display name (e.g., 'Social Security Benefits')"
     )
-    current_fytd: float = Field(
-        ..., description="Total current fiscal year FYTD amount"
+    current_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total current fiscal year FYTD amount"
+            " (null when the date is before available_from)"
+        ),
     )
-    previous_fytd: float = Field(
-        ..., description="Total previous fiscal year FYTD amount"
+    previous_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total previous fiscal year FYTD amount"
+            " (null when the date is before available_from)"
+        ),
     )
-    yoy_change: float = Field(..., description="Year-over-year change amount")
+    yoy_change: float | None = Field(
+        ...,
+        description=(
+            "Year-over-year change amount (null when the date is before available_from)"
+        ),
+    )
     yoy_percent_change: float | None = Field(
         None, description="Year-over-year percent change"
+    )
+    available_from: str = Field(
+        ..., description="First comparable date (ISO); totals before it are null"
     )
     subcategories: list[SubcategoryBreakdown] = Field(
         default_factory=list, description="Breakdown by subcategory"
@@ -430,15 +446,31 @@ class MajorReceiptCategory(BaseModel):
     name: str = Field(
         ..., description="Display name (e.g., 'Employment & Withholding Tax')"
     )
-    current_fytd: float = Field(
-        ..., description="Total current fiscal year FYTD amount"
+    current_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total current fiscal year FYTD amount"
+            " (null when the date is before available_from)"
+        ),
     )
-    previous_fytd: float = Field(
-        ..., description="Total previous fiscal year FYTD amount"
+    previous_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total previous fiscal year FYTD amount"
+            " (null when the date is before available_from)"
+        ),
     )
-    yoy_change: float = Field(..., description="Year-over-year change amount")
+    yoy_change: float | None = Field(
+        ...,
+        description=(
+            "Year-over-year change amount (null when the date is before available_from)"
+        ),
+    )
     yoy_percent_change: float | None = Field(
         None, description="Year-over-year percent change"
+    )
+    available_from: str = Field(
+        ..., description="First comparable date (ISO); totals before it are null"
     )
     subcategories: list[SubcategoryBreakdown] = Field(
         default_factory=list, description="Breakdown by subcategory"
@@ -529,13 +561,29 @@ class TBillInterestResponse(BaseModel):
     comparison_mode: str = Field(
         default="fiscal_day", description="Comparison mode used"
     )
-    total_current_fytd: float = Field(
-        ..., description="Total T-Bill interest for current fiscal year"
+    total_current_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total T-Bill interest for current fiscal year"
+            " (null when the date is before available_from)"
+        ),
     )
-    total_previous_fytd: float = Field(
-        ..., description="Total T-Bill interest for previous fiscal year"
+    total_previous_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total T-Bill interest for previous fiscal year"
+            " (null when the date is before available_from)"
+        ),
     )
-    total_yoy_change: float = Field(..., description="Total year-over-year change")
+    total_yoy_change: float | None = Field(
+        ...,
+        description=(
+            "Total year-over-year change (null when the date is before available_from)"
+        ),
+    )
+    available_from: str = Field(
+        ..., description="First comparable date (ISO); totals before it are null"
+    )
     total_yoy_percent_change: float | None = Field(
         None, description="Total year-over-year percent change"
     )
@@ -580,9 +628,25 @@ class CategoryDailyYoYDataPoint(BaseModel):
     )
     current_date: str = Field(..., description="Date in current fiscal year")
     previous_date: str | None = Field(None, description="Date in previous fiscal year")
-    current_fytd: float = Field(..., description="FYTD amount in current year")
-    previous_fytd: float = Field(..., description="FYTD amount in previous year")
-    yoy_change: float = Field(..., description="YoY difference (current - previous)")
+    current_fytd: float | None = Field(
+        ...,
+        description=(
+            "FYTD amount in current year (null when the date is before available_from)"
+        ),
+    )
+    previous_fytd: float | None = Field(
+        ...,
+        description=(
+            "FYTD amount in previous year (null when the date is before available_from)"
+        ),
+    )
+    yoy_change: float | None = Field(
+        ...,
+        description=(
+            "YoY difference (current - previous)"
+            " (null when the date is before available_from)"
+        ),
+    )
     yoy_percent_change: float | None = Field(None, description="YoY percent change")
 
 
@@ -599,6 +663,9 @@ class CategoryDailyYoYResponse(BaseModel):
         default="fiscal_day", description="Comparison mode used"
     )
     comparison_days: int = Field(..., description="Number of days compared")
+    available_from: str = Field(
+        ..., description="First comparable date (ISO); totals before it are null"
+    )
     data_points: list[CategoryDailyYoYDataPoint] = Field(
         default_factory=list, description="Daily YoY data points"
     )
@@ -653,13 +720,29 @@ class IrsRefundResponse(BaseModel):
     comparison_mode: str = Field(
         default="fiscal_day", description="Comparison mode used"
     )
-    total_current_fytd: float = Field(
-        ..., description="Total IRS tax refunds for current fiscal year"
+    total_current_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total IRS tax refunds for current fiscal year"
+            " (null when the date is before available_from)"
+        ),
     )
-    total_previous_fytd: float = Field(
-        ..., description="Total IRS tax refunds for previous fiscal year"
+    total_previous_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total IRS tax refunds for previous fiscal year"
+            " (null when the date is before available_from)"
+        ),
     )
-    total_yoy_change: float = Field(..., description="Total year-over-year change")
+    total_yoy_change: float | None = Field(
+        ...,
+        description=(
+            "Total year-over-year change (null when the date is before available_from)"
+        ),
+    )
+    available_from: str = Field(
+        ..., description="First comparable date (ISO); totals before it are null"
+    )
     total_yoy_percent_change: float | None = Field(
         None, description="Total year-over-year percent change"
     )

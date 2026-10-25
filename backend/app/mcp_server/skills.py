@@ -111,7 +111,10 @@ def _render_categories() -> str:
     sections = []
     for cat in CATEGORY_REGISTRY.values():
         items = "\n".join(f"- {c}" for c in cat.components)
-        sections.append(f"### {cat.name}\n\nKind: {cat.kind}\n\n{items}")
+        sections.append(
+            f"### {cat.name}\n\nKind: {cat.kind}\n\n"
+            f"Comparable from: {cat.available_from.isoformat()}\n\n{items}"
+        )
     return "\n\n".join(sections)
 
 

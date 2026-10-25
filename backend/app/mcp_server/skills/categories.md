@@ -1,7 +1,7 @@
 ---
 name: categories
 description: The major spending and receipt categories, T-bill interest and IRS refunds: which Treasury lines each sums, with SQL.
-formulas: [major-spending, major-receipts, tbill-interest, irs-refunds, category-comparison]
+formulas: [major-spending, major-receipts, tbill-interest, irs-refunds, category-coverage, category-comparison]
 ---
 
 # Categories
@@ -22,8 +22,11 @@ Pitfalls:
   ignored.
 - Interest on Treasury Securities is cash interest on notes and bonds. Bills pay no cash
   interest; their discount is T-bill interest, which never appears as a cash withdrawal.
-- The Treasury renamed the customs line in November 2025; customs sums the old and new names
-  so years on either side of the rename compare.
+- The Treasury renamed the customs line in May 2020 and November 2025; customs sums all three
+  names so years on either side of a rename compare.
+- A category is compared only from its first comparable date ("Comparable from" below). Before
+  it the Treasury restructured the lines, so API totals are `null`, not 0. Renamed lines are
+  summed under all their names; on any one date only one name exists.
 - `deposits_withdrawals` lists only the EFT refund lines, so adding them up there misses every
   refund paid by check. IRS refunds come from `income_tax_refunds`.
 

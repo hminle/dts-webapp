@@ -23,6 +23,7 @@ the baseline snapshots stay green.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Any, Literal
 
 ComparisonMode = Literal["fiscal_day", "calendar_date"]
@@ -266,3 +267,20 @@ def yoy_change(
     if previous == 0:
         return delta, None
     return delta, (delta / abs(previous)) * 100.0
+
+
+def covered(available_from: date, day: str | None) -> bool:
+    """Whether ``day`` (ISO date) is on or after ``available_from``.
+
+    An empty or missing day is never covered.
+    """
+    return bool(day) and date.fromisoformat(day) >= available_from
+
+
+def nullable_yoy(
+    current: float | None, previous: float | None
+) -> tuple[float | None, float | None]:
+    """``yoy_change`` that passes ``None`` through when either side is missing."""
+    if current is None or previous is None:
+        return None, None
+    return yoy_change(current, previous)

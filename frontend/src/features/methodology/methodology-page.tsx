@@ -687,9 +687,10 @@ export function MethodologyPage() {
               transfer figures.
             </li>
             <li>
-              Category names follow the Treasury’s own labels, which have
-              changed over the years, so a category can appear in one fiscal
-              year and not another.
+              The Treasury has renamed and reorganized its lines over the
+              years. Each category is compared only from the date its lines
+              took their current shape:
+              <FormulaBlock id='category-coverage' />
             </li>
             <li>
               Early in a fiscal year, payment calendars move the comparisons.

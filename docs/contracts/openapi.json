@@ -65,9 +65,16 @@
             "type": "string"
           },
           "current_fytd": {
-            "description": "FYTD amount in current year",
-            "title": "Current Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "FYTD amount in current year (null when the date is before available_from)",
+            "title": "Current Fytd"
           },
           "day_of_fiscal_year": {
             "description": "Day number within the fiscal year",
@@ -87,14 +94,28 @@
             "title": "Previous Date"
           },
           "previous_fytd": {
-            "description": "FYTD amount in previous year",
-            "title": "Previous Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "FYTD amount in previous year (null when the date is before available_from)",
+            "title": "Previous Fytd"
           },
           "yoy_change": {
-            "description": "YoY difference (current - previous)",
-            "title": "Yoy Change",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "YoY difference (current - previous) (null when the date is before available_from)",
+            "title": "Yoy Change"
           },
           "yoy_percent_change": {
             "anyOf": [
@@ -122,6 +143,11 @@
       "CategoryDailyYoYResponse": {
         "description": "Schema for category daily YoY response.",
         "properties": {
+          "available_from": {
+            "description": "First comparable date (ISO); totals before it are null",
+            "title": "Available From",
+            "type": "string"
+          },
           "category_name": {
             "description": "Category name",
             "title": "Category Name",
@@ -167,7 +193,8 @@
           "category_type",
           "current_fiscal_year",
           "previous_fiscal_year",
-          "comparison_days"
+          "comparison_days",
+          "available_from"
         ],
         "title": "CategoryDailyYoYResponse",
         "type": "object"
@@ -587,6 +614,11 @@
       "IrsRefundResponse": {
         "description": "Schema for IRS tax refund response.",
         "properties": {
+          "available_from": {
+            "description": "First comparable date (ISO); totals before it are null",
+            "title": "Available From",
+            "type": "string"
+          },
           "comparison_mode": {
             "default": "fiscal_day",
             "description": "Comparison mode used",
@@ -622,19 +654,40 @@
             "type": "integer"
           },
           "total_current_fytd": {
-            "description": "Total IRS tax refunds for current fiscal year",
-            "title": "Total Current Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total IRS tax refunds for current fiscal year (null when the date is before available_from)",
+            "title": "Total Current Fytd"
           },
           "total_previous_fytd": {
-            "description": "Total IRS tax refunds for previous fiscal year",
-            "title": "Total Previous Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total IRS tax refunds for previous fiscal year (null when the date is before available_from)",
+            "title": "Total Previous Fytd"
           },
           "total_yoy_change": {
-            "description": "Total year-over-year change",
-            "title": "Total Yoy Change",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total year-over-year change (null when the date is before available_from)",
+            "title": "Total Yoy Change"
           },
           "total_yoy_percent_change": {
             "anyOf": [
@@ -656,7 +709,8 @@
           "previous_date",
           "total_current_fytd",
           "total_previous_fytd",
-          "total_yoy_change"
+          "total_yoy_change",
+          "available_from"
         ],
         "title": "IrsRefundResponse",
         "type": "object"
@@ -711,10 +765,22 @@
       "MajorReceiptCategory": {
         "description": "Schema for a major receipt category with breakdown.",
         "properties": {
+          "available_from": {
+            "description": "First comparable date (ISO); totals before it are null",
+            "title": "Available From",
+            "type": "string"
+          },
           "current_fytd": {
-            "description": "Total current fiscal year FYTD amount",
-            "title": "Current Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total current fiscal year FYTD amount (null when the date is before available_from)",
+            "title": "Current Fytd"
           },
           "name": {
             "description": "Display name (e.g., 'Employment & Withholding Tax')",
@@ -722,9 +788,16 @@
             "type": "string"
           },
           "previous_fytd": {
-            "description": "Total previous fiscal year FYTD amount",
-            "title": "Previous Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total previous fiscal year FYTD amount (null when the date is before available_from)",
+            "title": "Previous Fytd"
           },
           "subcategories": {
             "description": "Breakdown by subcategory",
@@ -735,9 +808,16 @@
             "type": "array"
           },
           "yoy_change": {
-            "description": "Year-over-year change amount",
-            "title": "Yoy Change",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Year-over-year change amount (null when the date is before available_from)",
+            "title": "Yoy Change"
           },
           "yoy_percent_change": {
             "anyOf": [
@@ -756,7 +836,8 @@
           "name",
           "current_fytd",
           "previous_fytd",
-          "yoy_change"
+          "yoy_change",
+          "available_from"
         ],
         "title": "MajorReceiptCategory",
         "type": "object"
@@ -811,10 +892,22 @@
       "MajorSpendingCategory": {
         "description": "Schema for a major spending category with breakdown.",
         "properties": {
+          "available_from": {
+            "description": "First comparable date (ISO); totals before it are null",
+            "title": "Available From",
+            "type": "string"
+          },
           "current_fytd": {
-            "description": "Total current fiscal year FYTD amount",
-            "title": "Current Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total current fiscal year FYTD amount (null when the date is before available_from)",
+            "title": "Current Fytd"
           },
           "name": {
             "description": "Display name (e.g., 'Social Security Benefits')",
@@ -822,9 +915,16 @@
             "type": "string"
           },
           "previous_fytd": {
-            "description": "Total previous fiscal year FYTD amount",
-            "title": "Previous Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total previous fiscal year FYTD amount (null when the date is before available_from)",
+            "title": "Previous Fytd"
           },
           "subcategories": {
             "description": "Breakdown by subcategory",
@@ -835,9 +935,16 @@
             "type": "array"
           },
           "yoy_change": {
-            "description": "Year-over-year change amount",
-            "title": "Yoy Change",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Year-over-year change amount (null when the date is before available_from)",
+            "title": "Yoy Change"
           },
           "yoy_percent_change": {
             "anyOf": [
@@ -856,7 +963,8 @@
           "name",
           "current_fytd",
           "previous_fytd",
-          "yoy_change"
+          "yoy_change",
+          "available_from"
         ],
         "title": "MajorSpendingCategory",
         "type": "object"
@@ -936,6 +1044,11 @@
       "TBillInterestResponse": {
         "description": "Schema for T-Bill interest response.",
         "properties": {
+          "available_from": {
+            "description": "First comparable date (ISO); totals before it are null",
+            "title": "Available From",
+            "type": "string"
+          },
           "comparison_mode": {
             "default": "fiscal_day",
             "description": "Comparison mode used",
@@ -971,19 +1084,40 @@
             "type": "integer"
           },
           "total_current_fytd": {
-            "description": "Total T-Bill interest for current fiscal year",
-            "title": "Total Current Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total T-Bill interest for current fiscal year (null when the date is before available_from)",
+            "title": "Total Current Fytd"
           },
           "total_previous_fytd": {
-            "description": "Total T-Bill interest for previous fiscal year",
-            "title": "Total Previous Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total T-Bill interest for previous fiscal year (null when the date is before available_from)",
+            "title": "Total Previous Fytd"
           },
           "total_yoy_change": {
-            "description": "Total year-over-year change",
-            "title": "Total Yoy Change",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total year-over-year change (null when the date is before available_from)",
+            "title": "Total Yoy Change"
           },
           "total_yoy_percent_change": {
             "anyOf": [
@@ -1005,7 +1139,8 @@
           "previous_date",
           "total_current_fytd",
           "total_previous_fytd",
-          "total_yoy_change"
+          "total_yoy_change",
+          "available_from"
         ],
         "title": "TBillInterestResponse",
         "type": "object"

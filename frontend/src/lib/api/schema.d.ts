@@ -475,9 +475,9 @@ export interface components {
             current_date: string;
             /**
              * Current Fytd
-             * @description FYTD amount in current year
+             * @description FYTD amount in current year (null when the date is before available_from)
              */
-            current_fytd: number;
+            current_fytd: number | null;
             /**
              * Day Of Fiscal Year
              * @description Day number within the fiscal year
@@ -490,14 +490,14 @@ export interface components {
             previous_date?: string | null;
             /**
              * Previous Fytd
-             * @description FYTD amount in previous year
+             * @description FYTD amount in previous year (null when the date is before available_from)
              */
-            previous_fytd: number;
+            previous_fytd: number | null;
             /**
              * Yoy Change
-             * @description YoY difference (current - previous)
+             * @description YoY difference (current - previous) (null when the date is before available_from)
              */
-            yoy_change: number;
+            yoy_change: number | null;
             /**
              * Yoy Percent Change
              * @description YoY percent change
@@ -509,6 +509,11 @@ export interface components {
          * @description Schema for category daily YoY response.
          */
         CategoryDailyYoYResponse: {
+            /**
+             * Available From
+             * @description First comparable date (ISO); totals before it are null
+             */
+            available_from: string;
             /**
              * Category Name
              * @description Category name
@@ -829,6 +834,11 @@ export interface components {
          */
         IrsRefundResponse: {
             /**
+             * Available From
+             * @description First comparable date (ISO); totals before it are null
+             */
+            available_from: string;
+            /**
              * Comparison Mode
              * @description Comparison mode used
              * @default fiscal_day
@@ -861,19 +871,19 @@ export interface components {
             previous_fiscal_year: number;
             /**
              * Total Current Fytd
-             * @description Total IRS tax refunds for current fiscal year
+             * @description Total IRS tax refunds for current fiscal year (null when the date is before available_from)
              */
-            total_current_fytd: number;
+            total_current_fytd: number | null;
             /**
              * Total Previous Fytd
-             * @description Total IRS tax refunds for previous fiscal year
+             * @description Total IRS tax refunds for previous fiscal year (null when the date is before available_from)
              */
-            total_previous_fytd: number;
+            total_previous_fytd: number | null;
             /**
              * Total Yoy Change
-             * @description Total year-over-year change
+             * @description Total year-over-year change (null when the date is before available_from)
              */
-            total_yoy_change: number;
+            total_yoy_change: number | null;
             /**
              * Total Yoy Percent Change
              * @description Total year-over-year percent change
@@ -923,10 +933,15 @@ export interface components {
          */
         MajorReceiptCategory: {
             /**
-             * Current Fytd
-             * @description Total current fiscal year FYTD amount
+             * Available From
+             * @description First comparable date (ISO); totals before it are null
              */
-            current_fytd: number;
+            available_from: string;
+            /**
+             * Current Fytd
+             * @description Total current fiscal year FYTD amount (null when the date is before available_from)
+             */
+            current_fytd: number | null;
             /**
              * Name
              * @description Display name (e.g., 'Employment & Withholding Tax')
@@ -934,9 +949,9 @@ export interface components {
             name: string;
             /**
              * Previous Fytd
-             * @description Total previous fiscal year FYTD amount
+             * @description Total previous fiscal year FYTD amount (null when the date is before available_from)
              */
-            previous_fytd: number;
+            previous_fytd: number | null;
             /**
              * Subcategories
              * @description Breakdown by subcategory
@@ -944,9 +959,9 @@ export interface components {
             subcategories?: components["schemas"]["SubcategoryBreakdown"][];
             /**
              * Yoy Change
-             * @description Year-over-year change amount
+             * @description Year-over-year change amount (null when the date is before available_from)
              */
-            yoy_change: number;
+            yoy_change: number | null;
             /**
              * Yoy Percent Change
              * @description Year-over-year percent change
@@ -996,10 +1011,15 @@ export interface components {
          */
         MajorSpendingCategory: {
             /**
-             * Current Fytd
-             * @description Total current fiscal year FYTD amount
+             * Available From
+             * @description First comparable date (ISO); totals before it are null
              */
-            current_fytd: number;
+            available_from: string;
+            /**
+             * Current Fytd
+             * @description Total current fiscal year FYTD amount (null when the date is before available_from)
+             */
+            current_fytd: number | null;
             /**
              * Name
              * @description Display name (e.g., 'Social Security Benefits')
@@ -1007,9 +1027,9 @@ export interface components {
             name: string;
             /**
              * Previous Fytd
-             * @description Total previous fiscal year FYTD amount
+             * @description Total previous fiscal year FYTD amount (null when the date is before available_from)
              */
-            previous_fytd: number;
+            previous_fytd: number | null;
             /**
              * Subcategories
              * @description Breakdown by subcategory
@@ -1017,9 +1037,9 @@ export interface components {
             subcategories?: components["schemas"]["SubcategoryBreakdown"][];
             /**
              * Yoy Change
-             * @description Year-over-year change amount
+             * @description Year-over-year change amount (null when the date is before available_from)
              */
-            yoy_change: number;
+            yoy_change: number | null;
             /**
              * Yoy Percent Change
              * @description Year-over-year percent change
@@ -1089,6 +1109,11 @@ export interface components {
          */
         TBillInterestResponse: {
             /**
+             * Available From
+             * @description First comparable date (ISO); totals before it are null
+             */
+            available_from: string;
+            /**
              * Comparison Mode
              * @description Comparison mode used
              * @default fiscal_day
@@ -1121,19 +1146,19 @@ export interface components {
             previous_fiscal_year: number;
             /**
              * Total Current Fytd
-             * @description Total T-Bill interest for current fiscal year
+             * @description Total T-Bill interest for current fiscal year (null when the date is before available_from)
              */
-            total_current_fytd: number;
+            total_current_fytd: number | null;
             /**
              * Total Previous Fytd
-             * @description Total T-Bill interest for previous fiscal year
+             * @description Total T-Bill interest for previous fiscal year (null when the date is before available_from)
              */
-            total_previous_fytd: number;
+            total_previous_fytd: number | null;
             /**
              * Total Yoy Change
-             * @description Total year-over-year change
+             * @description Total year-over-year change (null when the date is before available_from)
              */
-            total_yoy_change: number;
+            total_yoy_change: number | null;
             /**
              * Total Yoy Percent Change
              * @description Total year-over-year percent change
