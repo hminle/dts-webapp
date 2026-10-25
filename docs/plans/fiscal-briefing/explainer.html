@@ -1,0 +1,652 @@
+<title>Fiscal Briefing Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,700&family=Source+Sans+3:wght@400;600;700&family=Source+Code+Pro:wght@400;500&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one statement-paper reading column. Part 1 = picture panels in a 2-up grid, Part 2 = step list + framed app mockup, Part 3 = briefing with wide figures. */
+:root {
+  --paper: #f2f4f1;
+  --sheet: #ffffff;
+  --ink: #17211b;
+  --ink-soft: #57645b;
+  --rule: #d3dad4;
+  --accent: #2f6b4f;
+  --accent-wash: #e2eee7;
+  --warn: #9a5b12;
+  --warn-wash: #f6ecdd;
+  --stop: #a3392b;
+  --stop-wash: #f5e3df;
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-body: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Source Code Pro", ui-monospace, Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.75rem;
+  --step-3: 2.5rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1512; --sheet: #161e19; --ink: #e1e8e3; --ink-soft: #9aa89f; --rule: #2a352e;
+    --accent: #7cc29e; --accent-wash: #1b2c23; --warn: #e0a95a; --warn-wash: #33281a;
+    --stop: #e58474; --stop-wash: #36201c; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1512; --sheet: #161e19; --ink: #e1e8e3; --ink-soft: #9aa89f; --rule: #2a352e;
+  --accent: #7cc29e; --accent-wash: #1b2c23; --warn: #e0a95a; --warn-wash: #33281a;
+  --stop: #e58474; --stop-wash: #36201c; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 48px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: var(--step-3); font-weight: 700; }
+h2 { font-size: var(--step-2); font-weight: 700; }
+h3 { font-size: var(--step-1); font-weight: 500; }
+p { margin: 0; max-width: 68ch; }
+code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+.eyebrow { font-size: var(--step--1); text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 700; }
+.lede { font-size: var(--step-1); color: var(--ink-soft); max-width: 60ch; }
+header.top { display: flex; flex-direction: column; gap: 12px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--ink-soft); font-size: var(--step--1); }
+
+.part { display: flex; flex-direction: column; gap: 24px; }
+.part-head { display: flex; flex-direction: column; gap: 6px; border-top: 3px double var(--rule); padding-top: 20px; }
+
+/* Part 1 panels */
+.panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.panel { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.panel h3 { font-size: 1.1rem; }
+.panel .cap { color: var(--ink-soft); font-size: 0.95rem; }
+.pic { display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.box { border: 1px solid var(--rule); border-radius: 4px; padding: 6px 10px; background: var(--paper); }
+.box.ac { border-color: var(--accent); background: var(--accent-wash); }
+.box.wn { border-color: var(--warn); background: var(--warn-wash); }
+.box.st { border-color: var(--stop); background: var(--stop-wash); }
+.arrow { color: var(--ink-soft); font-family: var(--font-mono); }
+.fig { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.two > div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lbl { font-size: var(--step--1); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); font-weight: 600; }
+ul.plain { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+
+/* Part 2: walkthrough */
+.walk { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 20px; align-items: start; }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.steps li button {
+  all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid; grid-template-columns: 28px 1fr; gap: 8px;
+  padding: 10px; border-radius: 6px; border: 1px solid transparent; font-size: 0.92rem; color: var(--ink);
+}
+.steps li button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.steps li button[aria-current="step"] { background: var(--sheet); border-color: var(--accent); }
+.steps .n { font-family: var(--font-mono); color: var(--accent); font-weight: 500; }
+.tag { display: inline-block; margin-top: 4px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--warn); border: 1px solid var(--warn); border-radius: 3px; padding: 0 5px; }
+.tag.live { color: var(--accent); border-color: var(--accent); }
+.controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.controls button { font: inherit; font-size: 0.9rem; padding: 6px 14px; border-radius: 5px; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); cursor: pointer; }
+.controls button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.controls .count { color: var(--ink-soft); font-size: var(--step--1); }
+.instr { background: var(--accent-wash); border-left: 3px solid var(--accent); padding: 8px 12px; font-size: 0.95rem; }
+.right { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+
+.frame { border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; background: var(--sheet); }
+.frame-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--rule); font-size: 0.8rem; color: var(--ink-soft); flex-wrap: wrap; }
+.dots { display: flex; gap: 5px; }
+.dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--rule); display: block; }
+.addr { font-family: var(--font-mono); background: var(--paper); border-radius: 4px; padding: 2px 8px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mocklabel { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--warn); }
+
+/* The app's own tokens, scoped to the mockup (frontend/src/styles/globals.css) */
+.mock-app {
+  --background: oklch(1 0 0); --foreground: oklch(0.145 0 0); --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0); --primary-foreground: oklch(0.985 0 0); --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0); --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --ring: oklch(0.708 0 0);
+  --destructive: oklch(0.577 0.245 27.325); --success: oklch(0.508 0.118 165.612);
+  --sidebar: oklch(0.985 0 0); --sidebar-accent: oklch(0.97 0 0); --sidebar-border: oklch(0.922 0 0);
+  --hl: oklch(0.646 0.222 41.116);
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif; font-size: 13px; line-height: 1.45;
+  background: var(--background); color: var(--foreground);
+  display: grid; grid-template-columns: 190px minmax(0, 1fr); min-height: 520px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .mock-app {
+    --background: oklch(0.145 0 0); --foreground: oklch(0.985 0 0); --card: oklch(0.205 0 0); --card-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0); --primary-foreground: oklch(0.205 0 0); --muted: oklch(0.269 0 0); --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.371 0 0); --border: oklch(1 0 0 / 10%); --input: oklch(1 0 0 / 15%); --ring: oklch(0.556 0 0);
+    --destructive: oklch(0.704 0.191 22.216); --success: oklch(0.696 0.17 162.48);
+    --sidebar: oklch(0.205 0 0); --sidebar-accent: oklch(0.269 0 0); --sidebar-border: oklch(1 0 0 / 10%);
+    --hl: oklch(0.769 0.188 70.08);
+  }
+}
+:root[data-theme="dark"] .mock-app {
+  --background: oklch(0.145 0 0); --foreground: oklch(0.985 0 0); --card: oklch(0.205 0 0); --card-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0); --primary-foreground: oklch(0.205 0 0); --muted: oklch(0.269 0 0); --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.371 0 0); --border: oklch(1 0 0 / 10%); --input: oklch(1 0 0 / 15%); --ring: oklch(0.556 0 0);
+  --destructive: oklch(0.704 0.191 22.216); --success: oklch(0.696 0.17 162.48);
+  --sidebar: oklch(0.205 0 0); --sidebar-accent: oklch(0.269 0 0); --sidebar-border: oklch(1 0 0 / 10%);
+  --hl: oklch(0.769 0.188 70.08);
+}
+.m-side { background: var(--sidebar); border-right: 1px solid var(--sidebar-border); padding: 12px 8px; display: flex; flex-direction: column; gap: 10px; }
+.m-brand { padding: 4px 8px; display: flex; flex-direction: column; }
+.m-brand b { font-weight: 700; }
+.m-brand span { font-size: 11px; color: var(--muted-foreground); }
+.m-group { font-size: 11px; color: var(--muted-foreground); padding: 0 8px; font-weight: 500; }
+.m-nav { display: flex; flex-direction: column; gap: 1px; }
+.m-nav div { padding: 5px 8px; border-radius: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-nav .sub { padding-left: 22px; color: var(--muted-foreground); }
+.m-nav .on { background: var(--sidebar-accent); font-weight: 500; }
+.m-nav .new::after { content: " new"; font-size: 10px; color: var(--hl); font-weight: 600; }
+.m-main { padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.m-title { font-size: 18px; font-weight: 600; }
+.m-card { background: var(--card); color: var(--card-foreground); border-radius: 12px; box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.m-card .t { font-size: 12px; color: var(--muted-foreground); font-weight: 500; }
+.m-card .v { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.m-card .note { font-size: 11px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.m-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.m-h2 { font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.m-sec { display: flex; flex-direction: column; gap: 6px; }
+.m-controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
+.m-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 500; }
+.m-toggle { display: inline-flex; border: 1px solid var(--input); border-radius: 8px; overflow: hidden; }
+.m-toggle span { padding: 4px 10px; font-weight: 400; }
+.m-toggle .sel { background: var(--accent); font-weight: 500; }
+.m-input { border: 1px solid var(--input); border-radius: 8px; padding: 4px 10px; font-weight: 400; font-variant-numeric: tabular-nums; min-width: 120px; }
+.m-btn { border: 1px solid var(--input); border-radius: 8px; padding: 4px 10px; font-weight: 500; }
+.up { color: var(--success); } .down { color: var(--destructive); }
+.m-cat { border-left: 4px solid var(--border); }
+.m-cat.inc { border-left-color: var(--hl); }
+.m-cat.dec { border-left-color: var(--destructive); }
+.m-cat.rec { border-left-color: var(--success); }
+.hl { outline: 2px solid var(--hl); outline-offset: 2px; position: relative; }
+.callout { position: absolute; top: -10px; right: -8px; background: var(--hl); color: var(--primary-foreground); border-radius: 999px; font-size: 10px; font-weight: 700; width: 18px; height: 18px; display: grid; place-items: center; }
+:root .mock-app .callout { color: oklch(0.145 0 0); }
+
+/* Without JS every screen is shown stacked; with JS one screen at a time. */
+.js .screen[hidden] { display: none !important; }
+.screen-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground); }
+.js .screen-label { display: none; }
+
+/* Part 3 */
+.brief { display: flex; flex-direction: column; gap: 28px; }
+.brief section { display: flex; flex-direction: column; gap: 12px; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 0.9rem; min-width: 560px; width: 100%; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: var(--step--1); text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); }
+td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.arch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: stretch; min-width: 640px; }
+.layer { display: flex; flex-direction: column; gap: 8px; }
+.layer .lbl { text-align: center; }
+.node { border: 1px solid var(--rule); background: var(--sheet); border-radius: 4px; padding: 8px 10px; font-size: 0.85rem; }
+.node.new { border-color: var(--accent); background: var(--accent-wash); }
+.node code { font-size: 0.8rem; }
+.flow { display: flex; flex-direction: column; gap: 6px; min-width: 560px; }
+.flow .row { flex-wrap: nowrap; }
+.dag { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; align-items: center; min-width: 620px; }
+.dag .node { text-align: center; }
+.risk { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.risk > div { border: 1px solid var(--rule); background: var(--sheet); border-radius: 4px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.risk b { font-family: var(--font-display); font-weight: 500; font-size: 1.05rem; }
+
+@media (max-width: 760px) {
+  .walk { grid-template-columns: 1fr; }
+  .js .steps { display: none; }
+  .mock-app { grid-template-columns: 44px minmax(0, 1fr); }
+  .m-brand, .m-group { display: none; }
+  .m-nav div { font-size: 0; padding: 6px; height: 26px; }
+  .m-nav div::before { content: "•"; font-size: 14px; }
+  .m-nav .sub { display: none; }
+  .m-nav .new::after { content: ""; }
+  .two { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .steps li button { transition: background .15s, border-color .15s; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">Plan · docs/plans/fiscal-briefing</span>
+    <h1>Fiscal Briefing</h1>
+    <p class="lede">A weekly snapshot, 14 more categories, rolling averages and the Treasury’s cash balance. These are the figures a weekly fiscal newsletter leads with, built from the same Treasury statements the app already serves.</p>
+    <div class="meta">
+      <span>6 phases (setup + 5)</span><span>Planned 2026-10-25 on <span class="mono">main @ 4042b73</span></span><span>Amounts: millions of dollars unless shown as $…B</span>
+    </div>
+  </header>
+
+  <!-- ───────────── PART 1 ───────────── -->
+  <section class="part" aria-labelledby="p1">
+    <div class="part-head">
+      <span class="eyebrow">Part 1</span>
+      <h2 id="p1">The plain explanation</h2>
+    </div>
+    <div class="panels">
+      <article class="panel">
+        <h3>What exists today</h3>
+        <div class="pic two">
+          <div><span class="lbl">The app</span>
+            <span class="box">8 categories</span><span class="box">Weekly comparison, Fridays only</span><span class="box">Daily figures, any date</span></div>
+          <div><span class="lbl">A weekly newsletter</span>
+            <span class="box ac">22 categories</span><span class="box ac">Thursday snapshot</span><span class="box ac">10-day average</span><span class="box ac">Cash balance</span></div>
+        </div>
+        <p class="cap">We checked the newsletter against our data, and every figure matched. Its briefing simply shows things the app doesn’t.</p>
+      </article>
+
+      <article class="panel">
+        <h3>What breaks first</h3>
+        <div class="pic">
+          <div class="row"><span class="box">Social Security Benefits (EFT)</span><span class="arrow">→ 2021-07-19 →</span><span class="box">3 new lines</span></div>
+          <div class="row"><span class="box st">FY2020 read as 0</span><span class="arrow">→</span><span class="box st">a fake “+100%”</span></div>
+        </div>
+        <p class="cap">The Treasury renamed and reorganized many lines between 2019 and 2023. Today an old year can be compared with zero, and nothing on screen says so.</p>
+      </article>
+
+      <article class="panel">
+        <h3>The idea in one picture</h3>
+        <div class="pic">
+          <div class="row"><span class="box ac">Thursday’s statement</span><span class="arrow">→</span><span class="box">one page</span></div>
+          <div class="row"><span class="box">month so far</span><span class="box">year so far vs last year</span><span class="box">gap since last week</span><span class="box">10-day average</span><span class="box">cash balance</span></div>
+        </div>
+        <p class="cap">Each week gets one page, read on Thursday (as the newsletter does) or Friday.</p>
+      </article>
+
+      <article class="panel">
+        <h3>The moving parts</h3>
+        <div class="pic">
+          <div class="row"><span class="box wn">1 · Fair comparisons</span><span class="box">2 · More categories</span></div>
+          <div class="row"><span class="box ac">3 · Weekly snapshot</span><span class="box">4 · Leading flows</span><span class="box">5 · Cash balance</span></div>
+        </div>
+        <p class="cap">First the app learns when each category can be compared. Then four features build on that.</p>
+      </article>
+
+      <article class="panel">
+        <h3>One week, step by step</h3>
+        <div class="pic">
+          <div class="row"><span class="box">Thu Dec 4, 2025 · day 44</span><span class="arrow">vs</span><span class="box">Dec 4, 2024 · day 44</span></div>
+          <div class="row"><span class="fig">475,475 − 587,551 = −112,076</span></div>
+          <div class="row"><span class="box wn">Thu Nov 27 = Thanksgiving</span><span class="arrow">→</span><span class="box">use Wed Nov 26: −89,579</span></div>
+          <div class="row"><span class="box ac">gap widened by 22,497</span></div>
+        </div>
+        <p class="cap">Each year is compared on the same business day. A holiday falls back to the day before.</p>
+      </article>
+
+      <article class="panel">
+        <h3>What changes on screen</h3>
+        <div class="pic two">
+          <div><span class="lbl">Before</span><span class="box">Overview</span><span class="box">Daily</span><span class="box">Year over year</span><span class="box">Weekly comparison</span></div>
+          <div><span class="lbl">After</span><span class="box">Overview</span><span class="box ac">Weekly snapshot</span><span class="box">Daily + <b>Leading flows</b></span><span class="box">Year over year + <b>other categories</b></span><span class="box">Weekly comparison + Thu/Fri</span><span class="box ac">Cash balance</span></div>
+        </div>
+        <p class="cap">Two new pages, one new daily view and new card grids. Thursday or Friday wherever a week is read.</p>
+      </article>
+
+      <article class="panel">
+        <h3>The order of work</h3>
+        <div class="pic">
+          <div class="row"><span class="box wn">1 Fair comparisons</span><span class="arrow">→</span><span class="box">2 Categories</span><span class="arrow">+</span><span class="box ac">3 Snapshot</span></div>
+          <div class="row"><span class="arrow">then</span><span class="box">4 Leading flows</span><span class="arrow">and</span><span class="box">5 Cash balance</span></div>
+        </div>
+        <p class="cap">2 and 3 can be built at the same time, and so can 4 and 5.</p>
+      </article>
+
+      <article class="panel">
+        <h3>What could go wrong</h3>
+        <div class="pic">
+          <div class="row"><span class="box st">Treasury renames a line again</span><span class="arrow">→</span><span class="box">add the new name; the card says “comparable from”</span></div>
+          <div class="row"><span class="box st">Cash balance moves rows</span><span class="arrow">→</span><span class="box">the app stops with an error, never shows 0</span></div>
+        </div>
+        <p class="cap">Each risk has a loud answer. A missing number stays blank. It is never silently filled with zero.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ───────────── PART 2 ───────────── -->
+  <section class="part" aria-labelledby="p2">
+    <div class="part-head">
+      <span class="eyebrow">Part 2</span>
+      <h2 id="p2">The UI walkthrough</h2>
+      <p>Reading the week of Thursday, Dec 4, 2025, and then the new categories. Every number comes from the real statements.</p>
+    </div>
+
+    <div class="walk" id="walk">
+      <ol class="steps" id="steps">
+        <li><button type="button" data-go="1"><span class="n">1</span><span>Click <b>Weekly snapshot</b> in the sidebar.<br><span class="tag live">Live · Phase 3</span></span></button></li>
+        <li><button type="button" data-go="2"><span class="n">2</span><span>Leave <b>Thursday</b> on, set <b>As of</b> to Dec 4, 2025.<br><span class="tag live">Live · Phase 3</span></span></button></li>
+        <li><button type="button" data-go="3"><span class="n">3</span><span>Read the four fiscal-year cards against a year ago.<br><span class="tag live">Live · Phase 3</span></span></button></li>
+        <li><button type="button" data-go="4"><span class="n">4</span><span>See how the net-transfers gap moved since last week.<br><span class="tag live">Live · Phase 3</span></span></button></li>
+        <li><button type="button" data-go="5"><span class="n">5</span><span>Read the leading flows and the combined figures.<br><span class="tag live">Live · Phase 4</span></span></button></li>
+        <li><button type="button" data-go="6"><span class="n">6</span><span>Check the Treasury’s cash balance.<br><span class="tag live">Live · Phase 5</span></span></button></li>
+        <li><button type="button" data-go="7"><span class="n">7</span><span>Open Year over year → <b>Withdrawals</b>: the other spending categories.<br><span class="tag live">Live · Phase 2</span></span></button></li>
+        <li><button type="button" data-go="8"><span class="n">8</span><span>On <b>Deposits</b>, pick FY2023 as the previous year.<br><span class="tag live">Live · Phase 1</span></span></button></li>
+      </ol>
+
+      <div class="right">
+        <div class="controls">
+          <button type="button" id="prev">Back</button>
+          <button type="button" id="next">Next</button>
+          <span class="count" id="count">Step 1 of 8</span>
+        </div>
+        <p class="instr" id="instr">Click Weekly snapshot in the sidebar.</p>
+
+        <div class="frame">
+          <div class="frame-bar">
+            <span class="dots"><i></i><i></i><i></i></span>
+            <span class="addr" id="addr">localhost:5173/snapshot</span>
+            <span class="mocklabel">Mockup — not the live app</span>
+          </div>
+          <div class="mock-app" id="mock">
+            <nav class="m-side" aria-label="Mock sidebar">
+              <div class="m-brand"><b>DTS Analysis</b><span>U.S. Treasury daily statement</span></div>
+              <div class="m-group">Analysis</div>
+              <div class="m-nav">
+                <div>Overview</div>
+                <div class="new" id="nav-snap" data-hl="1">Weekly snapshot</div>
+                <div>Daily</div>
+                <div class="sub">Single date</div>
+                <div class="sub">Net transfers</div>
+                <div class="sub new">Leading flows</div>
+                <div>Fiscal year</div>
+                <div>Year over year</div>
+                <div class="sub">Net transfers</div>
+                <div class="sub" id="nav-wd" data-hl="7">Withdrawals</div>
+                <div class="sub" id="nav-dep" data-hl="8">Deposits</div>
+                <div class="sub">Category comparison</div>
+                <div>Weekly comparison</div>
+                <div class="new">Cash balance</div>
+              </div>
+            </nav>
+
+            <main class="m-main">
+              <!-- Snapshot screen (steps 1–6) -->
+              <div class="screen" data-screen="snapshot" style="display:flex;flex-direction:column;gap:12px">
+                <span class="screen-label">/snapshot</span>
+                <div class="m-title">Weekly snapshot</div>
+                <div class="m-card" data-hl="2">
+                  <div class="m-controls">
+                    <div class="m-field">Week ends on<div class="m-toggle"><span class="sel">Thursday</span><span>Friday</span></div></div>
+                    <div class="m-field">As of<div class="m-input">12/04/2025</div></div>
+                    <div class="m-btn">Latest</div>
+                  </div>
+                </div>
+                <div class="m-card">
+                  <div class="v" style="font-size:16px">Week ending Thursday, Dec 4, 2025</div>
+                  <div class="note">FY2026, day 44 · compared with Dec 4, 2024 (FY2025, day 44)</div>
+                </div>
+                <div class="m-sec">
+                  <div class="m-h2">This month so far</div>
+                  <div class="m-grid">
+                    <div class="m-card"><div class="t">Withdrawals, month to date</div><div class="v">$200.19B</div></div>
+                    <div class="m-card"><div class="t">Net transfers, month to date</div><div class="v">$120.82B</div></div>
+                  </div>
+                </div>
+                <div class="m-sec" data-hl="3">
+                  <div class="m-h2">Fiscal year to date, against a year ago</div>
+                  <div class="m-grid">
+                    <div class="m-card"><div class="t">Total withdrawals</div><div class="v">$1432.90B</div><div class="note">vs $1404.75B in FY2025 · <span class="up">+$28.14B (+2.00%)</span></div></div>
+                    <div class="m-card"><div class="t">Total deposits</div><div class="v">$957.42B</div><div class="note">vs $817.20B in FY2025 · <span class="up">+$140.22B (+17.16%)</span></div></div>
+                    <div class="m-card"><div class="t">Net transfers</div><div class="v">$475.48B</div><div class="note">vs $587.55B in FY2025 · <span class="down">-$112.08B (-19.08%)</span></div></div>
+                    <div class="m-card"><div class="t">Withholding tax</div><div class="v">$591.73B</div><div class="note">vs $568.73B in FY2025 · <span class="up">+$23.01B (+4.05%)</span></div></div>
+                  </div>
+                </div>
+                <div class="m-sec" data-hl="4">
+                  <div class="m-h2">Net transfers gap</div>
+                  <div class="m-grid">
+                    <div class="m-card"><div class="t">Gap vs a year ago</div><div class="v down">-$112.08B</div><div class="note">Widened by $22.50B since Wed, Nov 26</div></div>
+                  </div>
+                </div>
+                <div class="m-sec" data-hl="5" data-from="5">
+                  <div class="m-h2">Leading flows</div>
+                  <div class="m-grid">
+                    <div class="m-card"><div class="t">10-day average of withdrawals</div><div class="v">$35.61B</div></div>
+                    <div class="m-card"><div class="t">Projected monthly rate</div><div class="v">$712.18B</div><div class="note">10-day average × 20</div></div>
+                    <div class="m-card"><div class="t">Unemployment benefits, 10-day average</div><div class="v">$174M</div></div>
+                  </div>
+                  <div class="m-h2">Combined figures</div>
+                  <div class="m-grid">
+                    <div class="m-card"><div class="t">Interest income transfers</div><div class="v">$192.60B</div><div class="note">vs $177.68B in FY2025 · <span class="up">+$14.92B (+8.39%)</span></div></div>
+                    <div class="m-card"><div class="t">Net customs receipts</div><div class="v">$65.40B</div><div class="note">vs $15.92B in FY2025 · <span class="up">+$49.48B (+310.75%)</span></div></div>
+                  </div>
+                </div>
+                <div class="m-sec" data-hl="6" data-from="6">
+                  <div class="m-h2">Cash balance</div>
+                  <div class="m-grid">
+                    <div class="m-card"><div class="t">Treasury cash balance</div><div class="v">$878.67B</div><div class="note"><span class="down">-$21.01B</span> since Nov 26 · <span class="up">+$63.66B (+7.81%)</span> vs a year ago</div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Withdrawals screen (step 7) -->
+              <div class="screen" data-screen="withdrawals" style="display:flex;flex-direction:column;gap:12px">
+                <span class="screen-label">/yoy/withdrawals</span>
+                <div class="m-title">Withdrawals year over year</div>
+                <div class="m-card">
+                  <div class="t" style="font-size:13px;color:var(--foreground)">Other spending categories</div>
+                  <div class="note">FYTD spending through 2026-10-22 (FY2027) compared to 2025-10-22 (FY2026), by fiscal day. Select a category for details.</div>
+                  <div class="m-grid" data-hl="7" style="margin-top:6px">
+                    <div class="m-card m-cat inc"><div class="t">Department of Defense</div><div class="v">$28.26B</div><div class="note up">↗ +$7.58B (+36.67%)</div></div>
+                    <div class="m-card m-cat inc"><div class="t">Military Pay</div><div class="v">$15.74B</div><div class="note up">↗ +$0.89B (+5.98%)</div></div>
+                    <div class="m-card m-cat dec"><div class="t">SNAP &amp; WIC</div><div class="v">$6.52B</div><div class="note down">↘ -$0.90B (-12.17%)</div></div>
+                    <div class="m-card m-cat inc"><div class="t">Customs Refunds (CBP)</div><div class="v">$5.22B</div><div class="note up">↗ +$4.04B (+343.91%)</div></div>
+                  </div>
+                  <div class="note">…and 6 more: Federal Salaries, Healthcare Subsidies, Education, HUD, Veterans Benefits, Unemployment Benefits.</div>
+                </div>
+              </div>
+
+              <!-- Deposits screen (step 8) -->
+              <div class="screen" data-screen="deposits" style="display:flex;flex-direction:column;gap:12px">
+                <span class="screen-label">/yoy/deposits</span>
+                <div class="m-title">Deposits year over year</div>
+                <div class="m-controls">
+                  <div class="m-field">Current year<div class="m-input">FY 2027</div></div>
+                  <div class="m-field">Previous year<div class="m-input">FY 2023</div></div>
+                </div>
+                <div class="m-card">
+                  <div class="t" style="font-size:13px;color:var(--foreground)">Major and other receipt categories</div>
+                  <div class="m-grid" data-hl="8" style="margin-top:6px">
+                    <div class="m-card m-cat rec"><div class="t">Employment &amp; Withholding Tax</div><div class="v">$205.80B</div><div class="note">Comparable from Feb 14, 2023</div></div>
+                    <div class="m-card m-cat rec"><div class="t">Individual Income Taxes</div><div class="v">$45.04B</div><div class="note">Comparable from Feb 14, 2023</div></div>
+                    <div class="m-card m-cat rec"><div class="t">Corporate Income Taxes</div><div class="v">$21.33B</div><div class="note">Comparable from Feb 14, 2023</div></div>
+                  </div>
+                  <div class="note">Day 15 of FY2023 is in October 2022, before these tax lines existed, so the change is left blank. Today the app counts the whole amount as growth.</div>
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── PART 3 ───────────── -->
+  <section class="part" aria-labelledby="p3">
+    <div class="part-head">
+      <span class="eyebrow">Part 3</span>
+      <h2 id="p3">The developer briefing</h2>
+    </div>
+    <div class="brief">
+      <section>
+        <h3>Goal</h3>
+        <p>Close the gaps between the app and the <em>MMT Trader</em> weekly briefing. Its method is reverse-engineered in <code>docs/research/mmt-trader-dts-method.md</code>. The plan adds 14 preset categories, a weekly snapshot, rolling averages, two combined figures and the Treasury General Account (TGA) balance. It first fixes category coverage across Treasury line renames. GDP comparisons are out of scope.</p>
+      </section>
+
+      <section>
+        <h3>Architecture</h3>
+        <div class="scroll">
+          <div class="arch">
+            <div class="layer"><span class="lbl">Frontend routes</span>
+              <div class="node new"><code>/snapshot</code> · <code>features/snapshot/</code></div>
+              <div class="node new"><code>/daily/leading-flows</code></div>
+              <div class="node new"><code>/cash-balance</code></div>
+              <div class="node"><code>/yoy/withdrawals</code>, <code>/yoy/deposits</code> + other-category grids</div>
+              <div class="node"><code>/weekly</code> + weekday toggle</div>
+            </div>
+            <div class="layer"><span class="lbl">Routers → services</span>
+              <div class="node new"><code>snapshot_get_weekly</code> → <code>services/snapshot.py</code> (composer)</div>
+              <div class="node new"><code>rolling_get_daily</code> → <code>services/rolling.py</code></div>
+              <div class="node new"><code>cash_balance_get_daily</code> → <code>services/cash_balance.py</code></div>
+              <div class="node"><code>categories_get_other_spending</code> / <code>_other_receipts</code> / <code>_combined</code> → <code>services/categories.py</code></div>
+              <div class="node"><code>weekly_get_comparison</code> + <code>anchor_weekday</code></div>
+            </div>
+            <div class="layer"><span class="lbl">Data (read-only DuckDB)</span>
+              <div class="node"><code>daily_net_transfers</code>: totals, MTD, FYTD, <code>day_of_fiscal_year</code></div>
+              <div class="node"><code>deposits_withdrawals</code>: category lines</div>
+              <div class="node"><code>adjustment_public_debt</code>: T-bill interest</div>
+              <div class="node"><code>operating_cash_balance</code>: three eras</div>
+              <div class="node new"><code>CategoryDef.available_from</code>, <code>COMBINED_CATEGORIES</code>, <code>CLOSING_BALANCE_ROWS</code></div>
+            </div>
+          </div>
+        </div>
+        <p>The snapshot never recomputes anything. It calls <code>category_fytd</code>, <code>combined_fytd</code>, <code>rolling_on</code> and <code>balance_on</code> for one date, so every number on it matches the page that owns that figure.</p>
+      </section>
+
+      <section>
+        <h3>How the snapshot picks its dates</h3>
+        <div class="scroll">
+          <div class="flow">
+            <div class="row"><span class="box">latest record_date ≤ as_of</span><span class="arrow">→</span><span class="box">anchor = latest Thu/Fri on or before it</span><span class="arrow">→</span><span class="box">statement in anchor−5 … anchor</span><span class="arrow">→</span><span class="box st">none: 404</span></div>
+            <div class="row"><span class="box ac">S</span><span class="arrow">→</span><span class="box">FY−1, same <code>day_of_fiscal_year</code></span><span class="arrow">→</span><span class="box wn">missing: previous fields null</span></div>
+            <div class="row"><span class="box">anchor − 7 → W</span><span class="arrow">→</span><span class="box">W in S’s fiscal year?</span><span class="arrow">yes →</span><span class="box ac">gap change = S gap − W gap</span><span class="arrow">no →</span><span class="box wn">null + reason</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h3>Coverage: the decision the rest stands on</h3>
+        <p>A rename whose FYTD carries forward is merged: the old name goes into <code>components</code>. A restructure sets <code>available_from</code>, and totals before it are <code>null</code>. Breakdown rows stay raw, and the UI hides rows that are 0 in both years.</p>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Category</th><th>Change</th><th>Evidence (FYTD before → after)</th><th>Result</th></tr></thead>
+            <tbody>
+              <tr><td>Customs &amp; Duties</td><td>renamed 2020-05-11 and 2025-11-10</td><td class="num">52,799 → 52,895; 36,282 → 36,690</td><td>3 names, from 2005</td></tr>
+              <tr><td>Medicaid</td><td>renamed 2020-03-09</td><td class="num">179,486 → 181,474</td><td>2 names, from 2005</td></tr>
+              <tr><td>Social Security</td><td>SSI and misc split out 2021-07-19</td><td class="num">790,545 → 790,602 + 45,606 + 3,718</td><td>from 2021-07-19</td></tr>
+              <tr><td>Withholding, individual, corporate taxes</td><td>moved tables 2023-02-14</td><td class="num">129,940 → 241,021</td><td>from 2023-02-14</td></tr>
+              <tr><td>HUD</td><td>split 2022-05-16</td><td class="num">51,527 → 40,986 + 10,682</td><td>3 names, from 2005</td></tr>
+              <tr><td>Defense, Military Pay</td><td>restructured at FY2024</td><td class="num">382,713 (FY23 end) → new FY</td><td>from 2023-10-02</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h3>New contracts (all <code>GET</code>, CDN-cached)</h3>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Phase</th><th>Operation id</th><th>Path</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td><code>categories_get_*</code> (existing)</td><td><code>/api/v1/categories/…</code></td><td>totals nullable, <code>available_from</code> added</td></tr>
+              <tr><td>2</td><td><code>categories_get_other_spending</code>, <code>_other_receipts</code></td><td><code>/api/v1/categories/other-*</code></td><td>existing response models</td></tr>
+              <tr><td>3</td><td><code>snapshot_get_weekly</code></td><td><code>/api/v1/snapshot/weekly</code></td><td><code>anchor_weekday</code> thursday|friday, <code>as_of</code></td></tr>
+              <tr><td>3</td><td><code>weekly_get_comparison</code> (existing)</td><td><code>/api/v1/weekly/comparison</code></td><td>+ <code>anchor_weekday</code>, default friday</td></tr>
+              <tr><td>4</td><td><code>rolling_get_daily</code></td><td><code>/api/v1/rolling/daily</code></td><td>metric, window 2–60, date range</td></tr>
+              <tr><td>4</td><td><code>categories_get_combined</code></td><td><code>/api/v1/categories/combined</code></td><td>signed sums of registry categories</td></tr>
+              <tr><td>5</td><td><code>cash_balance_get_daily</code></td><td><code>/api/v1/cash-balance/daily</code></td><td>since 2022-04-18 the value is in <code>open_today_bal</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h3>Phase order</h3>
+        <div class="scroll">
+          <div class="dag">
+            <div class="node">0 · Setup ✅</div>
+            <div class="node">1 · Category coverage</div>
+            <div style="display:flex;flex-direction:column;gap:8px"><div class="node">2 · Preset categories</div><div class="node">3 · Weekly snapshot</div></div>
+            <div style="display:flex;flex-direction:column;gap:8px"><div class="node">4 · Rolling &amp; combined (needs 2 + 3)</div><div class="node">5 · Cash balance (needs 3)</div></div>
+          </div>
+        </div>
+        <p>Branches: <code>fix/category-coverage</code>, <code>feat/preset-categories</code>, <code>feat/weekly-snapshot</code>, <code>feat/rolling-and-combined</code>, <code>feat/cash-balance</code>. Each phase that changes a schema regenerates <code>openapi.json</code> and <code>schema.d.ts</code> in the same commit. Every new formula gets a worked example in both <code>worked-examples.json</code> copies and a test in <code>test_formula_examples.py</code>.</p>
+      </section>
+
+      <section>
+        <h3>Key decisions</h3>
+        <ul class="plain">
+          <li><b>Null, not zero.</b> A total before <code>available_from</code>, or with no aligned date, is <code>null</code>. The card says “Comparable from …”.</li>
+          <li><b>“Other”, not “major”.</b> New categories get their own endpoints and grid. Each card carries its own formula id instead of a kind-to-formula map.</li>
+          <li><b>Thursday by default</b> on the snapshot, matching the newsletter. Friday stays the default on the weekly comparison, so nothing existing changes.</li>
+          <li><b>The gap change stays inside one fiscal year.</b> Across October 1 it is <code>null</code> with a reason.</li>
+          <li><b>Statements, not days.</b> The 10-day average is the last 10 statements. The monthly rate is × 20, labelled as a rule of thumb.</li>
+          <li><b>We do not copy the newsletter’s errors.</b> Its HUD and SNAP changes use one line where the total uses two. Ours use the same lines for both: SNAP &amp; WIC on Dec 4, 2025 is −1,965, not −1,870.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>Risks</h3>
+        <div class="risk">
+          <div><b>Another Treasury rename</b><p>The new name goes first in <code>components</code>, plus a row in Phase 0’s history table. Until then the card reads “Comparable from”, which is wrong but visibly so.</p></div>
+          <div><b>The cash balance moves rows again</b><p><code>balance_on</code> raises when a matched row has a NULL value, so a new era fails loudly in tests and Sentry.</p></div>
+          <div><b>Parallel phases touch <code>categories.py</code></b><p>Phase 2 refactors the major endpoints and Phase 3 extracts <code>_source_for</code>. If both run at once, merge Phase 2 first.</p></div>
+          <div><b>Small differences from the newsletter</b><p>Our unemployment average for Dec 4, 2025 is 173.6; it printed 173.5. Ours is the documented definition, and the research note records the difference.</p></div>
+        </div>
+      </section>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var mock = document.getElementById('mock');
+  if (!mock) return;
+  document.documentElement.classList.add('js');
+  var STEPS = [
+    { screen: 'snapshot', addr: 'localhost:5173/', text: 'Click Weekly snapshot in the sidebar.' },
+    { screen: 'snapshot', addr: 'localhost:5173/snapshot', text: 'Leave Thursday on and set As of to Dec 4, 2025. The header names the week and the day it is compared with.' },
+    { screen: 'snapshot', addr: 'localhost:5173/snapshot', text: 'Read the four fiscal-year cards: net transfers $475.48B against $587.55B a year earlier.' },
+    { screen: 'snapshot', addr: 'localhost:5173/snapshot', text: 'Last Thursday was Thanksgiving, so the page compares with Wednesday Nov 26: the gap widened by $22.50B.' },
+    { screen: 'snapshot', addr: 'localhost:5173/snapshot', text: 'Leading flows: the 10-day average × 20 projects $712.18B a month. Combined figures sit below.' },
+    { screen: 'snapshot', addr: 'localhost:5173/snapshot', text: 'The Treasury held $878.67B at the Fed on Dec 4, 2025, $21.01B less than on Nov 26.' },
+    { screen: 'withdrawals', addr: 'localhost:5173/yoy/withdrawals', text: 'Open Year over year → Withdrawals. Ten new cards sit under the major ones; SNAP & WIC is down $0.90B.' },
+    { screen: 'deposits', addr: 'localhost:5173/yoy/deposits', text: 'On Deposits, choose FY2023 as the previous year. Tax cards show “Comparable from Feb 14, 2023” instead of a fake change.' }
+  ];
+  var cur = 1;
+  var buttons = Array.prototype.slice.call(document.querySelectorAll('#steps button'));
+  var screens = Array.prototype.slice.call(mock.querySelectorAll('.screen'));
+  var hls = Array.prototype.slice.call(mock.querySelectorAll('[data-hl]'));
+  var froms = Array.prototype.slice.call(mock.querySelectorAll('[data-from]'));
+  function show(n) {
+    cur = Math.max(1, Math.min(STEPS.length, n));
+    var s = STEPS[cur - 1];
+    screens.forEach(function (el) { el.hidden = el.getAttribute('data-screen') !== s.screen; });
+    froms.forEach(function (el) { el.hidden = cur < Number(el.getAttribute('data-from')); });
+    hls.forEach(function (el) {
+      var on = Number(el.getAttribute('data-hl')) === cur;
+      el.classList.toggle('hl', on);
+      var c = el.querySelector(':scope > .callout');
+      if (on && !c) { c = document.createElement('span'); c.className = 'callout'; c.textContent = String(cur); el.appendChild(c); }
+      if (!on && c) c.remove();
+    });
+    var navOn = { snapshot: 'nav-snap', withdrawals: 'nav-wd', deposits: 'nav-dep' }[s.screen];
+    ['nav-snap', 'nav-wd', 'nav-dep'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('on', id === navOn && cur !== 1);
+    });
+    buttons.forEach(function (b, i) { if (i === cur - 1) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+    document.getElementById('addr').textContent = s.addr;
+    document.getElementById('instr').textContent = s.text;
+    document.getElementById('count').textContent = 'Step ' + cur + ' of ' + STEPS.length;
+    document.getElementById('prev').disabled = cur === 1;
+    document.getElementById('next').disabled = cur === STEPS.length;
+  }
+  buttons.forEach(function (b) { b.addEventListener('click', function () { show(Number(b.getAttribute('data-go'))); }); });
+  document.getElementById('prev').addEventListener('click', function () { show(cur - 1); });
+  document.getElementById('next').addEventListener('click', function () { show(cur + 1); });
+  document.getElementById('walk').addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') { show(cur + 1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { show(cur - 1); e.preventDefault(); }
+  });
+  show(1);
+})();
+</script>
