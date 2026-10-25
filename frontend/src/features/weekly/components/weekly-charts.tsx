@@ -103,8 +103,8 @@ export function WeeklyCharts({
         <CardHeader>
           <CardTitle>Weekly net government transfers, FYTD</CardTitle>
           <CardDescription>
-            Snapshot each Friday (or the closest earlier day with data) ·
-            millions of dollars
+            Read on each week's anchor day (or the closest earlier day with
+            data) · millions of dollars
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -5,9 +5,11 @@ These schemas define the structure and validation rules for API requests
 and responses related to Treasury data.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, Field
+
+from app.utils.anchor import AnchorWeekday
 
 
 class TreasuryDataBase(BaseModel):
@@ -100,6 +102,9 @@ class WeeklyComparisonRequest(BaseModel):
         ..., ge=2000, le=2100, description="Second fiscal year to compare"
     )
     data_source: str | None = Field(None, description="Filter by data source")
+    anchor_weekday: AnchorWeekday = Field(
+        "friday", description="Weekday each week is read on"
+    )
 
 
 class WeeklyDataPoint(BaseModel):
@@ -748,4 +753,63 @@ class IrsRefundResponse(BaseModel):
     )
     components: list[IrsRefundComponent] = Field(
         default_factory=list, description="Breakdown by component"
+    )
+
+
+# Weekly Snapshot Schemas
+
+
+class SnapshotFigure(BaseModel):
+    """One FYTD figure against the same business day a year earlier."""
+
+    current: float | None = Field(..., description="FYTD on the snapshot date")
+    previous: float | None = Field(
+        ..., description="FYTD on the aligned previous-FY date"
+    )
+    change: float | None = Field(..., description="current − previous")
+    percent_change: float | None = Field(..., description="change ÷ |previous| × 100")
+
+
+class WeeklySnapshotRequest(BaseModel):
+    """Schema for requesting one week's snapshot."""
+
+    anchor_weekday: AnchorWeekday = Field(
+        "thursday", description="Weekday the week ends on"
+    )
+    as_of: date | None = Field(
+        None, description="Read the week on or before this date; default latest"
+    )
+
+
+class WeeklySnapshotResponse(BaseModel):
+    """One week's statement: month and fiscal year to date, against a year ago."""
+
+    anchor_weekday: AnchorWeekday = Field(..., description="Weekday the week ends on")
+    anchor_date: str = Field(..., description="The Thursday/Friday the week ends on")
+    record_date: str = Field(
+        ..., description="Statement used; earlier than anchor_date after a holiday"
+    )
+    fiscal_year: int = Field(..., description="Fiscal year of record_date")
+    day_of_fiscal_year: int = Field(..., description="Business day of the fiscal year")
+    previous_fiscal_year: int = Field(..., description="fiscal_year − 1")
+    previous_date: str | None = Field(
+        ..., description="Same day_of_fiscal_year in the previous FY"
+    )
+    withdrawals_mtd: float = Field(..., description="Total withdrawals, month to date")
+    net_transfers_mtd: float = Field(..., description="Net transfers, month to date")
+    withdrawals_fytd: SnapshotFigure
+    deposits_fytd: SnapshotFigure
+    net_transfers_fytd: SnapshotFigure
+    withholding_fytd: SnapshotFigure
+    previous_week_date: str | None = Field(
+        ..., description="Statement used for the week before"
+    )
+    previous_week_net_transfers_gap: float | None = Field(
+        ..., description="Last week's net-transfers FYTD change from a year earlier"
+    )
+    net_transfers_gap_change: float | None = Field(
+        ..., description="This week's net-transfers change minus last week's"
+    )
+    gap_change_unavailable_reason: str | None = Field(
+        ..., description="Why net_transfers_gap_change is null, when it is"
     )

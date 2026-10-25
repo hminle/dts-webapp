@@ -18,6 +18,7 @@ const NT = examples.net_transfers
 const YOY = examples.yoy
 const NEG = examples.yoy_negative_base
 const CATS = examples.categories
+const WS = examples.weekly_snapshot
 
 // Display names from backend/app/constants/endpoints.py (ENDPOINTS).
 const TABLES = [
@@ -63,7 +64,7 @@ const CHAPTERS: Chapter[] = [
   { id: 't-bill-discount', title: 'T-Bill interest' },
   { id: 'tax-refunds', title: 'IRS tax refunds' },
   { id: 'any-line-item', title: 'Category comparison' },
-  { id: 'friday-snapshots', title: 'Weekly comparison' },
+  { id: 'friday-snapshots', title: 'Weekly comparison and snapshot' },
   { id: 'known-limits', title: 'Known limits' },
   { id: 'glossary', title: 'Glossary' },
   { id: 'source-and-schedule', title: 'Source and update schedule' },
@@ -671,10 +672,14 @@ export function MethodologyPage() {
           <FormulaBlock id='category-comparison' />
         </ProseSection>
 
-        <ProseSection id='friday-snapshots' title='12. Weekly comparison'>
+        <ProseSection
+          id='friday-snapshots'
+          title='12. Weekly comparison and snapshot'
+        >
           <p>
             Daily figures are noisy. The weekly page takes one reading per week,
-            on Friday, and compares the two years week by week.
+            on Friday by default or on Thursday, and compares the two years week
+            by week.
           </p>
           <FormulaBlock id='weekly-comparison' />
           <p>
@@ -683,6 +688,20 @@ export function MethodologyPage() {
             that week uses Thursday’s statement. A week with no statement within
             5 days of its Friday is left out.
           </p>
+          <p>
+            The weekly snapshot reads one such week against the same business
+            day a year earlier. On Thursday,{' '}
+            {formatShortDate(WS.record_date)} (day {WS.day_of_fiscal_year}) net
+            transfers were {millions(WS.net_transfers_fytd.current)}{' '}
+            against {millions(WS.net_transfers_fytd.previous)} a year earlier,
+            a change
+            of {millions(WS.net_transfers_fytd.change)}. A week earlier Thursday
+            was Thanksgiving, so the snapshot read Wednesday,{' '}
+            {formatShortDate(WS.previous_week.record_date)}:{' '}
+            {millions(WS.previous_week.gap)}. The gap widened by{' '}
+            {millions(Math.abs(WS.gap_change))}.
+          </p>
+          <FormulaBlock id='weekly-snapshot' />
         </ProseSection>
 
         <ProseSection id='known-limits' title='13. Known limits'>

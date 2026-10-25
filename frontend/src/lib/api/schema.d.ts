@@ -404,6 +404,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/snapshot/weekly": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Weekly
+         * @description One week's statement: month and fiscal year to date, against a year earlier.
+         */
+        get: operations["snapshot_get_weekly"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/weekly/comparison": {
         parameters: {
             query?: never;
@@ -413,7 +433,7 @@ export interface paths {
         };
         /**
          * Get Comparison
-         * @description Friday-by-Friday net transfers, FYTD, for two fiscal years.
+         * @description Net transfers FYTD on each week's anchor day (Friday by default), two FYs.
          */
         get: operations["weekly_get_comparison"];
         put?: never;
@@ -1087,6 +1107,32 @@ export interface components {
             yoy_percent_change?: number | null;
         };
         /**
+         * SnapshotFigure
+         * @description One FYTD figure against the same business day a year earlier.
+         */
+        SnapshotFigure: {
+            /**
+             * Change
+             * @description current − previous
+             */
+            change: number | null;
+            /**
+             * Current
+             * @description FYTD on the snapshot date
+             */
+            current: number | null;
+            /**
+             * Percent Change
+             * @description change ÷ |previous| × 100
+             */
+            percent_change: number | null;
+            /**
+             * Previous
+             * @description FYTD on the aligned previous-FY date
+             */
+            previous: number | null;
+        };
+        /**
          * SubcategoryBreakdown
          * @description Schema for a subcategory within a major spending category.
          */
@@ -1393,6 +1439,82 @@ export interface components {
              * @description Week number in fiscal year
              */
             week_number: number;
+        };
+        /**
+         * WeeklySnapshotResponse
+         * @description One week's statement: month and fiscal year to date, against a year ago.
+         */
+        WeeklySnapshotResponse: {
+            /**
+             * Anchor Date
+             * @description The Thursday/Friday the week ends on
+             */
+            anchor_date: string;
+            /**
+             * Anchor Weekday
+             * @description Weekday the week ends on
+             * @enum {string}
+             */
+            anchor_weekday: "thursday" | "friday";
+            /**
+             * Day Of Fiscal Year
+             * @description Business day of the fiscal year
+             */
+            day_of_fiscal_year: number;
+            deposits_fytd: components["schemas"]["SnapshotFigure"];
+            /**
+             * Fiscal Year
+             * @description Fiscal year of record_date
+             */
+            fiscal_year: number;
+            /**
+             * Gap Change Unavailable Reason
+             * @description Why net_transfers_gap_change is null, when it is
+             */
+            gap_change_unavailable_reason: string | null;
+            net_transfers_fytd: components["schemas"]["SnapshotFigure"];
+            /**
+             * Net Transfers Gap Change
+             * @description This week's net-transfers change minus last week's
+             */
+            net_transfers_gap_change: number | null;
+            /**
+             * Net Transfers Mtd
+             * @description Net transfers, month to date
+             */
+            net_transfers_mtd: number;
+            /**
+             * Previous Date
+             * @description Same day_of_fiscal_year in the previous FY
+             */
+            previous_date: string | null;
+            /**
+             * Previous Fiscal Year
+             * @description fiscal_year − 1
+             */
+            previous_fiscal_year: number;
+            /**
+             * Previous Week Date
+             * @description Statement used for the week before
+             */
+            previous_week_date: string | null;
+            /**
+             * Previous Week Net Transfers Gap
+             * @description Last week's net-transfers FYTD change from a year earlier
+             */
+            previous_week_net_transfers_gap: number | null;
+            /**
+             * Record Date
+             * @description Statement used; earlier than anchor_date after a holiday
+             */
+            record_date: string;
+            withdrawals_fytd: components["schemas"]["SnapshotFigure"];
+            /**
+             * Withdrawals Mtd
+             * @description Total withdrawals, month to date
+             */
+            withdrawals_mtd: number;
+            withholding_fytd: components["schemas"]["SnapshotFigure"];
         };
         /**
          * YoYCategoryComparisonResponse
@@ -2114,6 +2236,40 @@ export interface operations {
             };
         };
     };
+    snapshot_get_weekly: {
+        parameters: {
+            query?: {
+                /** @description Weekday the week ends on */
+                anchor_weekday?: "thursday" | "friday";
+                /** @description Read the week on or before this date; default latest */
+                as_of?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeeklySnapshotResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     weekly_get_comparison: {
         parameters: {
             query: {
@@ -2123,6 +2279,8 @@ export interface operations {
                 second_fiscal_year: number;
                 /** @description Filter by data source */
                 data_source?: string | null;
+                /** @description Weekday each week is read on */
+                anchor_weekday?: "thursday" | "friday";
             };
             header?: never;
             path?: never;

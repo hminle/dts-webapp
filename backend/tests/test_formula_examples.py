@@ -17,6 +17,7 @@ from app.schemas.treasury import (
     MajorReceiptCategoriesRequest,
     MajorSpendingCategoriesRequest,
     TBillInterestRequest,
+    WeeklySnapshotRequest,
 )
 from app.services.categories import (
     get_irs_tax_refunds,
@@ -24,9 +25,10 @@ from app.services.categories import (
     get_major_spending,
     get_tbill_interest,
 )
+from app.services.snapshot import get_weekly
 from app.utils.deposits_withdrawals import calculate_daily_net_transfers
 from app.utils.yoy import yoy_change
-from tests.fixtures import apd_row, catg_row, dw_row, formula_db, itr_row
+from tests.fixtures import apd_row, catg_row, dnt_row, dw_row, formula_db, itr_row
 
 EXAMPLES_PATH = (
     Path(__file__).resolve().parents[2]
@@ -180,3 +182,87 @@ def test_irs_refunds_example() -> None:
     # Table II lists only the two EFT refund lines.
     eft = sum(v for k, v in ex["table_v"].items() if k.endswith("(EFT)"))
     assert eft == ex["table_ii_eft_only"]
+
+
+def test_weekly_snapshot_example() -> None:
+    ws = EX["weekly_snapshot"]
+    week = ws["previous_week"]
+    fy = ws["fiscal_year"]
+    withheld = "Taxes - Withheld Individual/FICA"
+
+    def statement(day: str, fiscal_year: int, n: int, figures: dict, key: str, **kw):
+        return dnt_row(
+            date.fromisoformat(day),
+            fiscal_year,
+            n,
+            withdrawals_fytd=figures["withdrawals_fytd"][key],
+            deposits_fytd=figures["deposits_fytd"][key],
+            **kw,
+        )
+
+    n, last_n = ws["day_of_fiscal_year"], week["day_of_fiscal_year"]
+    conn = formula_db(
+        {
+            "daily_net_transfers": [
+                statement(
+                    ws["record_date"],
+                    fy,
+                    n,
+                    ws,
+                    "current",
+                    withdrawals_mtd=ws["withdrawals_mtd"],
+                    net_mtd=ws["net_transfers_mtd"],
+                ),
+                statement(ws["previous_date"], fy - 1, n, ws, "previous"),
+                statement(week["record_date"], fy, last_n, week, "current"),
+                statement(week["previous_date"], fy - 1, last_n, week, "previous"),
+            ],
+            "deposits_withdrawals": [
+                catg_row(
+                    date.fromisoformat(day),
+                    year,
+                    transaction_type="Deposits",
+                    transaction_catg=withheld,
+                    fytd=ws["withholding_fytd"][key],
+                )
+                for day, year, key in (
+                    (ws["record_date"], fy, "current"),
+                    (ws["previous_date"], fy - 1, "previous"),
+                )
+            ],
+        }
+    )
+    s = get_weekly(
+        conn.cursor(),
+        WeeklySnapshotRequest(
+            anchor_weekday=ws["anchor_weekday"],
+            as_of=date.fromisoformat(ws["record_date"]),
+        ),
+    )
+
+    assert (s.anchor_date, s.record_date, s.previous_date) == (
+        ws["anchor_date"],
+        ws["record_date"],
+        ws["previous_date"],
+    )
+    assert s.day_of_fiscal_year == n
+    assert (s.withdrawals_mtd, s.net_transfers_mtd) == (
+        ws["withdrawals_mtd"],
+        ws["net_transfers_mtd"],
+    )
+    for key in ("withdrawals_fytd", "deposits_fytd", "net_transfers_fytd"):
+        figure, expected = getattr(s, key), ws[key]
+        assert (figure.current, figure.previous, figure.change) == (
+            expected["current"],
+            expected["previous"],
+            expected["change"],
+        )
+        assert _pct(figure.percent_change) == expected["percent_change"]
+    assert s.withholding_fytd.change == ws["withholding_fytd"]["change"]
+    assert (
+        _pct(s.withholding_fytd.percent_change)
+        == (ws["withholding_fytd"]["percent_change"])
+    )
+    assert s.previous_week_date == week["record_date"]
+    assert s.previous_week_net_transfers_gap == week["gap"]
+    assert s.net_transfers_gap_change == ws["gap_change"]

@@ -8,6 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import {
+  AnchorWeekdaySelect,
+  type AnchorWeekday,
+} from '@/components/anchor-weekday-select'
 import { FiscalYearSelect } from '@/components/fiscal-year-select'
 import { QueryState } from '@/components/query-state'
 import { useFiscalYears } from '@/features/lookups/api'
@@ -23,7 +27,8 @@ export function WeeklyPage() {
   const [chosenSecond, setChosenSecond] = useState<number | null>(null)
   const first = chosenFirst ?? years.data?.[0] ?? null
   const second = chosenSecond ?? years.data?.[1] ?? null
-  const comparison = useWeeklyComparison(first, second)
+  const [anchor, setAnchor] = useState<AnchorWeekday>('friday')
+  const comparison = useWeeklyComparison(first, second, anchor)
 
   return (
     <div className='flex flex-col gap-6'>
@@ -31,7 +36,7 @@ export function WeeklyPage() {
         <CardHeader>
           <CardTitle>Fiscal years to compare</CardTitle>
           <CardDescription>
-            Net government transfers each Friday of the fiscal year, or the
+            Net government transfers on each week's anchor day, or the
             closest earlier day with data
           </CardDescription>
         </CardHeader>
@@ -49,6 +54,11 @@ export function WeeklyPage() {
             years={years.data ?? []}
             value={second}
             onChange={setChosenSecond}
+          />
+          <AnchorWeekdaySelect
+            id='anchor-weekday'
+            value={anchor}
+            onChange={setAnchor}
           />
         </CardContent>
       </Card>
@@ -71,7 +81,7 @@ export function WeeklyPage() {
                 <Alert>
                   <CircleAlert />
                   <AlertDescription>
-                    FY {data.first_fiscal_year} has no Friday with data yet.
+                    FY {data.first_fiscal_year} has no {anchor} with data yet.
                   </AlertDescription>
                 </Alert>
               )

@@ -1,4 +1,4 @@
-"""Weekly comparison: Friday snapshots of each fiscal year."""
+"""Weekly comparison: each fiscal year read on an anchor weekday."""
 
 from datetime import date, datetime
 
@@ -9,9 +9,9 @@ from app.schemas.treasury import WeeklyComparisonRequest
 from app.services.weekly import (
     _build_weekly_points,
     _fiscal_year_dates,
-    _weekly_fridays,
     get_comparison,
 )
+from app.utils.anchor import anchor_days
 from tests.fixtures import dw_day, formula_db
 
 
@@ -19,10 +19,23 @@ def _day(d: date, fy: int, net: float = 1):
     return dw_day(d, fy, deposits=0, withdrawals=net, debt_issues=0, debt_redemptions=0)
 
 
-def test_fridays_between_two_dates() -> None:
-    fridays = _weekly_fridays(datetime(2025, 10, 1), datetime(2025, 10, 31))
-    assert [f.day for f in fridays] == [3, 10, 17, 24, 31]
-    assert _weekly_fridays(datetime(2025, 10, 4), datetime(2025, 10, 9)) == []
+@pytest.mark.parametrize(
+    ("weekday", "days", "empty_window"),
+    [
+        ("friday", [3, 10, 17, 24, 31], (4, 9)),
+        ("thursday", [2, 9, 16, 23, 30], (3, 8)),
+    ],
+)
+def test_anchor_days_between_two_dates(
+    weekday, days: list[int], empty_window: tuple[int, int]
+) -> None:
+    anchors = anchor_days(datetime(2025, 10, 1), datetime(2025, 10, 31), weekday)
+    assert [a.day for a in anchors] == days
+    assert all(isinstance(a, datetime) for a in anchors)
+    first, last = empty_window
+    assert (
+        anchor_days(datetime(2025, 10, first), datetime(2025, 10, last), weekday) == []
+    )
 
 
 def test_fiscal_year_runs_october_to_september_clipped_to_today() -> None:
@@ -41,7 +54,7 @@ def test_a_holiday_friday_uses_the_closest_earlier_statement() -> None:
         ]
     )
     df["record_date"] = pd.to_datetime(df["record_date"])
-    fridays = _weekly_fridays(datetime(2025, 10, 1), datetime(2025, 10, 24))
+    fridays = anchor_days(datetime(2025, 10, 1), datetime(2025, 10, 24), "friday")
     points = _build_weekly_points(df, fridays)
     # Week 2's Friday (Oct 10) had no statement, so Thursday Oct 9 stands in.
     # Week 3 has nothing within 5 days back and is skipped; week 4 keeps its number.
@@ -107,3 +120,28 @@ def test_a_skipped_first_year_week_keeps_the_second_years_matching_week() -> Non
     assert [p.week_number for p in result.first_year_data] == [1, 2, 4]
     assert [p.week_number for p in result.second_year_data] == [1, 2, 3, 4]
     assert result.comparison_weeks == 4
+
+
+def test_thursday_anchor_uses_thursdays() -> None:
+    conn = formula_db(
+        {
+            "deposits_withdrawals": [
+                *(_day(date(2025, 10, d), 2026) for d in (2, 3, 9, 10)),
+                *(_day(date(2024, 10, d), 2025) for d in (3, 4, 10, 11)),
+            ]
+        }
+    )
+    result = get_comparison(
+        conn.cursor(),
+        WeeklyComparisonRequest(
+            first_fiscal_year=2026, second_fiscal_year=2025, anchor_weekday="thursday"
+        ),
+    )
+    assert [p.record_date for p in result.first_year_data] == [
+        "2025-10-02",
+        "2025-10-09",
+    ]
+    assert [p.record_date for p in result.second_year_data] == [
+        "2024-10-03",
+        "2024-10-10",
+    ]

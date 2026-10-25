@@ -108,5 +108,49 @@
       "table_v_total": 10558,
       "table_ii_eft_only": 5221
     }
+  },
+  "weekly_snapshot": {
+    "anchor_weekday": "thursday",
+    "anchor_date": "2025-12-04",
+    "record_date": "2025-12-04",
+    "fiscal_year": 2026,
+    "day_of_fiscal_year": 44,
+    "previous_date": "2024-12-04",
+    "withdrawals_fytd": {
+      "current": 1432895,
+      "previous": 1404753,
+      "change": 28142,
+      "percent_change": 2.0
+    },
+    "deposits_fytd": {
+      "current": 957420,
+      "previous": 817202,
+      "change": 140218,
+      "percent_change": 17.16
+    },
+    "net_transfers_fytd": {
+      "current": 475475,
+      "previous": 587551,
+      "change": -112076,
+      "percent_change": -19.08
+    },
+    "withholding_fytd": {
+      "current": 591734,
+      "previous": 568727,
+      "change": 23007,
+      "percent_change": 4.05
+    },
+    "withdrawals_mtd": 200188,
+    "net_transfers_mtd": 120817,
+    "previous_week": {
+      "anchor_date": "2025-11-27",
+      "record_date": "2025-11-26",
+      "day_of_fiscal_year": 39,
+      "previous_date": "2024-11-26",
+      "withdrawals_fytd": { "current": 1219111, "previous": 1162688 },
+      "deposits_fytd": { "current": 855661, "previous": 709659 },
+      "gap": -89579
+    },
+    "gap_change": -22497
   }
 }

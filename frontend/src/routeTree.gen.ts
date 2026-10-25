@@ -14,6 +14,7 @@ import { Route as DataStatusRouteImport } from './routes/data-status'
 import { Route as FiscalYearRouteImport } from './routes/fiscal-year'
 import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as SnapshotRouteImport } from './routes/snapshot'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WeeklyRouteImport } from './routes/weekly'
 import { Route as DailyNetTransfersRouteImport } from './routes/daily/net-transfers'
@@ -46,6 +47,11 @@ const MethodologyRoute = MethodologyRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SnapshotRoute = SnapshotRouteImport.update({
+  id: '/snapshot',
+  path: '/snapshot',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/fiscal-year': typeof FiscalYearRoute
   '/methodology': typeof MethodologyRoute
   '/privacy': typeof PrivacyRoute
+  '/snapshot': typeof SnapshotRoute
   '/terms': typeof TermsRoute
   '/weekly': typeof WeeklyRoute
   '/daily/net-transfers': typeof DailyNetTransfersRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/fiscal-year': typeof FiscalYearRoute
   '/methodology': typeof MethodologyRoute
   '/privacy': typeof PrivacyRoute
+  '/snapshot': typeof SnapshotRoute
   '/terms': typeof TermsRoute
   '/weekly': typeof WeeklyRoute
   '/daily/net-transfers': typeof DailyNetTransfersRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/fiscal-year': typeof FiscalYearRoute
   '/methodology': typeof MethodologyRoute
   '/privacy': typeof PrivacyRoute
+  '/snapshot': typeof SnapshotRoute
   '/terms': typeof TermsRoute
   '/weekly': typeof WeeklyRoute
   '/daily/net-transfers': typeof DailyNetTransfersRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/fiscal-year'
     | '/methodology'
     | '/privacy'
+    | '/snapshot'
     | '/terms'
     | '/weekly'
     | '/daily/net-transfers'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/fiscal-year'
     | '/methodology'
     | '/privacy'
+    | '/snapshot'
     | '/terms'
     | '/weekly'
     | '/daily/net-transfers'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/fiscal-year'
     | '/methodology'
     | '/privacy'
+    | '/snapshot'
     | '/terms'
     | '/weekly'
     | '/daily/net-transfers'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   FiscalYearRoute: typeof FiscalYearRoute
   MethodologyRoute: typeof MethodologyRoute
   PrivacyRoute: typeof PrivacyRoute
+  SnapshotRoute: typeof SnapshotRoute
   TermsRoute: typeof TermsRoute
   WeeklyRoute: typeof WeeklyRoute
   DailyNetTransfersRoute: typeof DailyNetTransfersRoute
@@ -234,6 +247,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/snapshot': {
+      id: '/snapshot'
+      path: '/snapshot'
+      fullPath: '/snapshot'
+      preLoaderRoute: typeof SnapshotRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -301,6 +321,7 @@ const rootRouteChildren: RootRouteChildren = {
   FiscalYearRoute: FiscalYearRoute,
   MethodologyRoute: MethodologyRoute,
   PrivacyRoute: PrivacyRoute,
+  SnapshotRoute: SnapshotRoute,
   TermsRoute: TermsRoute,
   WeeklyRoute: WeeklyRoute,
   DailyNetTransfersRoute: DailyNetTransfersRoute,

@@ -16,7 +16,7 @@ spec = app.openapi()
 
 def test_lists_every_v1_get_operation() -> None:
     ops = list_operations(spec)
-    assert len(ops) == 22
+    assert len(ops) == 23
     assert {op.method for op in ops} == {"GET"}
     assert all(op.path.startswith("/api/v1/") for op in ops)
     assert [op.path for op in ops] == sorted(op.path for op in ops)

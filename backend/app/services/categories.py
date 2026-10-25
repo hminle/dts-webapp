@@ -21,6 +21,7 @@ from app.constants.categories import (
     TBILL_INTEREST_CATEGORY,
     TBILL_INTEREST_COMPONENT_NAMES,
     CategoryDef,
+    CategoryKind,
 )
 from app.schemas.treasury import (
     CategoryDailyYoYDataPoint,
@@ -78,6 +79,29 @@ _IRS_REFUND_SOURCE = FYTDSource(
     fytd_column="tax_refund_fytd_amt",
     key_column="tax_refund_type",
 )
+
+
+_SOURCES: dict[CategoryKind, FYTDSource] = {
+    "spending": _SPENDING_SOURCE,
+    "receipt": _RECEIPT_SOURCE,
+    "tbill": _TBILL_SOURCE,
+    "irs_refund": _IRS_REFUND_SOURCE,
+}
+
+
+def _source_for(kind: CategoryKind) -> FYTDSource:
+    """The table, columns and side filter that hold a category kind's lines."""
+    return _SOURCES[kind]
+
+
+def category_fytd(
+    cur: duckdb.DuckDBPyConnection, cat: CategoryDef, day: str
+) -> float | None:
+    """Σ FYTD of ``cat``'s components on ``day``; ``None`` before ``available_from``."""
+    if not covered(cat.available_from, day):
+        return None
+    source = _source_for(cat.kind)
+    return sum(fetch_component_fytd(cur, source, day, c) for c in cat.components)
 
 
 # ── Shared validators / data-resolution helpers ──────────────────────
@@ -529,17 +553,9 @@ def get_daily_yoy(
             ),
         )
 
-    # Source descriptor — pick the FYTDSource that owns the raw rows.
     # extra_filters are already applied via filter_clause(), which is why
-    # this dispatcher no longer needs separate per-kind SQL templates.
-    if cat_info.kind == "spending":
-        source = _SPENDING_SOURCE
-    elif cat_info.kind == "receipt":
-        source = _RECEIPT_SOURCE
-    elif cat_info.kind == "tbill":
-        source = _TBILL_SOURCE
-    else:
-        source = _IRS_REFUND_SOURCE
+    # this dispatcher needs no separate per-kind SQL templates.
+    source = _source_for(cat_info.kind)
 
     placeholders = ", ".join("?" for _ in cat_info.components)
     extra_clause, extra_params = source.filter_clause()

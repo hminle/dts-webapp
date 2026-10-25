@@ -969,6 +969,67 @@
         "title": "MajorSpendingCategory",
         "type": "object"
       },
+      "SnapshotFigure": {
+        "description": "One FYTD figure against the same business day a year earlier.",
+        "properties": {
+          "change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "current \u2212 previous",
+            "title": "Change"
+          },
+          "current": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "FYTD on the snapshot date",
+            "title": "Current"
+          },
+          "percent_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "change \u00f7 |previous| \u00d7 100",
+            "title": "Percent Change"
+          },
+          "previous": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "FYTD on the aligned previous-FY date",
+            "title": "Previous"
+          }
+        },
+        "required": [
+          "current",
+          "previous",
+          "change",
+          "percent_change"
+        ],
+        "title": "SnapshotFigure",
+        "type": "object"
+      },
       "SubcategoryBreakdown": {
         "description": "Schema for a subcategory within a major spending category.",
         "properties": {
@@ -1506,6 +1567,148 @@
           "record_date"
         ],
         "title": "WeeklyDataPoint",
+        "type": "object"
+      },
+      "WeeklySnapshotResponse": {
+        "description": "One week's statement: month and fiscal year to date, against a year ago.",
+        "properties": {
+          "anchor_date": {
+            "description": "The Thursday/Friday the week ends on",
+            "title": "Anchor Date",
+            "type": "string"
+          },
+          "anchor_weekday": {
+            "description": "Weekday the week ends on",
+            "enum": [
+              "thursday",
+              "friday"
+            ],
+            "title": "Anchor Weekday",
+            "type": "string"
+          },
+          "day_of_fiscal_year": {
+            "description": "Business day of the fiscal year",
+            "title": "Day Of Fiscal Year",
+            "type": "integer"
+          },
+          "deposits_fytd": {
+            "$ref": "#/components/schemas/SnapshotFigure"
+          },
+          "fiscal_year": {
+            "description": "Fiscal year of record_date",
+            "title": "Fiscal Year",
+            "type": "integer"
+          },
+          "gap_change_unavailable_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why net_transfers_gap_change is null, when it is",
+            "title": "Gap Change Unavailable Reason"
+          },
+          "net_transfers_fytd": {
+            "$ref": "#/components/schemas/SnapshotFigure"
+          },
+          "net_transfers_gap_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "This week's net-transfers change minus last week's",
+            "title": "Net Transfers Gap Change"
+          },
+          "net_transfers_mtd": {
+            "description": "Net transfers, month to date",
+            "title": "Net Transfers Mtd",
+            "type": "number"
+          },
+          "previous_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Same day_of_fiscal_year in the previous FY",
+            "title": "Previous Date"
+          },
+          "previous_fiscal_year": {
+            "description": "fiscal_year \u2212 1",
+            "title": "Previous Fiscal Year",
+            "type": "integer"
+          },
+          "previous_week_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Statement used for the week before",
+            "title": "Previous Week Date"
+          },
+          "previous_week_net_transfers_gap": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Last week's net-transfers FYTD change from a year earlier",
+            "title": "Previous Week Net Transfers Gap"
+          },
+          "record_date": {
+            "description": "Statement used; earlier than anchor_date after a holiday",
+            "title": "Record Date",
+            "type": "string"
+          },
+          "withdrawals_fytd": {
+            "$ref": "#/components/schemas/SnapshotFigure"
+          },
+          "withdrawals_mtd": {
+            "description": "Total withdrawals, month to date",
+            "title": "Withdrawals Mtd",
+            "type": "number"
+          },
+          "withholding_fytd": {
+            "$ref": "#/components/schemas/SnapshotFigure"
+          }
+        },
+        "required": [
+          "anchor_weekday",
+          "anchor_date",
+          "record_date",
+          "fiscal_year",
+          "day_of_fiscal_year",
+          "previous_fiscal_year",
+          "previous_date",
+          "withdrawals_mtd",
+          "net_transfers_mtd",
+          "withdrawals_fytd",
+          "deposits_fytd",
+          "net_transfers_fytd",
+          "withholding_fytd",
+          "previous_week_date",
+          "previous_week_net_transfers_gap",
+          "net_transfers_gap_change",
+          "gap_change_unavailable_reason"
+        ],
+        "title": "WeeklySnapshotResponse",
         "type": "object"
       },
       "YoYCategoryComparisonResponse": {
@@ -2761,9 +2964,78 @@
         ]
       }
     },
+    "/api/v1/snapshot/weekly": {
+      "get": {
+        "description": "One week's statement: month and fiscal year to date, against a year earlier.",
+        "operationId": "snapshot_get_weekly",
+        "parameters": [
+          {
+            "description": "Weekday the week ends on",
+            "in": "query",
+            "name": "anchor_weekday",
+            "required": false,
+            "schema": {
+              "default": "thursday",
+              "description": "Weekday the week ends on",
+              "enum": [
+                "thursday",
+                "friday"
+              ],
+              "title": "Anchor Weekday",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Read the week on or before this date; default latest",
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Read the week on or before this date; default latest",
+              "title": "As Of"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklySnapshotResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Weekly",
+        "tags": [
+          "snapshot"
+        ]
+      }
+    },
     "/api/v1/weekly/comparison": {
       "get": {
-        "description": "Friday-by-Friday net transfers, FYTD, for two fiscal years.",
+        "description": "Net transfers FYTD on each week's anchor day (Friday by default), two FYs.",
         "operationId": "weekly_get_comparison",
         "parameters": [
           {
@@ -2808,6 +3080,22 @@
               ],
               "description": "Filter by data source",
               "title": "Data Source"
+            }
+          },
+          {
+            "description": "Weekday each week is read on",
+            "in": "query",
+            "name": "anchor_weekday",
+            "required": false,
+            "schema": {
+              "default": "friday",
+              "description": "Weekday each week is read on",
+              "enum": [
+                "thursday",
+                "friday"
+              ],
+              "title": "Anchor Weekday",
+              "type": "string"
             }
           }
         ],

@@ -5,12 +5,14 @@ import {
   CalendarRange,
   Database,
   LayoutDashboard,
+  Newspaper,
   TrendingUp,
 } from 'lucide-react'
 import { type NavItem, type NavLink } from '../types'
 
 export const MENU_ITEMS: NavItem[] = [
   { title: 'Overview', url: '/', icon: LayoutDashboard },
+  { title: 'Weekly snapshot', url: '/snapshot', icon: Newspaper },
   {
     title: 'Daily',
     icon: CalendarDays,

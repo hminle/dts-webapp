@@ -24,6 +24,7 @@ export type FormulaId =
   | 'category-coverage'
   | 'category-comparison'
   | 'weekly-comparison'
+  | 'weekly-snapshot'
 
 export type FormulaTerm = { term: string; meaning: string }
 
@@ -485,14 +486,30 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
     id: 'weekly-comparison',
     title: 'Weekly comparison',
     summary:
-      'Fiscal-year-to-date net transfers on each Friday, or the closest earlier statement when Friday had none, for two fiscal years.',
+      'Fiscal-year-to-date net transfers on each week’s anchor day, or the closest earlier statement when it had none, for two fiscal years.',
     expression: [
-      'Week N = the Nth Friday on or after October 1',
-      'Value = FYTD net transfers on that Friday, else up to 5 days earlier',
+      'Week N = the Nth anchor day (Friday by default, or Thursday) on or after October 1',
+      'Value = FYTD net transfers on that day, else up to 5 days earlier',
       'Weeks are matched by week number',
     ],
     pitfalls: [
       'The second year stops at the first year’s last week, so a year still in progress is compared with the same stretch of the other.',
+    ],
+    source: DEPOSITS_TABLE,
+  },
+  'weekly-snapshot': {
+    id: 'weekly-snapshot',
+    title: 'Weekly snapshot',
+    summary:
+      'One week’s statement against the same business day a year earlier, and how the net-transfers gap moved since the week before.',
+    expression: [
+      'Snapshot date = latest statement on or up to 5 days before the anchor weekday',
+      'Change = FYTD(snapshot) − FYTD(same day of the previous fiscal year)',
+      'Gap change = this week’s net-transfers change − last week’s',
+    ],
+    pitfalls: [
+      'The gap change is blank in the first week of a fiscal year: last week belongs to another pair of years.',
+      'After a holiday the snapshot uses the closest earlier statement, so its month-to-date covers one day less.',
     ],
     source: DEPOSITS_TABLE,
   },
@@ -520,4 +537,5 @@ export const FORMULA_ORDER: FormulaId[] = [
   'category-coverage',
   'category-comparison',
   'weekly-comparison',
+  'weekly-snapshot',
 ]

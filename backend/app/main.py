@@ -12,6 +12,7 @@ from app.api.routers import (
     lookups,
     meta,
     net_transfers,
+    snapshot,
     weekly,
     yoy,
 )
@@ -55,7 +56,17 @@ def bad_request(request: Request, exc: ValueError) -> JSONResponse:
     return JSONResponse(status_code=400, content={"detail": str(exc)})
 
 
-for module in (health, meta, lookups, data, net_transfers, weekly, yoy, categories):
+for module in (
+    health,
+    meta,
+    lookups,
+    data,
+    net_transfers,
+    weekly,
+    snapshot,
+    yoy,
+    categories,
+):
     app.include_router(module.router)
 
 # Mounted last so every /api/v1 route matches first. Stateless: each request

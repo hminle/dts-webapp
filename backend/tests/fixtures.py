@@ -164,6 +164,35 @@ def itr_row(day: date, fy: int, *, tax_refund_type: str, fytd: float) -> pd.Data
     )
 
 
+def dnt_row(
+    day: date,
+    fy: int,
+    day_of_fy: int,
+    *,
+    withdrawals_fytd: float,
+    deposits_fytd: float,
+    withdrawals_mtd: float = 0.0,
+    net_mtd: float = 0.0,
+    withdrawals_today: float = 0.0,
+) -> pd.DataFrame:
+    """One ``daily_net_transfers`` row; net FYTD = withdrawals − deposits."""
+    return pd.DataFrame(
+        [
+            {
+                "record_date": day,
+                "record_fiscal_year": fy,
+                "day_of_fiscal_year": day_of_fy,
+                "total_withdrawals_today": withdrawals_today,
+                "total_withdrawals_mtd": withdrawals_mtd,
+                "total_withdrawals_fytd": withdrawals_fytd,
+                "total_deposits_fytd": deposits_fytd,
+                "net_flow_mtd": net_mtd,
+                "net_flow_fytd": withdrawals_fytd - deposits_fytd,
+            }
+        ]
+    )
+
+
 def formula_db(frames: dict[str, list[pd.DataFrame]]) -> duckdb.DuckDBPyConnection:
     """An in-memory artifact holding exactly ``frames``, built by the real schema.
 
