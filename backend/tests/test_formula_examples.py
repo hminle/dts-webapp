@@ -20,6 +20,7 @@ from app.schemas.treasury import (
     TBillInterestRequest,
     WeeklySnapshotRequest,
 )
+from app.services.cash_balance import balance_on
 from app.services.categories import (
     get_combined,
     get_irs_tax_refunds,
@@ -31,7 +32,15 @@ from app.services.rolling import get_daily
 from app.services.snapshot import get_weekly
 from app.utils.deposits_withdrawals import calculate_daily_net_transfers
 from app.utils.yoy import yoy_change
-from tests.fixtures import apd_row, catg_row, dnt_row, dw_row, formula_db, itr_row
+from tests.fixtures import (
+    apd_row,
+    catg_row,
+    dnt_row,
+    dw_row,
+    formula_db,
+    itr_row,
+    ocb_row,
+)
 
 EXAMPLES_PATH = (
     Path(__file__).resolve().parents[2]
@@ -424,3 +433,35 @@ def test_weekly_snapshot_example() -> None:
             expected["change"],
         )
         assert _pct(figure.percent_change) == expected["percent_change"]
+
+
+def test_cash_balance_example() -> None:
+    cb = EX["cash_balance"]
+    closing = "Treasury General Account (TGA) Closing Balance"
+    conn = formula_db(
+        {
+            "operating_cash_balance": [
+                ocb_row(
+                    date.fromisoformat(day), fy, account_type=closing, open_today=value
+                )
+                for day, fy, value in (
+                    (cb["record_date"], 2026, cb["closing"]),
+                    (cb["previous_week_date"], 2026, cb["previous_week"]),
+                    (cb["year_ago_date"], 2025, cb["year_ago"]),
+                )
+            ]
+        }
+    )
+    cur = conn.cursor()
+    now = balance_on(cur, cb["record_date"])
+    week = balance_on(cur, cb["previous_week_date"])
+    year = balance_on(cur, cb["year_ago_date"])
+    assert now == cb["closing"]
+    assert now - week == cb["change_week"]
+    change, pct = yoy_change(now, year)
+    assert change == cb["change_year"]
+    assert _pct(pct) == cb["percent_change_year"]
+    # Each era's last close is the next era's first open.
+    eras = cb["eras"]
+    for last_close, first_open in zip(eras[::2], eras[1::2], strict=True):
+        assert last_close["value"] == first_open["value"]

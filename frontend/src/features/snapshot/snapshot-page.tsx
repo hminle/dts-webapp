@@ -11,7 +11,11 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { changeClass, changeText } from '@/features/yoy/components/accent'
-import { formatBillions, formatTreasuryValue } from '@/lib/format'
+import {
+  formatBillions,
+  formatSignedPercent,
+  formatTreasuryValue,
+} from '@/lib/format'
 import { useWeeklySnapshot } from './api'
 import type { WeeklySnapshot } from './api'
 import { FigureCard } from './components/figure-card'
@@ -38,6 +42,23 @@ function gapNote(s: WeeklySnapshot): string {
     case 'unchanged':
       return `Unchanged ${since}`
   }
+}
+
+function cashNote(s: WeeklySnapshot): string | undefined {
+  const cash = s.cash_balance
+  const parts: string[] = []
+  if (cash.change_week !== null && s.previous_week_date)
+    parts.push(
+      `${changeText(cash.change_week)} since ${shortWeekday(s.previous_week_date)}`
+    )
+  if (cash.change_year !== null) {
+    const pct =
+      cash.percent_change_year === null
+        ? ''
+        : ` (${formatSignedPercent(cash.percent_change_year)})`
+    parts.push(`${changeText(cash.change_year)}${pct} vs a year ago`)
+  }
+  return parts.length ? parts.join(' · ') : undefined
 }
 
 const dash = (value: number | null, format: (v: number) => string) =>
@@ -183,6 +204,17 @@ export function SnapshotPage() {
                   hint='net-customs-receipts'
                   figure={s.net_customs_fytd}
                   previousFiscalYear={s.previous_fiscal_year}
+                />
+              </div>
+            </Section>
+
+            <Section title='Cash balance'>
+              <div className='grid gap-4 sm:grid-cols-2'>
+                <StatCard
+                  title='Treasury cash balance'
+                  hint='cash-balance'
+                  value={dash(s.cash_balance.closing, formatBillions)}
+                  note={cashNote(s)}
                 />
               </div>
             </Section>

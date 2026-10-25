@@ -88,3 +88,9 @@ def test_bad_inputs_are_400(client: TestClient, path: str, params: dict) -> None
 
     assert response.status_code == 400
     assert response.json()["detail"]
+
+
+def test_cash_balance_without_rows_is_404(client: TestClient) -> None:
+    # The seed's operating_cash_balance rows have no account_type, so none is a
+    # balance row.
+    assert client.get("/api/v1/cash-balance/daily").status_code == 404

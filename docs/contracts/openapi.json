@@ -29,6 +29,56 @@
         "title": "BuildInfo",
         "type": "object"
       },
+      "CashBalancePoint": {
+        "description": "The closing balance on one statement date.",
+        "properties": {
+          "closing_balance": {
+            "description": "TGA closing balance, millions of dollars",
+            "title": "Closing Balance",
+            "type": "number"
+          },
+          "record_date": {
+            "description": "Statement date",
+            "title": "Record Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "record_date",
+          "closing_balance"
+        ],
+        "title": "CashBalancePoint",
+        "type": "object"
+      },
+      "CashBalanceResponse": {
+        "description": "Schema for cash balance response.",
+        "properties": {
+          "end_date": {
+            "description": "Last date requested",
+            "title": "End Date",
+            "type": "string"
+          },
+          "points": {
+            "description": "One point per statement",
+            "items": {
+              "$ref": "#/components/schemas/CashBalancePoint"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "start_date": {
+            "description": "First date requested",
+            "title": "Start Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_date",
+          "end_date"
+        ],
+        "title": "CashBalanceResponse",
+        "type": "object"
+      },
       "CategoryDailyDataPoint": {
         "description": "Schema for a single day's data for a category.",
         "properties": {
@@ -1249,6 +1299,93 @@
         "title": "RollingPoint",
         "type": "object"
       },
+      "SnapshotCashBalance": {
+        "description": "The TGA closing balance on the snapshot date, a week and a year earlier.",
+        "properties": {
+          "change_week": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "closing \u2212 previous_week",
+            "title": "Change Week"
+          },
+          "change_year": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "closing \u2212 year_ago",
+            "title": "Change Year"
+          },
+          "closing": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "On record_date; null if the statement has no balance row",
+            "title": "Closing"
+          },
+          "percent_change_year": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "change_year \u00f7 |year_ago| \u00d7 100",
+            "title": "Percent Change Year"
+          },
+          "previous_week": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "On previous_week_date",
+            "title": "Previous Week"
+          },
+          "year_ago": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "On previous_date (same fiscal day)",
+            "title": "Year Ago"
+          }
+        },
+        "required": [
+          "closing",
+          "previous_week",
+          "change_week",
+          "year_ago",
+          "change_year",
+          "percent_change_year"
+        ],
+        "title": "SnapshotCashBalance",
+        "type": "object"
+      },
       "SnapshotFigure": {
         "description": "One FYTD figure against the same business day a year earlier.",
         "properties": {
@@ -1866,6 +2003,9 @@
             "title": "Anchor Weekday",
             "type": "string"
           },
+          "cash_balance": {
+            "$ref": "#/components/schemas/SnapshotCashBalance"
+          },
           "day_of_fiscal_year": {
             "description": "Business day of the fiscal year",
             "title": "Day Of Fiscal Year",
@@ -2030,6 +2170,7 @@
           "unemployment_10d_average",
           "interest_income_fytd",
           "net_customs_fytd",
+          "cash_balance",
           "previous_week_date",
           "previous_week_net_transfers_gap",
           "net_transfers_gap_change",
@@ -2230,6 +2371,78 @@
         "summary": "Health",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/api/v1/cash-balance/daily": {
+      "get": {
+        "description": "The TGA closing balance on each statement date.",
+        "operationId": "cash_balance_get_daily",
+        "parameters": [
+          {
+            "description": "Default a year before end_date",
+            "in": "query",
+            "name": "start_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Default a year before end_date",
+              "title": "Start Date"
+            }
+          },
+          {
+            "description": "Default the latest statement",
+            "in": "query",
+            "name": "end_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Default the latest statement",
+              "title": "End Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashBalanceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Daily",
+        "tags": [
+          "cash_balance"
         ]
       }
     },

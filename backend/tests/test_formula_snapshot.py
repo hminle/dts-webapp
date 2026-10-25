@@ -7,7 +7,7 @@ from fastapi import HTTPException
 
 from app.schemas.treasury import WeeklySnapshotRequest
 from app.services.snapshot import get_weekly
-from tests.fixtures import apd_row, catg_row, dnt_row, dw_row, formula_db
+from tests.fixtures import apd_row, catg_row, dnt_row, dw_row, formula_db, ocb_row
 
 WITHHELD = "Taxes - Withheld Individual/FICA"
 
@@ -158,6 +158,39 @@ def test_snapshot_adds_leading_flows_and_combined_figures() -> None:
     )
     assert s.interest_income_fytd.change == 14916
     assert (s.net_customs_fytd.current, s.net_customs_fytd.change) == (65404, 49481)
+
+
+def test_snapshot_cash_balance_against_last_week_and_a_year_ago() -> None:
+    closing = "Treasury General Account (TGA) Closing Balance"
+    conn = formula_db(
+        {
+            "daily_net_transfers": [*_dec_4_rows(), *_nov_26_rows()],
+            "operating_cash_balance": [
+                ocb_row(d, fy, account_type=closing, open_today=v)
+                for d, fy, v in (
+                    (date(2025, 12, 4), 2026, 878666),
+                    (date(2025, 11, 26), 2026, 899678),
+                    (date(2024, 12, 4), 2025, 815011),
+                )
+            ],
+        }
+    )
+    cash = _snapshot(conn).cash_balance
+    assert (cash.closing, cash.previous_week, cash.year_ago) == (
+        878666,
+        899678,
+        815011,
+    )
+    assert cash.change_week == -21012
+    assert cash.change_year == 63655
+    assert cash.percent_change_year == pytest.approx(7.810, abs=1e-3)
+
+
+def test_snapshot_cash_balance_is_null_without_balance_rows() -> None:
+    cash = _snapshot(_db(_dec_4_rows())).cash_balance
+    assert cash.closing is None
+    assert cash.change_week is None
+    assert cash.change_year is None
 
 
 def test_a_holiday_anchor_uses_the_closest_earlier_statement() -> None:

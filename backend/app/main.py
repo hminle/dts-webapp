@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 
 from app.api.routers import (
+    cash_balance,
     categories,
     data,
     health,
@@ -66,6 +67,7 @@ for module in (
     weekly,
     snapshot,
     rolling,
+    cash_balance,
     yoy,
     categories,
 ):

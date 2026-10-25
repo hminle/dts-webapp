@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CashBalanceRouteImport } from './routes/cash-balance'
 import { Route as DataStatusRouteImport } from './routes/data-status'
 import { Route as FiscalYearRouteImport } from './routes/fiscal-year'
 import { Route as MethodologyRouteImport } from './routes/methodology'
@@ -28,6 +29,11 @@ import { Route as YoyWithdrawalsRouteImport } from './routes/yoy/withdrawals'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CashBalanceRoute = CashBalanceRouteImport.update({
+  id: '/cash-balance',
+  path: '/cash-balance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DataStatusRoute = DataStatusRouteImport.update({
@@ -103,6 +109,7 @@ const YoyWithdrawalsRoute = YoyWithdrawalsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cash-balance': typeof CashBalanceRoute
   '/data-status': typeof DataStatusRoute
   '/fiscal-year': typeof FiscalYearRoute
   '/methodology': typeof MethodologyRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cash-balance': typeof CashBalanceRoute
   '/data-status': typeof DataStatusRoute
   '/fiscal-year': typeof FiscalYearRoute
   '/methodology': typeof MethodologyRoute
@@ -138,6 +146,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cash-balance': typeof CashBalanceRoute
   '/data-status': typeof DataStatusRoute
   '/fiscal-year': typeof FiscalYearRoute
   '/methodology': typeof MethodologyRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/cash-balance'
     | '/data-status'
     | '/fiscal-year'
     | '/methodology'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/cash-balance'
     | '/data-status'
     | '/fiscal-year'
     | '/methodology'
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/cash-balance'
     | '/data-status'
     | '/fiscal-year'
     | '/methodology'
@@ -209,6 +221,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CashBalanceRoute: typeof CashBalanceRoute
   DataStatusRoute: typeof DataStatusRoute
   FiscalYearRoute: typeof FiscalYearRoute
   MethodologyRoute: typeof MethodologyRoute
@@ -232,6 +245,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cash-balance': {
+      id: '/cash-balance'
+      path: '/cash-balance'
+      fullPath: '/cash-balance'
+      preLoaderRoute: typeof CashBalanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/data-status': {
@@ -337,6 +357,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CashBalanceRoute: CashBalanceRoute,
   DataStatusRoute: DataStatusRoute,
   FiscalYearRoute: FiscalYearRoute,
   MethodologyRoute: MethodologyRoute,

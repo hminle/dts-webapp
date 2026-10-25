@@ -193,6 +193,28 @@ def dnt_row(
     )
 
 
+def ocb_row(
+    day: date,
+    fy: int,
+    *,
+    account_type: str,
+    open_today: float | None = None,
+    close_today: float | None = None,
+) -> pd.DataFrame:
+    """One ``operating_cash_balance`` row."""
+    return pd.DataFrame(
+        [
+            {
+                "record_date": day,
+                "record_fiscal_year": fy,
+                "account_type": account_type,
+                "open_today_bal": open_today,
+                "close_today_bal": close_today,
+            }
+        ]
+    )
+
+
 def formula_db(frames: dict[str, list[pd.DataFrame]]) -> duckdb.DuckDBPyConnection:
     """An in-memory artifact holding exactly ``frames``, built by the real schema.
 

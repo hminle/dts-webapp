@@ -4,6 +4,7 @@ import {
   CalendarDays,
   CalendarRange,
   Database,
+  Landmark,
   LayoutDashboard,
   Newspaper,
   TrendingUp,
@@ -34,6 +35,7 @@ export const MENU_ITEMS: NavItem[] = [
     ],
   },
   { title: 'Weekly comparison', url: '/weekly', icon: CalendarRange },
+  { title: 'Cash balance', url: '/cash-balance', icon: Landmark },
 ]
 
 /** Pinned under the menu: about the data rather than views of it. */

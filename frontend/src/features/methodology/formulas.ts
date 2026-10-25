@@ -12,6 +12,7 @@ export type FormulaId =
   | 'net-transfers'
   | 'leading-flow'
   | 'rolling-average'
+  | 'cash-balance'
   | 'yoy-difference'
   | 'yoy-percent'
   | 'yoy-summary'
@@ -415,6 +416,20 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
     ],
     source: DEPOSITS_TABLE,
   },
+  'cash-balance': {
+    id: 'cash-balance',
+    title: 'Treasury cash balance',
+    summary:
+      'The Treasury General Account’s closing balance at the Federal Reserve on each statement date.',
+    expression: [
+      'Closing balance = opening balance + deposits − withdrawals (Table I)',
+    ],
+    pitfalls: [
+      'Unlike net transfers, the balance includes borrowing: debt sales raise it, redemptions lower it.',
+      'Since April 2022 the Treasury reports the closing balance on its own row.',
+    ],
+    source: 'Operating Cash Balance (Table I)',
+  },
   'interest-income-transfers': {
     id: 'interest-income-transfers',
     title: 'Interest income transfers',
@@ -581,6 +596,7 @@ export const FORMULA_ORDER: FormulaId[] = [
   'net-transfers',
   'leading-flow',
   'rolling-average',
+  'cash-balance',
   'yoy-difference',
   'yoy-percent',
   'yoy-summary',

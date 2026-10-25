@@ -23,6 +23,7 @@ const ROLL = examples.rolling
 const COMB = examples.combined
 const COMB_CUR = `FY2026 · ${formatShortDate(COMB.current_date)}`
 const COMB_PREV = `FY2025 · ${formatShortDate(COMB.previous_date)}`
+const CASH = examples.cash_balance
 
 // Display names from backend/app/constants/endpoints.py (ENDPOINTS).
 const TABLES = [
@@ -69,6 +70,7 @@ const CHAPTERS: Chapter[] = [
   { id: 'tax-refunds', title: 'IRS tax refunds' },
   { id: 'any-line-item', title: 'Category comparison' },
   { id: 'friday-snapshots', title: 'Weekly comparison and snapshot' },
+  { id: 'cash-balance', title: 'Treasury cash balance' },
   { id: 'known-limits', title: 'Known limits' },
   { id: 'glossary', title: 'Glossary' },
   { id: 'source-and-schedule', title: 'Source and update schedule' },
@@ -780,7 +782,28 @@ export function MethodologyPage() {
           <FormulaBlock id='weekly-snapshot' />
         </ProseSection>
 
-        <ProseSection id='known-limits' title='13. Known limits'>
+        <ProseSection id='cash-balance' title='13. Treasury cash balance'>
+          <p>
+            The Treasury keeps its cash in the Treasury General Account at the
+            Federal Reserve. On {formatShortDate(CASH.record_date)} the account
+            closed at <Strong>{millions(CASH.closing)}</Strong>,{' '}
+            {millions(CASH.change_week)} more than a week earlier (
+            {formatShortDate(CASH.previous_week_date)}) and{' '}
+            {millions(CASH.change_year)} ({percent(CASH.percent_change_year)})
+            more than on the same business day a year earlier (
+            {formatShortDate(CASH.year_ago_date)}).
+          </p>
+          <p>
+            The statement has moved the balance between rows twice, on{' '}
+            {formatShortDate(CASH.eras[1].date)} and{' '}
+            {formatShortDate(CASH.eras[3].date)}. Each move is seamless: the
+            last close, {millions(CASH.eras[0].value)} and{' '}
+            {millions(CASH.eras[2].value)}, is the next day’s opening balance.
+          </p>
+          <FormulaBlock id='cash-balance' />
+        </ProseSection>
+
+        <ProseSection id='known-limits' title='14. Known limits'>
           <ul>
             <li>
               The app fetches each statement once. If the Treasury later revises
@@ -811,7 +834,7 @@ export function MethodologyPage() {
           </ul>
         </ProseSection>
 
-        <ProseSection id='glossary' title='14. Glossary'>
+        <ProseSection id='glossary' title='15. Glossary'>
           <dl className='grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2'>
             {GLOSSARY.map(([term, meaning]) => (
               <div key={term} className='contents'>
@@ -824,7 +847,7 @@ export function MethodologyPage() {
 
         <ProseSection
           id='source-and-schedule'
-          title='15. Source and update schedule'
+          title='16. Source and update schedule'
         >
           <p>
             Every figure comes from the U.S. Treasury&apos;s{' '}

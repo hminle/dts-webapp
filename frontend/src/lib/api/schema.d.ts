@@ -24,6 +24,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cash-balance/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Daily
+         * @description The TGA closing balance on each statement date.
+         */
+        get: operations["cash_balance_get_daily"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/categories/combined": {
         parameters: {
             query?: never;
@@ -541,6 +561,43 @@ export interface components {
             schema_version: string;
             /** Source */
             source: string;
+        };
+        /**
+         * CashBalancePoint
+         * @description The closing balance on one statement date.
+         */
+        CashBalancePoint: {
+            /**
+             * Closing Balance
+             * @description TGA closing balance, millions of dollars
+             */
+            closing_balance: number;
+            /**
+             * Record Date
+             * @description Statement date
+             */
+            record_date: string;
+        };
+        /**
+         * CashBalanceResponse
+         * @description Schema for cash balance response.
+         */
+        CashBalanceResponse: {
+            /**
+             * End Date
+             * @description Last date requested
+             */
+            end_date: string;
+            /**
+             * Points
+             * @description One point per statement
+             */
+            points?: components["schemas"]["CashBalancePoint"][];
+            /**
+             * Start Date
+             * @description First date requested
+             */
+            start_date: string;
         };
         /**
          * CategoryDailyDataPoint
@@ -1313,6 +1370,42 @@ export interface components {
             value: number;
         };
         /**
+         * SnapshotCashBalance
+         * @description The TGA closing balance on the snapshot date, a week and a year earlier.
+         */
+        SnapshotCashBalance: {
+            /**
+             * Change Week
+             * @description closing − previous_week
+             */
+            change_week: number | null;
+            /**
+             * Change Year
+             * @description closing − year_ago
+             */
+            change_year: number | null;
+            /**
+             * Closing
+             * @description On record_date; null if the statement has no balance row
+             */
+            closing: number | null;
+            /**
+             * Percent Change Year
+             * @description change_year ÷ |year_ago| × 100
+             */
+            percent_change_year: number | null;
+            /**
+             * Previous Week
+             * @description On previous_week_date
+             */
+            previous_week: number | null;
+            /**
+             * Year Ago
+             * @description On previous_date (same fiscal day)
+             */
+            year_ago: number | null;
+        };
+        /**
          * SnapshotFigure
          * @description One FYTD figure against the same business day a year earlier.
          */
@@ -1662,6 +1755,7 @@ export interface components {
              * @enum {string}
              */
             anchor_weekday: "thursday" | "friday";
+            cash_balance: components["schemas"]["SnapshotCashBalance"];
             /**
              * Day Of Fiscal Year
              * @description Business day of the fiscal year
@@ -1883,6 +1977,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    cash_balance_get_daily: {
+        parameters: {
+            query?: {
+                /** @description Default a year before end_date */
+                start_date?: string | null;
+                /** @description Default the latest statement */
+                end_date?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CashBalanceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

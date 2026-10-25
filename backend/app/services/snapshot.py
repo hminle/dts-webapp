@@ -19,10 +19,12 @@ from app.constants.categories import (
     CombinedCategoryDef,
 )
 from app.schemas.treasury import (
+    SnapshotCashBalance,
     SnapshotFigure,
     WeeklySnapshotRequest,
     WeeklySnapshotResponse,
 )
+from app.services.cash_balance import balance_on
 from app.services.categories import category_fytd, combined_fytd
 from app.services.rolling import MONTHLY_MULTIPLIER, rolling_on
 from app.utils.anchor import LOOK_BACK_DAYS, anchor_on_or_before
@@ -190,6 +192,20 @@ def get_weekly(
         else:
             gap_change = net.change - previous_gap
 
+    closing = balance_on(cur, current.record_date)
+    last_week = balance_on(cur, week_before.record_date) if week_before else None
+    year_ago = balance_on(cur, previous.record_date) if previous else None
+    change_week, _ = nullable_yoy(closing, last_week)
+    change_year, pct_year = nullable_yoy(closing, year_ago)
+    cash = SnapshotCashBalance(
+        closing=closing,
+        previous_week=last_week,
+        change_week=change_week,
+        year_ago=year_ago,
+        change_year=change_year,
+        percent_change_year=pct_year,
+    )
+
     logger.info(
         "Weekly snapshot (%s): %s day %s vs %s",
         request.anchor_weekday,
@@ -220,6 +236,7 @@ def get_weekly(
         ),
         interest_income_fytd=combined(INTEREST_INCOME),
         net_customs_fytd=combined(NET_CUSTOMS),
+        cash_balance=cash,
         previous_week_date=week_before.record_date if week_before else None,
         previous_week_net_transfers_gap=previous_gap,
         net_transfers_gap_change=gap_change,

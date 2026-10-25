@@ -782,6 +782,23 @@ class WeeklySnapshotRequest(BaseModel):
     )
 
 
+class SnapshotCashBalance(BaseModel):
+    """The TGA closing balance on the snapshot date, a week and a year earlier."""
+
+    closing: float | None = Field(
+        ..., description="On record_date; null if the statement has no balance row"
+    )
+    previous_week: float | None = Field(..., description="On previous_week_date")
+    change_week: float | None = Field(..., description="closing − previous_week")
+    year_ago: float | None = Field(
+        ..., description="On previous_date (same fiscal day)"
+    )
+    change_year: float | None = Field(..., description="closing − year_ago")
+    percent_change_year: float | None = Field(
+        ..., description="change_year ÷ |year_ago| × 100"
+    )
+
+
 class WeeklySnapshotResponse(BaseModel):
     """One week's statement: month and fiscal year to date, against a year ago."""
 
@@ -813,6 +830,7 @@ class WeeklySnapshotResponse(BaseModel):
     )
     interest_income_fytd: SnapshotFigure
     net_customs_fytd: SnapshotFigure
+    cash_balance: SnapshotCashBalance
     previous_week_date: str | None = Field(
         ..., description="Statement used for the week before"
     )
@@ -928,4 +946,33 @@ class CombinedCategoriesResponse(BaseModel):
     comparison_mode: str = Field(..., description="Comparison mode used")
     categories: list[CombinedCategory] = Field(
         default_factory=list, description="The combined figures"
+    )
+
+
+# Cash Balance Schemas
+
+
+class CashBalanceRequest(BaseModel):
+    """Schema for requesting the TGA closing balance over a range."""
+
+    start_date: date | None = Field(None, description="Default a year before end_date")
+    end_date: date | None = Field(None, description="Default the latest statement")
+
+
+class CashBalancePoint(BaseModel):
+    """The closing balance on one statement date."""
+
+    record_date: str = Field(..., description="Statement date")
+    closing_balance: float = Field(
+        ..., description="TGA closing balance, millions of dollars"
+    )
+
+
+class CashBalanceResponse(BaseModel):
+    """Schema for cash balance response."""
+
+    start_date: str = Field(..., description="First date requested")
+    end_date: str = Field(..., description="Last date requested")
+    points: list[CashBalancePoint] = Field(
+        default_factory=list, description="One point per statement"
     )
