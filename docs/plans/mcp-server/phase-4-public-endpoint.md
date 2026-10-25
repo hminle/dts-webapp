@@ -1,4 +1,4 @@
-# Phase 4: Public endpoint — ⬜ Not Started
+# Phase 4: Public endpoint — ✅ Done
 
 **Goal**: The same MCP server, served as stateless streamable HTTP at `/api/mcp` from the
 existing Vercel function, so anyone can connect an agent to the public data.
@@ -93,11 +93,11 @@ never CDN-cached."
 
 ## Verification
 
-- [ ] `cd backend && uv run pytest tests/test_mcp_http.py -x` — all pass.
-- [ ] `cd backend && uv run pytest` — full suite passes.
-- [ ] `cd backend && uv run ruff check . && uv run ruff format --check .` — clean.
-- [ ] `cd backend && uv run python -m scripts.export_openapi && git diff --exit-code ../docs/contracts/openapi.json` — no change.
-- [ ] Local end-to-end: `uv run fastapi dev`, then
+- [x] `cd backend && uv run pytest tests/test_mcp_http.py -x` — all pass.
+- [x] `cd backend && uv run pytest` — full suite passes.
+- [x] `cd backend && uv run ruff check . && uv run ruff format --check .` — clean.
+- [x] `cd backend && uv run python -m scripts.export_openapi && git diff --exit-code ../docs/contracts/openapi.json` — no change.
+- [x] Local end-to-end: `uv run fastapi dev`, then
       ```bash
       uv run python - <<'EOF'
       import asyncio
@@ -113,8 +113,8 @@ never CDN-cached."
       EOF
       ```
       prints the five tool names and the `yoy_*` operations.
-- [ ] Stdio still works: the Phase 2 stdio smoke test passes unchanged.
-- [ ] All four preview checks in §3 pass.
+- [x] Stdio still works: the Phase 2 stdio smoke test passes unchanged.
+- [x] Preview checks 1, 3 and 4 in §3 pass (check 2 needs the protection bypass; run it against production after merge).
 - [ ] After merge, the same `curl` against production returns 200.
 
 ## Notes
@@ -129,3 +129,20 @@ never CDN-cached."
   buffered or broken streams, pass `json_response=True` to `http_app(...)` and record it here.
 - **Cold start.** Building the server reads `app.openapi()` once at import. Compare the preview's
   cold-start time with production's; if it grows by more than 200 ms, note it here.
+- **Results on landing (preview of PR #20, checked with `vercel curl`, which gets past
+  deployment protection).**
+  - `initialize` → 200 `text/event-stream` in 0.5 s. SSE works on Vercel's Python runtime, so
+    `json_response=True` is not needed.
+  - `POST /api/mcp` → 307 to `https://…/api/mcp/`. The redirect keeps https, but the slash stays
+    in every documented URL.
+  - `get_skills("data-model")` lists all 11 tables, so the skills folder and the worked-examples
+    copy are bundled.
+  - `run_query` over `range(100000000000)` → tool error "exceeded 10s" after 10.18 s, HTTP 200,
+    no 504.
+  - The lifespan swap works across repeated `TestClient` contexts (the full suite opens many).
+  - `get_skills` returns a union (`list | Skill`), so FastMCP wraps its `structuredContent` as
+    `{"result": ...}`. The FastMCP client unwraps it (`.data`); raw HTTP clients see the
+    wrapper.
+  - Check 2 (`claude mcp add` against the preview) is blocked by deployment protection; run it
+    against production after merge.
+  - Cold start was not measured separately.

@@ -98,7 +98,9 @@ Layering: `app/api/routers` (HTTP, validation, cache headers) → `app/services`
   cursor. Anything that writes belongs in `app/ingest/`.
 - **Every data endpoint is `GET`.** Query parameters (Pydantic query models via
   `Annotated[Model, Query()]`) replace the JSON bodies the reference app used — a CDN never
-  caches `POST`. Data responses carry `Cache-Control` set in one place (`app/api/caching.py`).
+  caches `POST`. Data responses carry `Cache-Control` set in one place (`app/api/caching.py`). The one
+  exception is the MCP mount at `/api/mcp` (`app/main.py`), which is `POST` by protocol and is
+  never CDN-cached.
 - **No silent fallbacks.** Unknown endpoint keys, missing tables, and failed queries raise; the
   HTTP layer maps them to 4xx/5xx. Never return an empty list to hide an error.
 - **Pagination happens in SQL** (`LIMIT/OFFSET` over `UNION ALL BY NAME`), never by
