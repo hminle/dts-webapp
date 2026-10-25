@@ -562,6 +562,11 @@ export function MethodologyPage() {
               </div>
             }
           />
+          <p>Ten more spending groups are shown below the major ones:</p>
+          <FormulaBlock
+            id='other-spending'
+            termLabels={['Category', 'Treasury line item']}
+          />
         </ProseSection>
 
         <ProseSection
@@ -591,6 +596,11 @@ export function MethodologyPage() {
             used on {formatShortDate('2025-11-07')}; the new one, “DHS - Customs
             Duties, Taxes, and Fees”, starts on {formatShortDate('2025-11-10')}.
           </p>
+          <p>Four more receipt groups are shown below the major ones:</p>
+          <FormulaBlock
+            id='other-receipts'
+            termLabels={['Category', 'Treasury line item']}
+          />
         </ProseSection>
 
         <ProseSection id='t-bill-discount' title='9. T-Bill interest'>

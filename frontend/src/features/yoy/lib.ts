@@ -1,3 +1,4 @@
+import type { FormulaId } from '@/features/methodology/formulas'
 import type {
   IrsRefundComponent,
   IrsRefunds,
@@ -56,6 +57,8 @@ export type CategoryCardData = {
   tbillComponents?: TBillInterestComponent[]
   irsRefundComponents?: IrsRefundComponent[]
   categoryType: CategoryKind
+  /** The Methodology entry the card's hint and dialog explain it with. */
+  formula: FormulaId
   accent: CategoryAccent
 }
 
@@ -79,6 +82,7 @@ export function spendingCards(
     availableFrom: cat.available_from,
     subcategories: cat.subcategories,
     categoryType: 'spending',
+    formula: 'major-spending',
     accent: spendingAccent(cat.yoy_change),
   }))
   if (tbill) {
@@ -91,6 +95,7 @@ export function spendingCards(
       availableFrom: tbill.available_from,
       tbillComponents: tbill.components,
       categoryType: 'tbill',
+      formula: 'tbill-interest',
       accent: spendingAccent(tbill.total_yoy_change),
     })
   }
@@ -104,6 +109,7 @@ export function spendingCards(
       availableFrom: irs.available_from,
       irsRefundComponents: irs.components,
       categoryType: 'irs_refund',
+      formula: 'irs-refunds',
       accent: spendingAccent(irs.total_yoy_change),
     })
   }
@@ -122,6 +128,43 @@ export function receiptCards(
     availableFrom: cat.available_from,
     subcategories: cat.subcategories,
     categoryType: 'receipt',
+    formula: 'major-receipts',
+    accent: 'receipt',
+  }))
+}
+
+/** The other preset spending categories, below the major ones. */
+export function otherSpendingCards(
+  data: MajorSpending | undefined
+): CategoryCardData[] {
+  return (data?.categories ?? []).map((cat) => ({
+    name: cat.name,
+    current_fytd: cat.current_fytd,
+    previous_fytd: cat.previous_fytd,
+    yoy_change: cat.yoy_change,
+    yoy_percent_change: cat.yoy_percent_change ?? null,
+    availableFrom: cat.available_from,
+    subcategories: cat.subcategories,
+    categoryType: 'spending',
+    formula: 'other-spending',
+    accent: spendingAccent(cat.yoy_change),
+  }))
+}
+
+/** The other preset receipt categories, below the major ones. */
+export function otherReceiptCards(
+  data: MajorReceipts | undefined
+): CategoryCardData[] {
+  return (data?.categories ?? []).map((cat) => ({
+    name: cat.name,
+    current_fytd: cat.current_fytd,
+    previous_fytd: cat.previous_fytd,
+    yoy_change: cat.yoy_change,
+    yoy_percent_change: cat.yoy_percent_change ?? null,
+    availableFrom: cat.available_from,
+    subcategories: cat.subcategories,
+    categoryType: 'receipt',
+    formula: 'other-receipts',
     accent: 'receipt',
   }))
 }

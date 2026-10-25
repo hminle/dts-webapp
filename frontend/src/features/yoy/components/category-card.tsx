@@ -1,10 +1,9 @@
 import { TrendingDown, TrendingUp } from 'lucide-react'
 import { FormulaHint } from '@/components/formula-hint'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import type { FormulaId } from '@/features/methodology/formulas'
 import { formatDate, formatPercent } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import type { CategoryCardData, CategoryKind } from '../lib'
+import type { CategoryCardData } from '../lib'
 import {
   ACCENT,
   changeClass,
@@ -12,13 +11,6 @@ import {
   signedPrefix,
   totalText,
 } from './accent'
-
-export const CATEGORY_FORMULA: Record<CategoryKind, FormulaId> = {
-  spending: 'major-spending',
-  receipt: 'major-receipts',
-  tbill: 'tbill-interest',
-  irs_refund: 'irs-refunds',
-}
 
 type CategoryCardProps = {
   category: CategoryCardData
@@ -48,10 +40,7 @@ export function CategoryCard({ category, onSelect }: CategoryCardProps) {
             {category.name}
           </button>
         </CardTitle>
-        <FormulaHint
-          id={CATEGORY_FORMULA[category.categoryType]}
-          className='relative z-10'
-        />
+        <FormulaHint id={category.formula} className='relative z-10' />
       </CardHeader>
       <CardContent className='flex flex-col gap-1'>
         <div className='text-2xl font-semibold tabular-nums'>

@@ -2013,6 +2013,150 @@
         ]
       }
     },
+    "/api/v1/categories/other-receipts": {
+      "get": {
+        "description": "FYTD receipts of the other preset categories, with YoY change.",
+        "operationId": "categories_get_other_receipts",
+        "parameters": [
+          {
+            "description": "Current fiscal year",
+            "in": "query",
+            "name": "current_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Current fiscal year",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Current Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Previous fiscal year for Y-o-Y comparison",
+            "in": "query",
+            "name": "previous_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Previous fiscal year for Y-o-Y comparison",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Previous Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+            "in": "query",
+            "name": "comparison_mode",
+            "required": false,
+            "schema": {
+              "default": "fiscal_day",
+              "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+              "title": "Comparison Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MajorReceiptCategoriesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Other Receipts",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/api/v1/categories/other-spending": {
+      "get": {
+        "description": "FYTD spending of the other preset categories, with YoY change.",
+        "operationId": "categories_get_other_spending",
+        "parameters": [
+          {
+            "description": "Current fiscal year",
+            "in": "query",
+            "name": "current_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Current fiscal year",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Current Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Previous fiscal year for Y-o-Y comparison",
+            "in": "query",
+            "name": "previous_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Previous fiscal year for Y-o-Y comparison",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Previous Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+            "in": "query",
+            "name": "comparison_mode",
+            "required": false,
+            "schema": {
+              "default": "fiscal_day",
+              "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+              "title": "Comparison Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MajorSpendingCategoriesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Other Spending",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
     "/api/v1/categories/tbill-interest": {
       "get": {
         "description": "T-bill interest components, with YoY change.",

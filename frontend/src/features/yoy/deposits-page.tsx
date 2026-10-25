@@ -1,3 +1,4 @@
+import { OtherReceiptsSection } from './components/other-receipts-section'
 import { ReceiptCategoriesSection } from './components/receipt-categories-section'
 import { YoYAnalysisLayout } from './yoy-analysis-layout'
 
@@ -10,7 +11,10 @@ export function DepositsYoYPage() {
       formula='total-deposits'
       latestNote='Higher means more revenue'
       renderCategoriesSection={(pair) => (
-        <ReceiptCategoriesSection pair={pair} />
+        <>
+          <ReceiptCategoriesSection pair={pair} />
+          <OtherReceiptsSection pair={pair} />
+        </>
       )}
     />
   )

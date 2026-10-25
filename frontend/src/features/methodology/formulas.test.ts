@@ -74,6 +74,8 @@ describe('category line items match the backend', () => {
     'major-receipts',
     'tbill-interest',
     'irs-refunds',
+    'other-spending',
+    'other-receipts',
   ]
   it.each(ids)('%s', (id) => {
     const lines = FORMULAS[id].terms?.map((t) => t.meaning) ?? []

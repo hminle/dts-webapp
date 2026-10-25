@@ -110,6 +110,118 @@ MAJOR_RECEIPT_CATEGORIES: tuple[CategoryDef, ...] = (
 )
 
 
+# ── Other spending (transaction_catg from deposits_withdrawals, Withdrawals) ──
+OTHER_SPENDING_CATEGORIES: tuple[CategoryDef, ...] = (
+    CategoryDef(
+        name="Department of Defense",
+        kind="spending",
+        components=("Dept of Defense (DoD) - misc",),
+        # FY2024 split "Defense Vendor Payments (EFT)" into DoD misc, health and pay.
+        available_from=date(2023, 10, 2),
+    ),
+    CategoryDef(
+        name="Military Pay",
+        kind="spending",
+        components=("DoD - Military Active Duty Pay", "DoD - Military Retirement"),
+        available_from=date(2023, 10, 2),
+    ),
+    CategoryDef(
+        name="Federal Salaries",
+        kind="spending",
+        components=("Federal Salaries (EFT)",),
+        available_from=DATA_START,
+    ),
+    CategoryDef(
+        name="Healthcare Subsidies (Marketplace)",
+        kind="spending",
+        components=("HHS - Marketplace Payments", "Marketplace Payments"),
+        # The line starts with the ACA marketplace payments in FY2015.
+        available_from=date(2014, 10, 1),
+    ),
+    CategoryDef(
+        name="Department of Education",
+        kind="spending",
+        components=("Dept of Education (ED)", "Education Department programs"),
+        available_from=DATA_START,
+    ),
+    CategoryDef(
+        name="Housing & Urban Development",
+        kind="spending",
+        components=(
+            "Dept of Housing & Urban Dev (HUD) - misc",
+            "HUD - Federal Housing Admin (FHA)",
+            "Housing and Urban Development programs",
+        ),
+        available_from=DATA_START,
+    ),
+    CategoryDef(
+        name="SNAP & WIC",
+        kind="spending",
+        components=(
+            "USDA - Supp Nutrition Assist Prog (SNAP)",
+            "USDA - Supp Nutrition Assist Prog (WIC)",
+        ),
+        # WIC became its own line on 2020-11-16; before, it sat in a misc USDA line.
+        available_from=date(2020, 11, 16),
+    ),
+    CategoryDef(
+        name="Veterans Benefits",
+        kind="spending",
+        components=("VA - Benefits",),
+        # "VA - Benefits" was split out of "Veterans Affairs programs" on 2020-01-13.
+        available_from=date(2020, 1, 13),
+    ),
+    CategoryDef(
+        name="Unemployment Benefits",
+        kind="spending",
+        components=("DOL - Unemployment Benefits", "Unemployment Insurance Benefits"),
+        available_from=DATA_START,
+    ),
+    CategoryDef(
+        name="Customs Refunds (CBP)",
+        kind="spending",
+        components=("DHS - Customs & Border Protection (CBP)",),
+        # All CBP payments; since 2026 they are mostly tariff refunds.
+        available_from=date(2020, 5, 11),
+    ),
+)
+
+
+# ── Other receipts (transaction_catg from deposits_withdrawals, Deposits) ─────
+OTHER_RECEIPT_CATEGORIES: tuple[CategoryDef, ...] = (
+    CategoryDef(
+        name="Individual Income Taxes",
+        kind="receipt",
+        components=(
+            "Taxes - Non Withheld Ind/SECA Electronic",
+            "Taxes - Non Withheld Ind/SECA Other",
+        ),
+        available_from=date(2023, 2, 14),
+    ),
+    CategoryDef(
+        name="Corporate Income Taxes",
+        kind="receipt",
+        components=("Taxes - Corporate Income",),
+        available_from=date(2023, 2, 14),
+    ),
+    CategoryDef(
+        name="Education Receipts (Student Loans)",
+        kind="receipt",
+        components=("Dept of Education (ED)", "Education Department programs"),
+        available_from=DATA_START,
+    ),
+    CategoryDef(
+        name="Public Debt Cash Issues",
+        kind="receipt",
+        components=(
+            "Public Debt Cash Issues (Table IIIB)",
+            "Public Debt Cash Issues (Table III-B)",
+        ),
+        available_from=DATA_START,
+    ),
+)
+
+
 # ── T-Bill interest (adj_type from adjustment_public_debt) ─────────────
 # Each entry's ``components`` is a single-element tuple so we can keep a
 # uniform shape across kinds while still surfacing the human-readable
@@ -153,6 +265,8 @@ CATEGORY_REGISTRY: dict[str, CategoryDef] = {
     for cat in (
         *MAJOR_SPENDING_CATEGORIES,
         *MAJOR_RECEIPT_CATEGORIES,
+        *OTHER_SPENDING_CATEGORIES,
+        *OTHER_RECEIPT_CATEGORIES,
         TBILL_INTEREST_CATEGORY,
         IRS_REFUND_CATEGORY,
     )

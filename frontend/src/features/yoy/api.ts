@@ -93,6 +93,50 @@ export function useMajorReceipts(pair: YearPair) {
   })
 }
 
+export function useOtherSpending(pair: YearPair) {
+  return useQuery({
+    queryKey: ['yoy', 'other-spending', pair],
+    enabled: distinct(pair),
+    queryFn: async () => {
+      const { data, error, response } = await api.GET(
+        '/api/v1/categories/other-spending',
+        {
+          params: { query: yearQuery(pair) },
+        }
+      )
+      if (error)
+        throwApiError(
+          error,
+          response,
+          'Could not load other spending categories'
+        )
+      return data
+    },
+  })
+}
+
+export function useOtherReceipts(pair: YearPair) {
+  return useQuery({
+    queryKey: ['yoy', 'other-receipts', pair],
+    enabled: distinct(pair),
+    queryFn: async () => {
+      const { data, error, response } = await api.GET(
+        '/api/v1/categories/other-receipts',
+        {
+          params: { query: yearQuery(pair) },
+        }
+      )
+      if (error)
+        throwApiError(
+          error,
+          response,
+          'Could not load other receipt categories'
+        )
+      return data
+    },
+  })
+}
+
 export function useTBillInterest(pair: YearPair) {
   return useQuery({
     queryKey: ['yoy', 'tbill-interest', pair],

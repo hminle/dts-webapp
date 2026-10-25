@@ -38,7 +38,6 @@ import {
   totalText,
 } from './accent'
 import { BreakdownTable } from './breakdown-table'
-import { CATEGORY_FORMULA } from './category-card'
 
 const EXPLANATIONS: Partial<Record<CategoryCardData['categoryType'], string>> =
   {
@@ -98,7 +97,7 @@ export function CategoryDetailDialog({
           <DialogHeader>
             <div className='flex items-center gap-1'>
               <DialogTitle>{category.name}</DialogTitle>
-              <FormulaHint id={CATEGORY_FORMULA[category.categoryType]} />
+              <FormulaHint id={category.formula} />
             </div>
             <DialogDescription>
               FY{currentFiscalYear} vs FY{previousFiscalYear} (

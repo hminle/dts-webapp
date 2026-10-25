@@ -17,6 +17,8 @@ export type FormulaId =
   | 'comparison-modes'
   | 'major-spending'
   | 'major-receipts'
+  | 'other-spending'
+  | 'other-receipts'
   | 'tbill-interest'
   | 'irs-refunds'
   | 'category-coverage'
@@ -236,7 +238,7 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
     id: 'major-spending',
     title: 'Major spending categories',
     summary:
-      'Four groups of withdrawal line items, each the sum of the items’ fiscal-year-to-date amounts.',
+      'The four largest groups of withdrawal line items, each the sum of the items’ fiscal-year-to-date amounts.',
     expression: ['Category FYTD = Σ FYTD of its withdrawal line items'],
     terms: [
       { term: 'Social Security Benefits', meaning: 'SSA - Benefits Payments' },
@@ -290,6 +292,107 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
     ],
     pitfalls: [
       'The Treasury renamed the customs line in May 2020 and November 2025; reading only one name would make customs look like it vanished.',
+    ],
+    source: DEPOSITS_TABLE,
+  },
+  'other-spending': {
+    id: 'other-spending',
+    title: 'Other spending categories',
+    summary:
+      'Ten more groups of withdrawal line items, each the sum of the items’ fiscal-year-to-date amounts.',
+    expression: ['Category FYTD = Σ FYTD of its withdrawal line items'],
+    terms: [
+      {
+        term: 'Department of Defense',
+        meaning: 'Dept of Defense (DoD) - misc',
+      },
+      { term: 'Military Pay', meaning: 'DoD - Military Active Duty Pay' },
+      { term: 'Military Pay', meaning: 'DoD - Military Retirement' },
+      { term: 'Federal Salaries', meaning: 'Federal Salaries (EFT)' },
+      {
+        term: 'Healthcare Subsidies (Marketplace)',
+        meaning: 'HHS - Marketplace Payments',
+      },
+      {
+        term: 'Healthcare Subsidies (Marketplace)',
+        meaning: 'Marketplace Payments',
+      },
+      { term: 'Department of Education', meaning: 'Dept of Education (ED)' },
+      {
+        term: 'Department of Education',
+        meaning: 'Education Department programs',
+      },
+      {
+        term: 'Housing & Urban Development',
+        meaning: 'Dept of Housing & Urban Dev (HUD) - misc',
+      },
+      {
+        term: 'Housing & Urban Development',
+        meaning: 'HUD - Federal Housing Admin (FHA)',
+      },
+      {
+        term: 'Housing & Urban Development',
+        meaning: 'Housing and Urban Development programs',
+      },
+      {
+        term: 'SNAP & WIC',
+        meaning: 'USDA - Supp Nutrition Assist Prog (SNAP)',
+      },
+      {
+        term: 'SNAP & WIC',
+        meaning: 'USDA - Supp Nutrition Assist Prog (WIC)',
+      },
+      { term: 'Veterans Benefits', meaning: 'VA - Benefits' },
+      { term: 'Unemployment Benefits', meaning: 'DOL - Unemployment Benefits' },
+      {
+        term: 'Unemployment Benefits',
+        meaning: 'Unemployment Insurance Benefits',
+      },
+      {
+        term: 'Customs Refunds (CBP)',
+        meaning: 'DHS - Customs & Border Protection (CBP)',
+      },
+    ],
+    pitfalls: [
+      'Customs Refunds (CBP) is every Customs and Border Protection payment; since 2026 most of it is tariff refunds.',
+      'Department of Defense is the DoD misc line only; military pay and DoD health are separate lines.',
+    ],
+    source: DEPOSITS_TABLE,
+  },
+  'other-receipts': {
+    id: 'other-receipts',
+    title: 'Other receipt categories',
+    summary: 'Four more groups of deposit line items.',
+    expression: ['Category FYTD = Σ FYTD of its deposit line items'],
+    terms: [
+      {
+        term: 'Individual Income Taxes',
+        meaning: 'Taxes - Non Withheld Ind/SECA Electronic',
+      },
+      {
+        term: 'Individual Income Taxes',
+        meaning: 'Taxes - Non Withheld Ind/SECA Other',
+      },
+      { term: 'Corporate Income Taxes', meaning: 'Taxes - Corporate Income' },
+      {
+        term: 'Education Receipts (Student Loans)',
+        meaning: 'Dept of Education (ED)',
+      },
+      {
+        term: 'Education Receipts (Student Loans)',
+        meaning: 'Education Department programs',
+      },
+      {
+        term: 'Public Debt Cash Issues',
+        meaning: 'Public Debt Cash Issues (Table IIIB)',
+      },
+      {
+        term: 'Public Debt Cash Issues',
+        meaning: 'Public Debt Cash Issues (Table III-B)',
+      },
+    ],
+    pitfalls: [
+      'Public debt cash issues is borrowing, not revenue; net transfers exclude it.',
     ],
     source: DEPOSITS_TABLE,
   },
@@ -410,6 +513,8 @@ export const FORMULA_ORDER: FormulaId[] = [
   'comparison-modes',
   'major-spending',
   'major-receipts',
+  'other-spending',
+  'other-receipts',
   'tbill-interest',
   'irs-refunds',
   'category-coverage',

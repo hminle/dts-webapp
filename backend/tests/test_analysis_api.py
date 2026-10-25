@@ -24,6 +24,8 @@ YEARS = {"current_fiscal_year": 2026, "previous_fiscal_year": 2025}
         ("/api/v1/yoy/daily-comparison", {**YEARS, "metric": "net_flow"}),
         ("/api/v1/categories/major-spending", YEARS),
         ("/api/v1/categories/major-receipts", YEARS),
+        ("/api/v1/categories/other-spending", YEARS),
+        ("/api/v1/categories/other-receipts", YEARS),
         ("/api/v1/categories/tbill-interest", YEARS),
         ("/api/v1/categories/irs-tax-refunds", YEARS),
         (

@@ -1,7 +1,7 @@
 ---
 name: categories
-description: The major spending and receipt categories, T-bill interest and IRS refunds: which Treasury lines each sums, with SQL.
-formulas: [major-spending, major-receipts, tbill-interest, irs-refunds, category-coverage, category-comparison]
+description: The major and other spending and receipt categories, T-bill interest and IRS refunds: which Treasury lines each sums, with SQL.
+formulas: [major-spending, major-receipts, other-spending, other-receipts, tbill-interest, irs-refunds, category-coverage, category-comparison]
 ---
 
 # Categories

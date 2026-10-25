@@ -104,6 +104,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/categories/other-receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Other Receipts
+         * @description FYTD receipts of the other preset categories, with YoY change.
+         */
+        get: operations["categories_get_other_receipts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/categories/other-spending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Other Spending
+         * @description FYTD spending of the other preset categories, with YoY change.
+         */
+        get: operations["categories_get_other_spending"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/categories/tbill-interest": {
         parameters: {
             query?: never;
@@ -1615,6 +1655,78 @@ export interface operations {
         };
     };
     categories_get_major_spending: {
+        parameters: {
+            query: {
+                /** @description Current fiscal year */
+                current_fiscal_year: number;
+                /** @description Previous fiscal year for Y-o-Y comparison */
+                previous_fiscal_year: number;
+                /** @description Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31) */
+                comparison_mode?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MajorSpendingCategoriesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    categories_get_other_receipts: {
+        parameters: {
+            query: {
+                /** @description Current fiscal year */
+                current_fiscal_year: number;
+                /** @description Previous fiscal year for Y-o-Y comparison */
+                previous_fiscal_year: number;
+                /** @description Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31) */
+                comparison_mode?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MajorReceiptCategoriesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    categories_get_other_spending: {
         parameters: {
             query: {
                 /** @description Current fiscal year */

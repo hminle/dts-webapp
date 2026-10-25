@@ -43,6 +43,22 @@ def get_major_receipts(
     return categories.get_major_receipts(cur, req)
 
 
+@router.get("/other-spending", response_model=MajorSpendingCategoriesResponse)
+def get_other_spending(
+    cur: CursorDep, req: Annotated[MajorSpendingCategoriesRequest, Query()]
+) -> MajorSpendingCategoriesResponse:
+    """FYTD spending of the other preset categories, with YoY change."""
+    return categories.get_other_spending(cur, req)
+
+
+@router.get("/other-receipts", response_model=MajorReceiptCategoriesResponse)
+def get_other_receipts(
+    cur: CursorDep, req: Annotated[MajorReceiptCategoriesRequest, Query()]
+) -> MajorReceiptCategoriesResponse:
+    """FYTD receipts of the other preset categories, with YoY change."""
+    return categories.get_other_receipts(cur, req)
+
+
 @router.get("/tbill-interest", response_model=TBillInterestResponse)
 def get_tbill_interest(
     cur: CursorDep, req: Annotated[TBillInterestRequest, Query()]

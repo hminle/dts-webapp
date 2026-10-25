@@ -9,6 +9,8 @@ from app.constants.categories import (
     IRS_REFUND_CATEGORY,
     MAJOR_RECEIPT_CATEGORIES,
     MAJOR_SPENDING_CATEGORIES,
+    OTHER_RECEIPT_CATEGORIES,
+    OTHER_SPENDING_CATEGORIES,
     TBILL_INTEREST_CATEGORY,
 )
 from app.schemas.treasury import (
@@ -23,6 +25,8 @@ from app.services.categories import (
     get_irs_tax_refunds,
     get_major_receipts,
     get_major_spending,
+    get_other_receipts,
+    get_other_spending,
     get_tbill_interest,
 )
 from tests.fixtures import apd_row, catg_row, formula_db, itr_row
@@ -85,6 +89,8 @@ def test_the_category_groups_match_the_methodology() -> None:
         "Customs & Duties (Tariffs)": "2005-10-03",
         "T-Bill Interest": "2022-09-12",
         "IRS Tax Refunds": "2023-02-14",
+        **{c.name: c.available_from.isoformat() for c in OTHER_SPENDING_CATEGORIES},
+        **{c.name: c.available_from.isoformat() for c in OTHER_RECEIPT_CATEGORIES},
     }
     assert TBILL_INTEREST_CATEGORY.components == ("Bills (-)", "Bonds and Notes (-)")
     assert set(IRS_REFUND_CATEGORY.components) == {
@@ -350,3 +356,156 @@ def test_category_detail_is_none_before_available_from() -> None:
     assert first.previous_fytd is None
     assert first.yoy_change is None
     assert result.available_from == "2022-09-12"
+
+
+def test_the_other_category_groups() -> None:
+    assert {
+        c.name: (c.components, c.available_from.isoformat())
+        for c in OTHER_SPENDING_CATEGORIES
+    } == {
+        "Department of Defense": (("Dept of Defense (DoD) - misc",), "2023-10-02"),
+        "Military Pay": (
+            ("DoD - Military Active Duty Pay", "DoD - Military Retirement"),
+            "2023-10-02",
+        ),
+        "Federal Salaries": (("Federal Salaries (EFT)",), "2005-10-03"),
+        "Healthcare Subsidies (Marketplace)": (
+            ("HHS - Marketplace Payments", "Marketplace Payments"),
+            "2014-10-01",
+        ),
+        "Department of Education": (
+            ("Dept of Education (ED)", "Education Department programs"),
+            "2005-10-03",
+        ),
+        "Housing & Urban Development": (
+            (
+                "Dept of Housing & Urban Dev (HUD) - misc",
+                "HUD - Federal Housing Admin (FHA)",
+                "Housing and Urban Development programs",
+            ),
+            "2005-10-03",
+        ),
+        "SNAP & WIC": (
+            (
+                "USDA - Supp Nutrition Assist Prog (SNAP)",
+                "USDA - Supp Nutrition Assist Prog (WIC)",
+            ),
+            "2020-11-16",
+        ),
+        "Veterans Benefits": (("VA - Benefits",), "2020-01-13"),
+        "Unemployment Benefits": (
+            ("DOL - Unemployment Benefits", "Unemployment Insurance Benefits"),
+            "2005-10-03",
+        ),
+        "Customs Refunds (CBP)": (
+            ("DHS - Customs & Border Protection (CBP)",),
+            "2020-05-11",
+        ),
+    }
+    assert {
+        c.name: (c.components, c.available_from.isoformat())
+        for c in OTHER_RECEIPT_CATEGORIES
+    } == {
+        "Individual Income Taxes": (
+            (
+                "Taxes - Non Withheld Ind/SECA Electronic",
+                "Taxes - Non Withheld Ind/SECA Other",
+            ),
+            "2023-02-14",
+        ),
+        "Corporate Income Taxes": (("Taxes - Corporate Income",), "2023-02-14"),
+        "Education Receipts (Student Loans)": (
+            ("Dept of Education (ED)", "Education Department programs"),
+            "2005-10-03",
+        ),
+        "Public Debt Cash Issues": (
+            (
+                "Public Debt Cash Issues (Table IIIB)",
+                "Public Debt Cash Issues (Table III-B)",
+            ),
+            "2005-10-03",
+        ),
+    }
+
+
+def test_registry_names_are_unique() -> None:
+    assert len(CATEGORY_REGISTRY) == (
+        len(MAJOR_SPENDING_CATEGORIES)
+        + len(MAJOR_RECEIPT_CATEGORIES)
+        + len(OTHER_SPENDING_CATEGORIES)
+        + len(OTHER_RECEIPT_CATEGORIES)
+        + 2
+    )
+
+
+def test_other_spending_sums_both_snap_lines() -> None:
+    snap = "USDA - Supp Nutrition Assist Prog (SNAP)"
+    wic = "USDA - Supp Nutrition Assist Prog (WIC)"
+    cur_day, prev_day = date(2025, 12, 4), date(2024, 12, 4)
+    conn = formula_db(
+        {
+            "deposits_withdrawals": [
+                _withdrawal(cur_day, 2026, snap, 17542),
+                _withdrawal(cur_day, 2026, wic, 1261),
+                _withdrawal(prev_day, 2025, snap, 19412),
+                _withdrawal(prev_day, 2025, wic, 1356),
+            ]
+        }
+    )
+    result = get_other_spending(
+        conn.cursor(),
+        MajorSpendingCategoriesRequest(
+            current_fiscal_year=2026, previous_fiscal_year=2025
+        ),
+    )
+    snap_wic = _by_name(result.categories)["SNAP & WIC"]
+    # The newsletter printed -1.9 bn: its change used SNAP alone (17,542 - 19,412).
+    assert (snap_wic.current_fytd, snap_wic.previous_fytd) == (18803, 20768)
+    assert snap_wic.yoy_change == -1965
+
+
+def test_education_reads_each_side() -> None:
+    education = "Dept of Education (ED)"
+    conn = formula_db(
+        {
+            "deposits_withdrawals": [
+                _withdrawal(CUR, 2027, education, 25834),
+                _deposit(CUR, 2027, education, 11852),
+                _withdrawal(PREV, 2026, education, 1),
+                _deposit(PREV, 2026, education, 1),
+            ]
+        }
+    )
+    spending = get_other_spending(
+        conn.cursor(), MajorSpendingCategoriesRequest(**YEARS)
+    )
+    receipts = get_other_receipts(conn.cursor(), MajorReceiptCategoriesRequest(**YEARS))
+    assert _by_name(spending.categories)["Department of Education"].current_fytd == (
+        25834
+    )
+    assert (
+        _by_name(receipts.categories)["Education Receipts (Student Loans)"].current_fytd
+        == 11852
+    )
+
+
+def test_other_receipts_are_none_before_2023_02_14() -> None:
+    electronic = "Taxes - Non Withheld Ind/SECA Electronic"
+    conn = formula_db(
+        {
+            "deposits_withdrawals": [
+                _deposit(CUR, 2027, electronic, 45043),
+                _deposit(date(2023, 2, 10), 2023, electronic, 1),
+            ]
+        }
+    )
+    result = get_other_receipts(
+        conn.cursor(),
+        MajorReceiptCategoriesRequest(
+            current_fiscal_year=2027, previous_fiscal_year=2023
+        ),
+    )
+    taxes = _by_name(result.categories)["Individual Income Taxes"]
+    assert taxes.current_fytd == 45043
+    assert taxes.previous_fytd is None
+    assert taxes.available_from == "2023-02-14"
