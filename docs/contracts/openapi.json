@@ -29,6 +29,56 @@
         "title": "BuildInfo",
         "type": "object"
       },
+      "CashBalancePoint": {
+        "description": "The closing balance on one statement date.",
+        "properties": {
+          "closing_balance": {
+            "description": "TGA closing balance, millions of dollars",
+            "title": "Closing Balance",
+            "type": "number"
+          },
+          "record_date": {
+            "description": "Statement date",
+            "title": "Record Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "record_date",
+          "closing_balance"
+        ],
+        "title": "CashBalancePoint",
+        "type": "object"
+      },
+      "CashBalanceResponse": {
+        "description": "Schema for cash balance response.",
+        "properties": {
+          "end_date": {
+            "description": "Last date requested",
+            "title": "End Date",
+            "type": "string"
+          },
+          "points": {
+            "description": "One point per statement",
+            "items": {
+              "$ref": "#/components/schemas/CashBalancePoint"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "start_date": {
+            "description": "First date requested",
+            "title": "Start Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_date",
+          "end_date"
+        ],
+        "title": "CashBalanceResponse",
+        "type": "object"
+      },
       "CategoryDailyDataPoint": {
         "description": "Schema for a single day's data for a category.",
         "properties": {
@@ -65,9 +115,16 @@
             "type": "string"
           },
           "current_fytd": {
-            "description": "FYTD amount in current year",
-            "title": "Current Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "FYTD amount in current year (null when the date is before available_from)",
+            "title": "Current Fytd"
           },
           "day_of_fiscal_year": {
             "description": "Day number within the fiscal year",
@@ -87,14 +144,28 @@
             "title": "Previous Date"
           },
           "previous_fytd": {
-            "description": "FYTD amount in previous year",
-            "title": "Previous Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "FYTD amount in previous year (null when the date is before available_from)",
+            "title": "Previous Fytd"
           },
           "yoy_change": {
-            "description": "YoY difference (current - previous)",
-            "title": "Yoy Change",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "YoY difference (current - previous) (null when the date is before available_from)",
+            "title": "Yoy Change"
           },
           "yoy_percent_change": {
             "anyOf": [
@@ -122,6 +193,11 @@
       "CategoryDailyYoYResponse": {
         "description": "Schema for category daily YoY response.",
         "properties": {
+          "available_from": {
+            "description": "First comparable date (ISO); totals before it are null",
+            "title": "Available From",
+            "type": "string"
+          },
           "category_name": {
             "description": "Category name",
             "title": "Category Name",
@@ -167,7 +243,8 @@
           "category_type",
           "current_fiscal_year",
           "previous_fiscal_year",
-          "comparison_days"
+          "comparison_days",
+          "available_from"
         ],
         "title": "CategoryDailyYoYResponse",
         "type": "object"
@@ -228,6 +305,181 @@
           "fiscal_year"
         ],
         "title": "CategoryYearData",
+        "type": "object"
+      },
+      "CombinedCategoriesResponse": {
+        "description": "Schema for combined categories response.",
+        "properties": {
+          "categories": {
+            "description": "The combined figures",
+            "items": {
+              "$ref": "#/components/schemas/CombinedCategory"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "comparison_mode": {
+            "description": "Comparison mode used",
+            "title": "Comparison Mode",
+            "type": "string"
+          },
+          "current_date": {
+            "description": "Latest date with data in current fiscal year",
+            "title": "Current Date",
+            "type": "string"
+          },
+          "current_fiscal_year": {
+            "description": "Current fiscal year",
+            "title": "Current Fiscal Year",
+            "type": "integer"
+          },
+          "previous_date": {
+            "description": "Equivalent date in previous fiscal year",
+            "title": "Previous Date",
+            "type": "string"
+          },
+          "previous_fiscal_year": {
+            "description": "Previous fiscal year",
+            "title": "Previous Fiscal Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "current_fiscal_year",
+          "previous_fiscal_year",
+          "current_date",
+          "previous_date",
+          "comparison_mode"
+        ],
+        "title": "CombinedCategoriesResponse",
+        "type": "object"
+      },
+      "CombinedCategory": {
+        "description": "A figure made of several categories, with YoY change.",
+        "properties": {
+          "available_from": {
+            "description": "First comparable date (ISO): the latest of its terms'",
+            "title": "Available From",
+            "type": "string"
+          },
+          "current_fytd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Signed sum on current_date; null if any term is",
+            "title": "Current Fytd"
+          },
+          "name": {
+            "description": "Display name",
+            "title": "Name",
+            "type": "string"
+          },
+          "previous_fytd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Signed sum on previous_date; null if any term is",
+            "title": "Previous Fytd"
+          },
+          "terms": {
+            "description": "The categories it is made of",
+            "items": {
+              "$ref": "#/components/schemas/CombinedTermValue"
+            },
+            "title": "Terms",
+            "type": "array"
+          },
+          "yoy_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "current \u2212 previous",
+            "title": "Yoy Change"
+          },
+          "yoy_percent_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "yoy_change \u00f7 |previous| \u00d7 100",
+            "title": "Yoy Percent Change"
+          }
+        },
+        "required": [
+          "name",
+          "available_from",
+          "current_fytd",
+          "previous_fytd",
+          "yoy_change",
+          "yoy_percent_change"
+        ],
+        "title": "CombinedCategory",
+        "type": "object"
+      },
+      "CombinedTermValue": {
+        "description": "One category inside a combined figure.",
+        "properties": {
+          "category_name": {
+            "description": "Registry category name",
+            "title": "Category Name",
+            "type": "string"
+          },
+          "current_fytd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Category FYTD on current_date; null before its coverage",
+            "title": "Current Fytd"
+          },
+          "previous_fytd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Category FYTD on previous_date; null before its coverage",
+            "title": "Previous Fytd"
+          },
+          "sign": {
+            "description": "1 adds the category, -1 subtracts it",
+            "title": "Sign",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "category_name",
+          "sign",
+          "current_fytd",
+          "previous_fytd"
+        ],
+        "title": "CombinedTermValue",
         "type": "object"
       },
       "DailyNetTransfer": {
@@ -587,6 +839,11 @@
       "IrsRefundResponse": {
         "description": "Schema for IRS tax refund response.",
         "properties": {
+          "available_from": {
+            "description": "First comparable date (ISO); totals before it are null",
+            "title": "Available From",
+            "type": "string"
+          },
           "comparison_mode": {
             "default": "fiscal_day",
             "description": "Comparison mode used",
@@ -622,19 +879,40 @@
             "type": "integer"
           },
           "total_current_fytd": {
-            "description": "Total IRS tax refunds for current fiscal year",
-            "title": "Total Current Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total IRS tax refunds for current fiscal year (null when the date is before available_from)",
+            "title": "Total Current Fytd"
           },
           "total_previous_fytd": {
-            "description": "Total IRS tax refunds for previous fiscal year",
-            "title": "Total Previous Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total IRS tax refunds for previous fiscal year (null when the date is before available_from)",
+            "title": "Total Previous Fytd"
           },
           "total_yoy_change": {
-            "description": "Total year-over-year change",
-            "title": "Total Yoy Change",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total year-over-year change (null when the date is before available_from)",
+            "title": "Total Yoy Change"
           },
           "total_yoy_percent_change": {
             "anyOf": [
@@ -656,7 +934,8 @@
           "previous_date",
           "total_current_fytd",
           "total_previous_fytd",
-          "total_yoy_change"
+          "total_yoy_change",
+          "available_from"
         ],
         "title": "IrsRefundResponse",
         "type": "object"
@@ -711,10 +990,22 @@
       "MajorReceiptCategory": {
         "description": "Schema for a major receipt category with breakdown.",
         "properties": {
+          "available_from": {
+            "description": "First comparable date (ISO); totals before it are null",
+            "title": "Available From",
+            "type": "string"
+          },
           "current_fytd": {
-            "description": "Total current fiscal year FYTD amount",
-            "title": "Current Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total current fiscal year FYTD amount (null when the date is before available_from)",
+            "title": "Current Fytd"
           },
           "name": {
             "description": "Display name (e.g., 'Employment & Withholding Tax')",
@@ -722,9 +1013,16 @@
             "type": "string"
           },
           "previous_fytd": {
-            "description": "Total previous fiscal year FYTD amount",
-            "title": "Previous Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total previous fiscal year FYTD amount (null when the date is before available_from)",
+            "title": "Previous Fytd"
           },
           "subcategories": {
             "description": "Breakdown by subcategory",
@@ -735,9 +1033,16 @@
             "type": "array"
           },
           "yoy_change": {
-            "description": "Year-over-year change amount",
-            "title": "Yoy Change",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Year-over-year change amount (null when the date is before available_from)",
+            "title": "Yoy Change"
           },
           "yoy_percent_change": {
             "anyOf": [
@@ -756,7 +1061,8 @@
           "name",
           "current_fytd",
           "previous_fytd",
-          "yoy_change"
+          "yoy_change",
+          "available_from"
         ],
         "title": "MajorReceiptCategory",
         "type": "object"
@@ -811,10 +1117,22 @@
       "MajorSpendingCategory": {
         "description": "Schema for a major spending category with breakdown.",
         "properties": {
+          "available_from": {
+            "description": "First comparable date (ISO); totals before it are null",
+            "title": "Available From",
+            "type": "string"
+          },
           "current_fytd": {
-            "description": "Total current fiscal year FYTD amount",
-            "title": "Current Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total current fiscal year FYTD amount (null when the date is before available_from)",
+            "title": "Current Fytd"
           },
           "name": {
             "description": "Display name (e.g., 'Social Security Benefits')",
@@ -822,9 +1140,16 @@
             "type": "string"
           },
           "previous_fytd": {
-            "description": "Total previous fiscal year FYTD amount",
-            "title": "Previous Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total previous fiscal year FYTD amount (null when the date is before available_from)",
+            "title": "Previous Fytd"
           },
           "subcategories": {
             "description": "Breakdown by subcategory",
@@ -835,9 +1160,16 @@
             "type": "array"
           },
           "yoy_change": {
-            "description": "Year-over-year change amount",
-            "title": "Yoy Change",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Year-over-year change amount (null when the date is before available_from)",
+            "title": "Yoy Change"
           },
           "yoy_percent_change": {
             "anyOf": [
@@ -856,9 +1188,263 @@
           "name",
           "current_fytd",
           "previous_fytd",
-          "yoy_change"
+          "yoy_change",
+          "available_from"
         ],
         "title": "MajorSpendingCategory",
+        "type": "object"
+      },
+      "RollingAverageResponse": {
+        "description": "Schema for rolling average response.",
+        "properties": {
+          "end_date": {
+            "description": "Last date returned",
+            "title": "End Date",
+            "type": "string"
+          },
+          "metric": {
+            "description": "Daily amount averaged",
+            "enum": [
+              "total_withdrawals",
+              "unemployment_benefits"
+            ],
+            "title": "Metric",
+            "type": "string"
+          },
+          "monthly_multiplier": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Business days a month in the projection; null if none",
+            "title": "Monthly Multiplier"
+          },
+          "points": {
+            "description": "One point per statement",
+            "items": {
+              "$ref": "#/components/schemas/RollingPoint"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "start_date": {
+            "description": "First date returned",
+            "title": "Start Date",
+            "type": "string"
+          },
+          "window": {
+            "description": "Statements per average",
+            "title": "Window",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "metric",
+          "window",
+          "monthly_multiplier",
+          "start_date",
+          "end_date"
+        ],
+        "title": "RollingAverageResponse",
+        "type": "object"
+      },
+      "RollingPoint": {
+        "description": "One statement's amount and the rolling average ending on it.",
+        "properties": {
+          "projected_monthly": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "rolling_average \u00d7 20, withdrawals only",
+            "title": "Projected Monthly"
+          },
+          "record_date": {
+            "description": "Statement date",
+            "title": "Record Date",
+            "type": "string"
+          },
+          "rolling_average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean of the last `window` statements; null until there are that many",
+            "title": "Rolling Average"
+          },
+          "value": {
+            "description": "That statement's amount",
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "record_date",
+          "value",
+          "rolling_average",
+          "projected_monthly"
+        ],
+        "title": "RollingPoint",
+        "type": "object"
+      },
+      "SnapshotCashBalance": {
+        "description": "The TGA closing balance on the snapshot date, a week and a year earlier.",
+        "properties": {
+          "change_week": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "closing \u2212 previous_week",
+            "title": "Change Week"
+          },
+          "change_year": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "closing \u2212 year_ago",
+            "title": "Change Year"
+          },
+          "closing": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "On record_date; null if the statement has no balance row",
+            "title": "Closing"
+          },
+          "percent_change_year": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "change_year \u00f7 |year_ago| \u00d7 100",
+            "title": "Percent Change Year"
+          },
+          "previous_week": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "On previous_week_date",
+            "title": "Previous Week"
+          },
+          "year_ago": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "On previous_date (same fiscal day)",
+            "title": "Year Ago"
+          }
+        },
+        "required": [
+          "closing",
+          "previous_week",
+          "change_week",
+          "year_ago",
+          "change_year",
+          "percent_change_year"
+        ],
+        "title": "SnapshotCashBalance",
+        "type": "object"
+      },
+      "SnapshotFigure": {
+        "description": "One FYTD figure against the same business day a year earlier.",
+        "properties": {
+          "change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "current \u2212 previous",
+            "title": "Change"
+          },
+          "current": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "FYTD on the snapshot date",
+            "title": "Current"
+          },
+          "percent_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "change \u00f7 |previous| \u00d7 100",
+            "title": "Percent Change"
+          },
+          "previous": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "FYTD on the aligned previous-FY date",
+            "title": "Previous"
+          }
+        },
+        "required": [
+          "current",
+          "previous",
+          "change",
+          "percent_change"
+        ],
+        "title": "SnapshotFigure",
         "type": "object"
       },
       "SubcategoryBreakdown": {
@@ -936,6 +1522,11 @@
       "TBillInterestResponse": {
         "description": "Schema for T-Bill interest response.",
         "properties": {
+          "available_from": {
+            "description": "First comparable date (ISO); totals before it are null",
+            "title": "Available From",
+            "type": "string"
+          },
           "comparison_mode": {
             "default": "fiscal_day",
             "description": "Comparison mode used",
@@ -971,19 +1562,40 @@
             "type": "integer"
           },
           "total_current_fytd": {
-            "description": "Total T-Bill interest for current fiscal year",
-            "title": "Total Current Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total T-Bill interest for current fiscal year (null when the date is before available_from)",
+            "title": "Total Current Fytd"
           },
           "total_previous_fytd": {
-            "description": "Total T-Bill interest for previous fiscal year",
-            "title": "Total Previous Fytd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total T-Bill interest for previous fiscal year (null when the date is before available_from)",
+            "title": "Total Previous Fytd"
           },
           "total_yoy_change": {
-            "description": "Total year-over-year change",
-            "title": "Total Yoy Change",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total year-over-year change (null when the date is before available_from)",
+            "title": "Total Yoy Change"
           },
           "total_yoy_percent_change": {
             "anyOf": [
@@ -1005,7 +1617,8 @@
           "previous_date",
           "total_current_fytd",
           "total_previous_fytd",
-          "total_yoy_change"
+          "total_yoy_change",
+          "available_from"
         ],
         "title": "TBillInterestResponse",
         "type": "object"
@@ -1373,6 +1986,199 @@
         "title": "WeeklyDataPoint",
         "type": "object"
       },
+      "WeeklySnapshotResponse": {
+        "description": "One week's statement: month and fiscal year to date, against a year ago.",
+        "properties": {
+          "anchor_date": {
+            "description": "The Thursday/Friday the week ends on",
+            "title": "Anchor Date",
+            "type": "string"
+          },
+          "anchor_weekday": {
+            "description": "Weekday the week ends on",
+            "enum": [
+              "thursday",
+              "friday"
+            ],
+            "title": "Anchor Weekday",
+            "type": "string"
+          },
+          "cash_balance": {
+            "$ref": "#/components/schemas/SnapshotCashBalance"
+          },
+          "day_of_fiscal_year": {
+            "description": "Business day of the fiscal year",
+            "title": "Day Of Fiscal Year",
+            "type": "integer"
+          },
+          "deposits_fytd": {
+            "$ref": "#/components/schemas/SnapshotFigure"
+          },
+          "fiscal_year": {
+            "description": "Fiscal year of record_date",
+            "title": "Fiscal Year",
+            "type": "integer"
+          },
+          "gap_change_unavailable_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why net_transfers_gap_change is null, when it is",
+            "title": "Gap Change Unavailable Reason"
+          },
+          "interest_income_fytd": {
+            "$ref": "#/components/schemas/SnapshotFigure"
+          },
+          "net_customs_fytd": {
+            "$ref": "#/components/schemas/SnapshotFigure"
+          },
+          "net_transfers_fytd": {
+            "$ref": "#/components/schemas/SnapshotFigure"
+          },
+          "net_transfers_gap_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "This week's net-transfers change minus last week's",
+            "title": "Net Transfers Gap Change"
+          },
+          "net_transfers_mtd": {
+            "description": "Net transfers, month to date",
+            "title": "Net Transfers Mtd",
+            "type": "number"
+          },
+          "previous_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Same day_of_fiscal_year in the previous FY",
+            "title": "Previous Date"
+          },
+          "previous_fiscal_year": {
+            "description": "fiscal_year \u2212 1",
+            "title": "Previous Fiscal Year",
+            "type": "integer"
+          },
+          "previous_week_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Statement used for the week before",
+            "title": "Previous Week Date"
+          },
+          "previous_week_net_transfers_gap": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Last week's net-transfers FYTD change from a year earlier",
+            "title": "Previous Week Net Transfers Gap"
+          },
+          "projected_monthly_withdrawals": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "withdrawals_10d_average \u00d7 20",
+            "title": "Projected Monthly Withdrawals"
+          },
+          "record_date": {
+            "description": "Statement used; earlier than anchor_date after a holiday",
+            "title": "Record Date",
+            "type": "string"
+          },
+          "unemployment_10d_average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean unemployment benefits over the last 10 statements",
+            "title": "Unemployment 10D Average"
+          },
+          "withdrawals_10d_average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean withdrawals over the last 10 statements",
+            "title": "Withdrawals 10D Average"
+          },
+          "withdrawals_fytd": {
+            "$ref": "#/components/schemas/SnapshotFigure"
+          },
+          "withdrawals_mtd": {
+            "description": "Total withdrawals, month to date",
+            "title": "Withdrawals Mtd",
+            "type": "number"
+          },
+          "withholding_fytd": {
+            "$ref": "#/components/schemas/SnapshotFigure"
+          }
+        },
+        "required": [
+          "anchor_weekday",
+          "anchor_date",
+          "record_date",
+          "fiscal_year",
+          "day_of_fiscal_year",
+          "previous_fiscal_year",
+          "previous_date",
+          "withdrawals_mtd",
+          "net_transfers_mtd",
+          "withdrawals_fytd",
+          "deposits_fytd",
+          "net_transfers_fytd",
+          "withholding_fytd",
+          "withdrawals_10d_average",
+          "projected_monthly_withdrawals",
+          "unemployment_10d_average",
+          "interest_income_fytd",
+          "net_customs_fytd",
+          "cash_balance",
+          "previous_week_date",
+          "previous_week_net_transfers_gap",
+          "net_transfers_gap_change",
+          "gap_change_unavailable_reason"
+        ],
+        "title": "WeeklySnapshotResponse",
+        "type": "object"
+      },
       "YoYCategoryComparisonResponse": {
         "description": "Schema for year-over-year category comparison response.",
         "properties": {
@@ -1565,6 +2371,150 @@
         "summary": "Health",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/api/v1/cash-balance/daily": {
+      "get": {
+        "description": "The TGA closing balance on each statement date.",
+        "operationId": "cash_balance_get_daily",
+        "parameters": [
+          {
+            "description": "Default a year before end_date",
+            "in": "query",
+            "name": "start_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Default a year before end_date",
+              "title": "Start Date"
+            }
+          },
+          {
+            "description": "Default the latest statement",
+            "in": "query",
+            "name": "end_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Default the latest statement",
+              "title": "End Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashBalanceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Daily",
+        "tags": [
+          "cash_balance"
+        ]
+      }
+    },
+    "/api/v1/categories/combined": {
+      "get": {
+        "description": "Figures made of several categories, with YoY change.",
+        "operationId": "categories_get_combined",
+        "parameters": [
+          {
+            "description": "Current fiscal year",
+            "in": "query",
+            "name": "current_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Current fiscal year",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Current Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Previous fiscal year for Y-o-Y comparison",
+            "in": "query",
+            "name": "previous_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Previous fiscal year for Y-o-Y comparison",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Previous Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+            "in": "query",
+            "name": "comparison_mode",
+            "required": false,
+            "schema": {
+              "default": "fiscal_day",
+              "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+              "title": "Comparison Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CombinedCategoriesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Combined",
+        "tags": [
+          "categories"
         ]
       }
     },
@@ -1873,6 +2823,150 @@
           }
         },
         "summary": "Get Major Spending",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/api/v1/categories/other-receipts": {
+      "get": {
+        "description": "FYTD receipts of the other preset categories, with YoY change.",
+        "operationId": "categories_get_other_receipts",
+        "parameters": [
+          {
+            "description": "Current fiscal year",
+            "in": "query",
+            "name": "current_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Current fiscal year",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Current Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Previous fiscal year for Y-o-Y comparison",
+            "in": "query",
+            "name": "previous_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Previous fiscal year for Y-o-Y comparison",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Previous Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+            "in": "query",
+            "name": "comparison_mode",
+            "required": false,
+            "schema": {
+              "default": "fiscal_day",
+              "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+              "title": "Comparison Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MajorReceiptCategoriesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Other Receipts",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/api/v1/categories/other-spending": {
+      "get": {
+        "description": "FYTD spending of the other preset categories, with YoY change.",
+        "operationId": "categories_get_other_spending",
+        "parameters": [
+          {
+            "description": "Current fiscal year",
+            "in": "query",
+            "name": "current_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Current fiscal year",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Current Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Previous fiscal year for Y-o-Y comparison",
+            "in": "query",
+            "name": "previous_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Previous fiscal year for Y-o-Y comparison",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Previous Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+            "in": "query",
+            "name": "comparison_mode",
+            "required": false,
+            "schema": {
+              "default": "fiscal_day",
+              "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+              "title": "Comparison Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MajorSpendingCategoriesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Other Spending",
         "tags": [
           "categories"
         ]
@@ -2482,9 +3576,179 @@
         ]
       }
     },
+    "/api/v1/rolling/daily": {
+      "get": {
+        "description": "Each statement's amount and the mean of the last `window` statements.",
+        "operationId": "rolling_get_daily",
+        "parameters": [
+          {
+            "description": "Daily amount to average",
+            "in": "query",
+            "name": "metric",
+            "required": true,
+            "schema": {
+              "description": "Daily amount to average",
+              "enum": [
+                "total_withdrawals",
+                "unemployment_benefits"
+              ],
+              "title": "Metric",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Statements per average",
+            "in": "query",
+            "name": "window",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "description": "Statements per average",
+              "maximum": 60,
+              "minimum": 2,
+              "title": "Window",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "First date returned; default a year before end_date",
+            "in": "query",
+            "name": "start_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "First date returned; default a year before end_date",
+              "title": "Start Date"
+            }
+          },
+          {
+            "description": "Last date returned; default latest",
+            "in": "query",
+            "name": "end_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Last date returned; default latest",
+              "title": "End Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RollingAverageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Daily",
+        "tags": [
+          "rolling"
+        ]
+      }
+    },
+    "/api/v1/snapshot/weekly": {
+      "get": {
+        "description": "One week's statement: month and fiscal year to date, against a year earlier.",
+        "operationId": "snapshot_get_weekly",
+        "parameters": [
+          {
+            "description": "Weekday the week ends on",
+            "in": "query",
+            "name": "anchor_weekday",
+            "required": false,
+            "schema": {
+              "default": "thursday",
+              "description": "Weekday the week ends on",
+              "enum": [
+                "thursday",
+                "friday"
+              ],
+              "title": "Anchor Weekday",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Read the week on or before this date; default latest",
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Read the week on or before this date; default latest",
+              "title": "As Of"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklySnapshotResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Weekly",
+        "tags": [
+          "snapshot"
+        ]
+      }
+    },
     "/api/v1/weekly/comparison": {
       "get": {
-        "description": "Friday-by-Friday net transfers, FYTD, for two fiscal years.",
+        "description": "Net transfers FYTD on each week's anchor day (Friday by default), two FYs.",
         "operationId": "weekly_get_comparison",
         "parameters": [
           {
@@ -2529,6 +3793,22 @@
               ],
               "description": "Filter by data source",
               "title": "Data Source"
+            }
+          },
+          {
+            "description": "Weekday each week is read on",
+            "in": "query",
+            "name": "anchor_weekday",
+            "required": false,
+            "schema": {
+              "default": "friday",
+              "description": "Weekday each week is read on",
+              "enum": [
+                "thursday",
+                "friday"
+              ],
+              "title": "Anchor Weekday",
+              "type": "string"
             }
           }
         ],

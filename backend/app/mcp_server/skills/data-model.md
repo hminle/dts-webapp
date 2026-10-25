@@ -1,7 +1,7 @@
 ---
 name: data-model
 description: Every table in the artifact, what it holds, how day_of_fiscal_year is numbered, and every column.
-formulas: [day-of-fiscal-year]
+formulas: [day-of-fiscal-year, cash-balance]
 ---
 
 # Data model
@@ -30,6 +30,19 @@ In `deposits_withdrawals`, `transaction_type` is `Deposits` or `Withdrawals`,
 `transaction_catg` is the line item name, and the `account_type` value
 `Treasury General Account Total Deposits` (or `... Total Withdrawals`) marks the day's total row
 (from 2022-04-18 on; see `net-transfers`).
+
+In `operating_cash_balance`, the Treasury General Account (TGA) closing balance has lived on
+three rows. **Since 2022-04-18 the closing balance is in `open_today_bal`**; that row's
+`close_today_bal` is NULL.
+
+| Dates | `account_type` | Column holding the closing balance |
+|---|---|---|
+| 2005-10-03 to 2021-09-30 | `Federal Reserve Account` | `close_today_bal` |
+| 2021-10-01 to 2022-04-15 | `Treasury General Account (TGA)` | `close_today_bal` |
+| 2022-04-18 on | `Treasury General Account (TGA) Closing Balance` | `open_today_bal` |
+
+Each era's last close equals the next era's first open. `call_api("cash_balance_get_daily", {})`
+returns the series with the eras already joined.
 
 ## Day of the fiscal year
 

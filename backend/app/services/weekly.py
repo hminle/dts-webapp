@@ -1,4 +1,4 @@
-"""Weekly (Friday-to-Friday) net-transfer comparison of two fiscal years.
+"""Weekly net-transfer comparison of two fiscal years, read on an anchor weekday.
 
 Ported from the reference ``api/treasury/weekly.py``; only the HTTP layer moved
 to ``app/api/routers/weekly.py``.
@@ -15,6 +15,7 @@ from app.schemas.treasury import (
     WeeklyComparisonResponse,
     WeeklyDataPoint,
 )
+from app.utils.anchor import LOOK_BACK_DAYS, anchor_days
 from app.utils.deposits_withdrawals import calculate_daily_net_transfers
 
 logger = logging.getLogger(__name__)
@@ -28,36 +29,22 @@ def _fiscal_year_dates(fiscal_year: int) -> tuple[datetime, datetime]:
     return start, min(end, today)
 
 
-def _weekly_fridays(start: datetime, end: datetime) -> list[datetime]:
-    """Every Friday between ``start`` and ``end`` (inclusive)."""
-    fridays: list[datetime] = []
-    current = start
-    while current.weekday() != 4:  # 4 = Friday
-        current += timedelta(days=1)
-        if current > end:
-            return fridays
-    while current <= end:
-        fridays.append(current)
-        current += timedelta(days=7)
-    return fridays
-
-
 def _build_weekly_points(
     df: pd.DataFrame,
-    fridays: list[datetime],
+    anchors: list[datetime],
     *,
-    max_days_back: int = 5,
+    max_days_back: int = LOOK_BACK_DAYS,
 ) -> list[WeeklyDataPoint]:
-    """One ``WeeklyDataPoint`` per Friday, with up to ``max_days_back`` look-back.
+    """One ``WeeklyDataPoint`` per anchor day, with up to ``max_days_back`` look-back.
 
     Empty days (or days where ``calculate_daily_net_transfers`` returns
     ``None``) are skipped — the inner loop walks backward and tries the
     next earlier day, mirroring the legacy behavior.
     """
     points: list[WeeklyDataPoint] = []
-    for week_num, friday in enumerate(fridays, start=1):
+    for week_num, anchor in enumerate(anchors, start=1):
         for offset in range(max_days_back + 1):
-            check_date = friday - timedelta(days=offset)
+            check_date = anchor - timedelta(days=offset)
             day_df = df[df["record_date"] == check_date]
             if day_df.empty:
                 continue
@@ -85,7 +72,8 @@ def get_comparison(
 ) -> WeeklyComparisonResponse:
     """Weekly net-transfer comparison between two fiscal years.
 
-    Picks each Friday (or the closest earlier day with data) and runs
+    Picks each anchor weekday (Friday by default, or Thursday), or the
+    closest earlier day with data, and runs
     the shared ``calculate_daily_net_transfers`` math on that day's
     rows. The second year is truncated to the first year's last week
     number so the side-by-side comparison stays apples-to-apples.
@@ -136,24 +124,26 @@ def get_comparison(
     if not pd.api.types.is_datetime64_any_dtype(df["record_date"]):
         df["record_date"] = pd.to_datetime(df["record_date"])
 
-    first_fridays = _weekly_fridays(first_start, first_end)
-    second_fridays = _weekly_fridays(second_start, second_end)
+    weekday = request.anchor_weekday
+    first_anchors = anchor_days(first_start, first_end, weekday)
+    second_anchors = anchor_days(second_start, second_end, weekday)
 
     logger.info(
-        f"Processing {len(first_fridays)} Fridays for FY {request.first_fiscal_year}"
+        f"Processing {len(first_anchors)} {weekday}s for FY {request.first_fiscal_year}"
     )
     logger.info(
-        f"Processing {len(second_fridays)} Fridays for FY {request.second_fiscal_year}"
+        f"Processing {len(second_anchors)} {weekday}s for FY "
+        f"{request.second_fiscal_year}"
     )
 
-    first_year_data = _build_weekly_points(df, first_fridays)
+    first_year_data = _build_weekly_points(df, first_anchors)
 
     # Cut the second year at the first year's last week number, not its point
     # count: a first-year week with no statement is skipped, so counting points
     # would drop the second year's final week and leave the first year's
     # unpaired.
     comparison_weeks = first_year_data[-1].week_number if first_year_data else 0
-    second_year_data = _build_weekly_points(df, second_fridays[:comparison_weeks])
+    second_year_data = _build_weekly_points(df, second_anchors[:comparison_weeks])
 
     logger.info(
         f"Returning {len(first_year_data)} weeks for FY {request.first_fiscal_year} "

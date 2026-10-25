@@ -20,18 +20,30 @@ the same data structure regardless of source.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 from typing import Literal
 
 CategoryKind = Literal["spending", "receipt", "tbill", "irs_refund"]
 
+# First statement in the artifact; a category comparable from here has no gap.
+DATA_START = date(2005, 10, 3)
+
 
 @dataclass(frozen=True)
 class CategoryDef:
-    """A single named bucket and its component upstream identifiers."""
+    """A single named bucket and its component upstream identifiers.
+
+    ``available_from`` is the first date the bucket means the same thing it
+    means today. Before it the Treasury split, merged or moved the lines, so
+    a total would compare different things; services return ``None`` instead.
+    Renamed lines whose FYTD carries forward are listed under every name they
+    have had (today's first); only one name exists on any one date.
+    """
 
     name: str
     kind: CategoryKind
     components: tuple[str, ...]
+    available_from: date
 
 
 # ── Spending (transaction_catg from deposits_withdrawals, Withdrawals) ──
@@ -44,6 +56,8 @@ MAJOR_SPENDING_CATEGORIES: tuple[CategoryDef, ...] = (
             "SSA - Supplemental Security Income",
             "Social Security Admin (SSA) - misc",
         ),
+        # SSI and SSA misc became separate lines on 2021-07-19.
+        available_from=date(2021, 7, 19),
     ),
     CategoryDef(
         name="Medicare",
@@ -53,16 +67,21 @@ MAJOR_SPENDING_CATEGORIES: tuple[CategoryDef, ...] = (
             "HHS - Federal Supple Med Insr Trust Fund",
             "HHS - Medicare Prescription Drugs",
         ),
+        # The two pre-2020 Medicare lines were split three ways on 2020-03-09.
+        available_from=date(2020, 3, 9),
     ),
     CategoryDef(
         name="Medicaid",
         kind="spending",
-        components=("HHS - Grants to States for Medicaid",),
+        # Renamed from "Medicaid" on 2020-03-09; the FYTD carried forward.
+        components=("HHS - Grants to States for Medicaid", "Medicaid"),
+        available_from=DATA_START,
     ),
     CategoryDef(
         name="Interest on Treasury Securities",
         kind="spending",
         components=("Interest on Treasury Securities",),
+        available_from=DATA_START,
     ),
 )
 
@@ -73,14 +92,132 @@ MAJOR_RECEIPT_CATEGORIES: tuple[CategoryDef, ...] = (
         name="Employment & Withholding Tax",
         kind="receipt",
         components=("Taxes - Withheld Individual/FICA",),
+        # Tax deposits moved into this table from federal_tax_deposits on 2023-02-14.
+        available_from=date(2023, 2, 14),
     ),
     CategoryDef(
         name="Customs & Duties (Tariffs)",
         kind="receipt",
+        # Renamed twice, on 2020-05-11 and 2025-11-10; both FYTDs carried
+        # forward.
         components=(
-            "DHS - Customs and Certain Excise Taxes",
             "DHS - Customs Duties, Taxes, and Fees",
+            "DHS - Customs and Certain Excise Taxes",
+            "Customs and Certain Excise Taxes",
         ),
+        available_from=DATA_START,
+    ),
+)
+
+
+# ── Other spending (transaction_catg from deposits_withdrawals, Withdrawals) ──
+OTHER_SPENDING_CATEGORIES: tuple[CategoryDef, ...] = (
+    CategoryDef(
+        name="Department of Defense",
+        kind="spending",
+        components=("Dept of Defense (DoD) - misc",),
+        # FY2024 split "Defense Vendor Payments (EFT)" into DoD misc, health and pay.
+        available_from=date(2023, 10, 2),
+    ),
+    CategoryDef(
+        name="Military Pay",
+        kind="spending",
+        components=("DoD - Military Active Duty Pay", "DoD - Military Retirement"),
+        available_from=date(2023, 10, 2),
+    ),
+    CategoryDef(
+        name="Federal Salaries",
+        kind="spending",
+        components=("Federal Salaries (EFT)",),
+        available_from=DATA_START,
+    ),
+    CategoryDef(
+        name="Healthcare Subsidies (Marketplace)",
+        kind="spending",
+        components=("HHS - Marketplace Payments", "Marketplace Payments"),
+        # The line starts with the ACA marketplace payments in FY2015.
+        available_from=date(2014, 10, 1),
+    ),
+    CategoryDef(
+        name="Department of Education",
+        kind="spending",
+        components=("Dept of Education (ED)", "Education Department programs"),
+        available_from=DATA_START,
+    ),
+    CategoryDef(
+        name="Housing & Urban Development",
+        kind="spending",
+        components=(
+            "Dept of Housing & Urban Dev (HUD) - misc",
+            "HUD - Federal Housing Admin (FHA)",
+            "Housing and Urban Development programs",
+        ),
+        available_from=DATA_START,
+    ),
+    CategoryDef(
+        name="SNAP & WIC",
+        kind="spending",
+        components=(
+            "USDA - Supp Nutrition Assist Prog (SNAP)",
+            "USDA - Supp Nutrition Assist Prog (WIC)",
+        ),
+        # WIC became its own line on 2020-11-16; before, it sat in a misc USDA line.
+        available_from=date(2020, 11, 16),
+    ),
+    CategoryDef(
+        name="Veterans Benefits",
+        kind="spending",
+        components=("VA - Benefits",),
+        # "VA - Benefits" was split out of "Veterans Affairs programs" on 2020-01-13.
+        available_from=date(2020, 1, 13),
+    ),
+    CategoryDef(
+        name="Unemployment Benefits",
+        kind="spending",
+        components=("DOL - Unemployment Benefits", "Unemployment Insurance Benefits"),
+        available_from=DATA_START,
+    ),
+    CategoryDef(
+        name="Customs Refunds (CBP)",
+        kind="spending",
+        components=("DHS - Customs & Border Protection (CBP)",),
+        # All CBP payments; since 2026 they are mostly tariff refunds.
+        available_from=date(2020, 5, 11),
+    ),
+)
+
+
+# ── Other receipts (transaction_catg from deposits_withdrawals, Deposits) ─────
+OTHER_RECEIPT_CATEGORIES: tuple[CategoryDef, ...] = (
+    CategoryDef(
+        name="Individual Income Taxes",
+        kind="receipt",
+        components=(
+            "Taxes - Non Withheld Ind/SECA Electronic",
+            "Taxes - Non Withheld Ind/SECA Other",
+        ),
+        available_from=date(2023, 2, 14),
+    ),
+    CategoryDef(
+        name="Corporate Income Taxes",
+        kind="receipt",
+        components=("Taxes - Corporate Income",),
+        available_from=date(2023, 2, 14),
+    ),
+    CategoryDef(
+        name="Education Receipts (Student Loans)",
+        kind="receipt",
+        components=("Dept of Education (ED)", "Education Department programs"),
+        available_from=DATA_START,
+    ),
+    CategoryDef(
+        name="Public Debt Cash Issues",
+        kind="receipt",
+        components=(
+            "Public Debt Cash Issues (Table IIIB)",
+            "Public Debt Cash Issues (Table III-B)",
+        ),
+        available_from=DATA_START,
     ),
 )
 
@@ -98,6 +235,8 @@ TBILL_INTEREST_CATEGORY: CategoryDef = CategoryDef(
     name="T-Bill Interest",
     kind="tbill",
     components=tuple(TBILL_INTEREST_COMPONENT_NAMES.keys()),
+    # "Discount on New Issues" was split into these two lines on 2022-09-12.
+    available_from=date(2022, 9, 12),
 )
 
 
@@ -113,6 +252,8 @@ IRS_REFUND_CATEGORY: CategoryDef = CategoryDef(
     name="IRS Tax Refunds",
     kind="irs_refund",
     components=tuple(IRS_REFUND_COMPONENT_NAMES.keys()),
+    # The refund types were renamed and regrouped on 2023-02-14.
+    available_from=date(2023, 2, 14),
 )
 
 
@@ -124,7 +265,48 @@ CATEGORY_REGISTRY: dict[str, CategoryDef] = {
     for cat in (
         *MAJOR_SPENDING_CATEGORIES,
         *MAJOR_RECEIPT_CATEGORIES,
+        *OTHER_SPENDING_CATEGORIES,
+        *OTHER_RECEIPT_CATEGORIES,
         TBILL_INTEREST_CATEGORY,
         IRS_REFUND_CATEGORY,
     )
 }
+
+
+# ── Combined figures (signed sums of registry categories) ──────────────
+@dataclass(frozen=True)
+class CombinedTerm:
+    """One registry category inside a combined figure, added or subtracted."""
+
+    category: str
+    sign: Literal[1, -1]
+
+
+@dataclass(frozen=True)
+class CombinedCategoryDef:
+    """A figure made of registry categories; comparable once every term is."""
+
+    name: str
+    terms: tuple[CombinedTerm, ...]
+
+    @property
+    def available_from(self) -> date:
+        return max(CATEGORY_REGISTRY[t.category].available_from for t in self.terms)
+
+
+COMBINED_CATEGORIES: tuple[CombinedCategoryDef, ...] = (
+    CombinedCategoryDef(
+        name="Interest Income Transfers",
+        terms=(
+            CombinedTerm("Interest on Treasury Securities", 1),
+            CombinedTerm("T-Bill Interest", 1),
+        ),
+    ),
+    CombinedCategoryDef(
+        name="Net Customs Receipts",
+        terms=(
+            CombinedTerm("Customs & Duties (Tariffs)", 1),
+            CombinedTerm("Customs Refunds (CBP)", -1),
+        ),
+    ),
+)

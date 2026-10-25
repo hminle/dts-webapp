@@ -21,6 +21,7 @@ import { FormulaHint } from '@/components/formula-hint'
 import { QueryState } from '@/components/query-state'
 import {
   formatBillions,
+  formatDate,
   formatPercent,
   formatSignedPercent,
 } from '@/lib/format'
@@ -29,9 +30,14 @@ import { useCategoryDailyYoY } from '../api'
 import type { YearPair } from '../api'
 import { breakdownRows } from '../lib'
 import type { CategoryCardData } from '../lib'
-import { ACCENT, changeClass, signedPrefix } from './accent'
+import {
+  ACCENT,
+  changeClass,
+  changeText,
+  signedPrefix,
+  totalText,
+} from './accent'
 import { BreakdownTable } from './breakdown-table'
-import { CATEGORY_FORMULA } from './category-card'
 
 const EXPLANATIONS: Partial<Record<CategoryCardData['categoryType'], string>> =
   {
@@ -91,7 +97,7 @@ export function CategoryDetailDialog({
           <DialogHeader>
             <div className='flex items-center gap-1'>
               <DialogTitle>{category.name}</DialogTitle>
-              <FormulaHint id={CATEGORY_FORMULA[category.categoryType]} />
+              <FormulaHint id={category.formula} />
             </div>
             <DialogDescription>
               FY{currentFiscalYear} vs FY{previousFiscalYear} (
@@ -105,24 +111,29 @@ export function CategoryDetailDialog({
           <div className='grid grid-cols-2 gap-3'>
             <Stat label={`FY${currentFiscalYear} FYTD`}>
               <p className='text-2xl font-semibold tabular-nums'>
-                {formatBillions(category.current_fytd)}
+                {totalText(category.current_fytd)}
               </p>
             </Stat>
             <Stat label={`FY${previousFiscalYear} FYTD`}>
               <p className='text-2xl font-semibold tabular-nums'>
-                {formatBillions(category.previous_fytd)}
+                {totalText(category.previous_fytd)}
               </p>
             </Stat>
             <Stat label='YoY change'>
               <p
                 className={cn(
                   'flex items-center gap-2 text-2xl font-semibold tabular-nums',
-                  changeClass(category.yoy_change)
+                  category.yoy_change !== null &&
+                    changeClass(category.yoy_change)
                 )}
               >
-                {category.yoy_change >= 0 ? <TrendingUp /> : <TrendingDown />}
-                {signedPrefix(category.yoy_change)}
-                {formatBillions(category.yoy_change)}
+                {category.yoy_change !== null &&
+                  (category.yoy_change >= 0 ? (
+                    <TrendingUp />
+                  ) : (
+                    <TrendingDown />
+                  ))}
+                {changeText(category.yoy_change)}
               </p>
             </Stat>
             <Stat label='Percent change'>
@@ -139,6 +150,15 @@ export function CategoryDetailDialog({
               </p>
             </Stat>
           </div>
+
+          {(category.current_fytd === null ||
+            category.previous_fytd === null) && (
+            <p className='text-sm text-muted-foreground'>
+              This category is comparable from{' '}
+              {formatDate(category.availableFrom)}. The Treasury reorganized
+              its lines before that date.
+            </p>
+          )}
 
           {breakdownRows(category).length > 0 && (
             <section className='flex flex-col gap-2'>
@@ -217,21 +237,21 @@ export function CategoryDetailDialog({
                               <p
                                 className={cn(
                                   'font-semibold tabular-nums',
-                                  changeClass(p.yoy_change)
+                                  p.yoy_change !== null &&
+                                    changeClass(p.yoy_change)
                                 )}
                               >
-                                YoY change: {signedPrefix(p.yoy_change)}
-                                {formatBillions(p.yoy_change)}
+                                YoY change: {changeText(p.yoy_change)}
                                 {p.yoy_percent_change != null &&
                                   ` (${signedPrefix(p.yoy_percent_change)}${formatPercent(p.yoy_percent_change)})`}
                               </p>
                               <p className='text-muted-foreground tabular-nums'>
                                 FY {currentFiscalYear}:{' '}
-                                {formatBillions(p.current_fytd)}
+                                {totalText(p.current_fytd)}
                               </p>
                               <p className='text-muted-foreground tabular-nums'>
                                 FY {previousFiscalYear}:{' '}
-                                {formatBillions(p.previous_fytd)}
+                                {totalText(p.previous_fytd)}
                               </p>
                             </div>
                           )

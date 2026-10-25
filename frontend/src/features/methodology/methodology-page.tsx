@@ -18,6 +18,12 @@ const NT = examples.net_transfers
 const YOY = examples.yoy
 const NEG = examples.yoy_negative_base
 const CATS = examples.categories
+const WS = examples.weekly_snapshot
+const ROLL = examples.rolling
+const COMB = examples.combined
+const COMB_CUR = `FY2026 · ${formatShortDate(COMB.current_date)}`
+const COMB_PREV = `FY2025 · ${formatShortDate(COMB.previous_date)}`
+const CASH = examples.cash_balance
 
 // Display names from backend/app/constants/endpoints.py (ENDPOINTS).
 const TABLES = [
@@ -63,7 +69,8 @@ const CHAPTERS: Chapter[] = [
   { id: 't-bill-discount', title: 'T-Bill interest' },
   { id: 'tax-refunds', title: 'IRS tax refunds' },
   { id: 'any-line-item', title: 'Category comparison' },
-  { id: 'friday-snapshots', title: 'Weekly comparison' },
+  { id: 'friday-snapshots', title: 'Weekly comparison and snapshot' },
+  { id: 'cash-balance', title: 'Treasury cash balance' },
   { id: 'known-limits', title: 'Known limits' },
   { id: 'glossary', title: 'Glossary' },
   { id: 'source-and-schedule', title: 'Source and update schedule' },
@@ -424,6 +431,17 @@ export function MethodologyPage() {
             spending is spread across every day.
           </p>
           <FormulaBlock id='leading-flow' />
+          <p>
+            One day’s withdrawals swing with payment calendars, so a rolling
+            average of the last {ROLL.window} statements shows the pace. On{' '}
+            {formatShortDate(ROLL.end_date)} the last {ROLL.window} statements
+            (weekends and Thanksgiving skipped) averaged{' '}
+            <Strong>{millions(ROLL.withdrawals_average)}</Strong> a day. At
+            about 20 business days a month, that is a projected monthly rate
+            of <Strong>{millions(ROLL.projected_monthly)}</Strong>. Unemployment
+            benefits averaged {millions(ROLL.unemployment_average)} a day.
+          </p>
+          <FormulaBlock id='rolling-average' />
         </ProseSection>
 
         <ProseSection id='year-over-year' title='5. Comparing with a year ago'>
@@ -562,6 +580,11 @@ export function MethodologyPage() {
               </div>
             }
           />
+          <p>Ten more spending groups are shown below the major ones:</p>
+          <FormulaBlock
+            id='other-spending'
+            termLabels={['Category', 'Treasury line item']}
+          />
         </ProseSection>
 
         <ProseSection
@@ -591,6 +614,54 @@ export function MethodologyPage() {
             used on {formatShortDate('2025-11-07')}; the new one, “DHS - Customs
             Duties, Taxes, and Fees”, starts on {formatShortDate('2025-11-10')}.
           </p>
+          <p>Four more receipt groups are shown below the major ones:</p>
+          <FormulaBlock
+            id='other-receipts'
+            termLabels={['Category', 'Treasury line item']}
+          />
+          <p>
+            Since 2026 Customs and Border Protection has paid out large tariff
+            refunds, so customs deposits alone overstate what the tariffs bring
+            in:
+          </p>
+          <FormulaBlock
+            id='net-customs-receipts'
+            example={
+              <div className='flex flex-col gap-2'>
+                <ArithmeticTable
+                  columns={[COMB_CUR, COMB_PREV]}
+                  caption='Fiscal year to date. Millions of dollars.'
+                  rows={[
+                    {
+                      label: 'Customs & Duties (Tariffs)',
+                      values: [
+                        COMB.net_customs.current.customs,
+                        COMB.net_customs.previous.customs,
+                      ],
+                    },
+                    {
+                      label: 'Customs Refunds (CBP)',
+                      op: '−',
+                      values: [
+                        COMB.net_customs.current.cbp,
+                        COMB.net_customs.previous.cbp,
+                      ],
+                    },
+                    {
+                      label: 'Net customs receipts',
+                      op: '=',
+                      values: [
+                        COMB.net_customs.current_total,
+                        COMB.net_customs.previous_total,
+                      ],
+                      result: true,
+                    },
+                  ]}
+                />
+                {changeSentence(COMB.net_customs)}
+              </div>
+            }
+          />
         </ProseSection>
 
         <ProseSection id='t-bill-discount' title='9. T-Bill interest'>
@@ -611,6 +682,24 @@ export function MethodologyPage() {
                   rows={categoryRows(CATS.tbill)}
                 />
                 {changeSentence(CATS.tbill)}
+              </div>
+            }
+          />
+          <p>
+            Adding T-bill interest to the cash interest on notes and bonds gives
+            all the interest the Treasury pays its holders:
+          </p>
+          <FormulaBlock
+            id='interest-income-transfers'
+            termLabels={['Category', 'What it is']}
+            example={
+              <div className='flex flex-col gap-2'>
+                <ArithmeticTable
+                  columns={[COMB_CUR, COMB_PREV]}
+                  caption='Fiscal year to date. Millions of dollars.'
+                  rows={categoryRows(COMB.interest_income)}
+                />
+                {changeSentence(COMB.interest_income)}
               </div>
             }
           />
@@ -661,10 +750,14 @@ export function MethodologyPage() {
           <FormulaBlock id='category-comparison' />
         </ProseSection>
 
-        <ProseSection id='friday-snapshots' title='12. Weekly comparison'>
+        <ProseSection
+          id='friday-snapshots'
+          title='12. Weekly comparison and snapshot'
+        >
           <p>
             Daily figures are noisy. The weekly page takes one reading per week,
-            on Friday, and compares the two years week by week.
+            on Friday by default or on Thursday, and compares the two years week
+            by week.
           </p>
           <FormulaBlock id='weekly-comparison' />
           <p>
@@ -673,9 +766,44 @@ export function MethodologyPage() {
             that week uses Thursday’s statement. A week with no statement within
             5 days of its Friday is left out.
           </p>
+          <p>
+            The weekly snapshot reads one such week against the same business
+            day a year earlier. On Thursday,{' '}
+            {formatShortDate(WS.record_date)} (day {WS.day_of_fiscal_year}) net
+            transfers were {millions(WS.net_transfers_fytd.current)}{' '}
+            against {millions(WS.net_transfers_fytd.previous)} a year earlier,
+            a change
+            of {millions(WS.net_transfers_fytd.change)}. A week earlier Thursday
+            was Thanksgiving, so the snapshot read Wednesday,{' '}
+            {formatShortDate(WS.previous_week.record_date)}:{' '}
+            {millions(WS.previous_week.gap)}. The gap widened by{' '}
+            {millions(Math.abs(WS.gap_change))}.
+          </p>
+          <FormulaBlock id='weekly-snapshot' />
         </ProseSection>
 
-        <ProseSection id='known-limits' title='13. Known limits'>
+        <ProseSection id='cash-balance' title='13. Treasury cash balance'>
+          <p>
+            The Treasury keeps its cash in the Treasury General Account at the
+            Federal Reserve. On {formatShortDate(CASH.record_date)} the account
+            closed at <Strong>{millions(CASH.closing)}</Strong>,{' '}
+            {millions(CASH.change_week)} more than a week earlier (
+            {formatShortDate(CASH.previous_week_date)}) and{' '}
+            {millions(CASH.change_year)} ({percent(CASH.percent_change_year)})
+            more than on the same business day a year earlier (
+            {formatShortDate(CASH.year_ago_date)}).
+          </p>
+          <p>
+            The statement has moved the balance between rows twice, on{' '}
+            {formatShortDate(CASH.eras[1].date)} and{' '}
+            {formatShortDate(CASH.eras[3].date)}. Each move is seamless: the
+            last close, {millions(CASH.eras[0].value)} and{' '}
+            {millions(CASH.eras[2].value)}, is the next day’s opening balance.
+          </p>
+          <FormulaBlock id='cash-balance' />
+        </ProseSection>
+
+        <ProseSection id='known-limits' title='14. Known limits'>
           <ul>
             <li>
               The app fetches each statement once. If the Treasury later revises
@@ -687,9 +815,10 @@ export function MethodologyPage() {
               transfer figures.
             </li>
             <li>
-              Category names follow the Treasury’s own labels, which have
-              changed over the years, so a category can appear in one fiscal
-              year and not another.
+              The Treasury has renamed and reorganized its lines over the
+              years. Each category is compared only from the date its lines
+              took their current shape:
+              <FormulaBlock id='category-coverage' />
             </li>
             <li>
               Early in a fiscal year, payment calendars move the comparisons.
@@ -705,7 +834,7 @@ export function MethodologyPage() {
           </ul>
         </ProseSection>
 
-        <ProseSection id='glossary' title='14. Glossary'>
+        <ProseSection id='glossary' title='15. Glossary'>
           <dl className='grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2'>
             {GLOSSARY.map(([term, meaning]) => (
               <div key={term} className='contents'>
@@ -718,7 +847,7 @@ export function MethodologyPage() {
 
         <ProseSection
           id='source-and-schedule'
-          title='15. Source and update schedule'
+          title='16. Source and update schedule'
         >
           <p>
             Every figure comes from the U.S. Treasury&apos;s{' '}

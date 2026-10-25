@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import type { AnchorWeekday } from '@/components/anchor-weekday-select'
 import { api, throwApiError } from '@/lib/api/client'
 import type { components } from '@/lib/api/schema'
 
@@ -7,17 +8,22 @@ export type WeeklyDataPoint = components['schemas']['WeeklyDataPoint']
 
 export function useWeeklyComparison(
   first: number | null,
-  second: number | null
+  second: number | null,
+  anchor: AnchorWeekday
 ) {
   return useQuery({
-    queryKey: ['weekly', 'comparison', first, second],
+    queryKey: ['weekly', 'comparison', first, second, anchor],
     enabled: first !== null && second !== null && first !== second,
     queryFn: async () => {
       const { data, error, response } = await api.GET(
         '/api/v1/weekly/comparison',
         {
           params: {
-            query: { first_fiscal_year: first!, second_fiscal_year: second! },
+            query: {
+              first_fiscal_year: first!,
+              second_fiscal_year: second!,
+              anchor_weekday: anchor,
+            },
           },
         }
       )

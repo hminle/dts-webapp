@@ -10,12 +10,15 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CashBalanceRouteImport } from './routes/cash-balance'
 import { Route as DataStatusRouteImport } from './routes/data-status'
 import { Route as FiscalYearRouteImport } from './routes/fiscal-year'
 import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as SnapshotRouteImport } from './routes/snapshot'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WeeklyRouteImport } from './routes/weekly'
+import { Route as DailyLeadingFlowsRouteImport } from './routes/daily/leading-flows'
 import { Route as DailyNetTransfersRouteImport } from './routes/daily/net-transfers'
 import { Route as DailySingleDateRouteImport } from './routes/daily/single-date'
 import { Route as YoyCategoriesRouteImport } from './routes/yoy/categories'
@@ -26,6 +29,11 @@ import { Route as YoyWithdrawalsRouteImport } from './routes/yoy/withdrawals'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CashBalanceRoute = CashBalanceRouteImport.update({
+  id: '/cash-balance',
+  path: '/cash-balance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DataStatusRoute = DataStatusRouteImport.update({
@@ -48,6 +56,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SnapshotRoute = SnapshotRouteImport.update({
+  id: '/snapshot',
+  path: '/snapshot',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -56,6 +69,11 @@ const TermsRoute = TermsRouteImport.update({
 const WeeklyRoute = WeeklyRouteImport.update({
   id: '/weekly',
   path: '/weekly',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DailyLeadingFlowsRoute = DailyLeadingFlowsRouteImport.update({
+  id: '/daily/leading-flows',
+  path: '/daily/leading-flows',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DailyNetTransfersRoute = DailyNetTransfersRouteImport.update({
@@ -91,12 +109,15 @@ const YoyWithdrawalsRoute = YoyWithdrawalsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cash-balance': typeof CashBalanceRoute
   '/data-status': typeof DataStatusRoute
   '/fiscal-year': typeof FiscalYearRoute
   '/methodology': typeof MethodologyRoute
   '/privacy': typeof PrivacyRoute
+  '/snapshot': typeof SnapshotRoute
   '/terms': typeof TermsRoute
   '/weekly': typeof WeeklyRoute
+  '/daily/leading-flows': typeof DailyLeadingFlowsRoute
   '/daily/net-transfers': typeof DailyNetTransfersRoute
   '/daily/single-date': typeof DailySingleDateRoute
   '/yoy/categories': typeof YoyCategoriesRoute
@@ -106,12 +127,15 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cash-balance': typeof CashBalanceRoute
   '/data-status': typeof DataStatusRoute
   '/fiscal-year': typeof FiscalYearRoute
   '/methodology': typeof MethodologyRoute
   '/privacy': typeof PrivacyRoute
+  '/snapshot': typeof SnapshotRoute
   '/terms': typeof TermsRoute
   '/weekly': typeof WeeklyRoute
+  '/daily/leading-flows': typeof DailyLeadingFlowsRoute
   '/daily/net-transfers': typeof DailyNetTransfersRoute
   '/daily/single-date': typeof DailySingleDateRoute
   '/yoy/categories': typeof YoyCategoriesRoute
@@ -122,12 +146,15 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cash-balance': typeof CashBalanceRoute
   '/data-status': typeof DataStatusRoute
   '/fiscal-year': typeof FiscalYearRoute
   '/methodology': typeof MethodologyRoute
   '/privacy': typeof PrivacyRoute
+  '/snapshot': typeof SnapshotRoute
   '/terms': typeof TermsRoute
   '/weekly': typeof WeeklyRoute
+  '/daily/leading-flows': typeof DailyLeadingFlowsRoute
   '/daily/net-transfers': typeof DailyNetTransfersRoute
   '/daily/single-date': typeof DailySingleDateRoute
   '/yoy/categories': typeof YoyCategoriesRoute
@@ -139,12 +166,15 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/cash-balance'
     | '/data-status'
     | '/fiscal-year'
     | '/methodology'
     | '/privacy'
+    | '/snapshot'
     | '/terms'
     | '/weekly'
+    | '/daily/leading-flows'
     | '/daily/net-transfers'
     | '/daily/single-date'
     | '/yoy/categories'
@@ -154,12 +184,15 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/cash-balance'
     | '/data-status'
     | '/fiscal-year'
     | '/methodology'
     | '/privacy'
+    | '/snapshot'
     | '/terms'
     | '/weekly'
+    | '/daily/leading-flows'
     | '/daily/net-transfers'
     | '/daily/single-date'
     | '/yoy/categories'
@@ -169,12 +202,15 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/cash-balance'
     | '/data-status'
     | '/fiscal-year'
     | '/methodology'
     | '/privacy'
+    | '/snapshot'
     | '/terms'
     | '/weekly'
+    | '/daily/leading-flows'
     | '/daily/net-transfers'
     | '/daily/single-date'
     | '/yoy/categories'
@@ -185,12 +221,15 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CashBalanceRoute: typeof CashBalanceRoute
   DataStatusRoute: typeof DataStatusRoute
   FiscalYearRoute: typeof FiscalYearRoute
   MethodologyRoute: typeof MethodologyRoute
   PrivacyRoute: typeof PrivacyRoute
+  SnapshotRoute: typeof SnapshotRoute
   TermsRoute: typeof TermsRoute
   WeeklyRoute: typeof WeeklyRoute
+  DailyLeadingFlowsRoute: typeof DailyLeadingFlowsRoute
   DailyNetTransfersRoute: typeof DailyNetTransfersRoute
   DailySingleDateRoute: typeof DailySingleDateRoute
   YoyCategoriesRoute: typeof YoyCategoriesRoute
@@ -206,6 +245,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cash-balance': {
+      id: '/cash-balance'
+      path: '/cash-balance'
+      fullPath: '/cash-balance'
+      preLoaderRoute: typeof CashBalanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/data-status': {
@@ -236,6 +282,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/snapshot': {
+      id: '/snapshot'
+      path: '/snapshot'
+      fullPath: '/snapshot'
+      preLoaderRoute: typeof SnapshotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -248,6 +301,13 @@ declare module '@tanstack/react-router' {
       path: '/weekly'
       fullPath: '/weekly'
       preLoaderRoute: typeof WeeklyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/daily/leading-flows': {
+      id: '/daily/leading-flows'
+      path: '/daily/leading-flows'
+      fullPath: '/daily/leading-flows'
+      preLoaderRoute: typeof DailyLeadingFlowsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/daily/net-transfers': {
@@ -297,12 +357,15 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CashBalanceRoute: CashBalanceRoute,
   DataStatusRoute: DataStatusRoute,
   FiscalYearRoute: FiscalYearRoute,
   MethodologyRoute: MethodologyRoute,
   PrivacyRoute: PrivacyRoute,
+  SnapshotRoute: SnapshotRoute,
   TermsRoute: TermsRoute,
   WeeklyRoute: WeeklyRoute,
+  DailyLeadingFlowsRoute: DailyLeadingFlowsRoute,
   DailyNetTransfersRoute: DailyNetTransfersRoute,
   DailySingleDateRoute: DailySingleDateRoute,
   YoyCategoriesRoute: YoyCategoriesRoute,

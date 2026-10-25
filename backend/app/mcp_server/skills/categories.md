@@ -1,7 +1,7 @@
 ---
 name: categories
-description: The major spending and receipt categories, T-bill interest and IRS refunds: which Treasury lines each sums, with SQL.
-formulas: [major-spending, major-receipts, tbill-interest, irs-refunds, category-comparison]
+description: The major and other spending and receipt categories, T-bill interest and IRS refunds: which Treasury lines each sums, with SQL.
+formulas: [major-spending, major-receipts, other-spending, other-receipts, tbill-interest, irs-refunds, interest-income-transfers, net-customs-receipts, category-coverage, category-comparison]
 ---
 
 # Categories
@@ -22,14 +22,30 @@ Pitfalls:
   ignored.
 - Interest on Treasury Securities is cash interest on notes and bonds. Bills pay no cash
   interest; their discount is T-bill interest, which never appears as a cash withdrawal.
-- The Treasury renamed the customs line in November 2025; customs sums the old and new names
-  so years on either side of the rename compare.
+- The Treasury renamed the customs line in May 2020 and November 2025; customs sums all three
+  names so years on either side of a rename compare.
+- A category is compared only from its first comparable date ("Comparable from" below). Before
+  it the Treasury restructured the lines, so API totals are `null`, not 0. Renamed lines are
+  summed under all their names; on any one date only one name exists.
 - `deposits_withdrawals` lists only the EFT refund lines, so adding them up there misses every
   refund paid by check. IRS refunds come from `income_tax_refunds`.
 
 ## The categories
 
 {{categories}}
+
+## Combined figures
+
+Two figures are signed sums of the categories above, on the same dates:
+
+- **Interest Income Transfers** = Interest on Treasury Securities + T-Bill Interest: all
+  interest the Treasury pays holders, cash and discount. Comparable from 2022-09-12.
+- **Net Customs Receipts** = Customs & Duties (Tariffs) − Customs Refunds (CBP): tariffs
+  collected less CBP payments, which since 2026 are mostly tariff refunds. Comparable from
+  2020-05-11.
+
+A combined figure is `null` on a date where any of its terms is. Get them with
+`call_api("categories_get_combined", {"current_fiscal_year": 2027, "previous_fiscal_year": 2026})`.
 
 ## Worked example: Medicare
 

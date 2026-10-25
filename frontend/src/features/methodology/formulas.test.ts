@@ -59,6 +59,31 @@ describe('worked examples add up', () => {
     const r = examples.categories.irs_refunds
     expect(sum(r.table_v)).toBe(r.table_v_total)
   })
+
+  it('rolling average', () => {
+    const r = examples.rolling
+    expect(r.withdrawals_today).toHaveLength(r.window)
+    const total = (values: number[]) => values.reduce((a, b) => a + b, 0)
+    expect(total(r.withdrawals_today) / r.window).toBeCloseTo(
+      r.withdrawals_average
+    )
+    expect(r.withdrawals_average * 20).toBeCloseTo(r.projected_monthly)
+    expect(total(r.unemployment_today) / r.window).toBeCloseTo(
+      r.unemployment_average
+    )
+  })
+
+  it('combined figures', () => {
+    const { interest_income: i, net_customs: c } = examples.combined
+    expect(sum(i.current)).toBe(i.current_total)
+    expect(sum(i.previous)).toBe(i.previous_total)
+    expect(i.current_total - i.previous_total).toBe(i.difference)
+    expect(pct(i.current_total, i.previous_total)).toBe(i.percent_change)
+    expect(c.current.customs - c.current.cbp).toBe(c.current_total)
+    expect(c.previous.customs - c.previous.cbp).toBe(c.previous_total)
+    expect(c.current_total - c.previous_total).toBe(c.difference)
+    expect(pct(c.current_total, c.previous_total)).toBe(c.percent_change)
+  })
 })
 
 describe('category line items match the backend', () => {
@@ -74,6 +99,8 @@ describe('category line items match the backend', () => {
     'major-receipts',
     'tbill-interest',
     'irs-refunds',
+    'other-spending',
+    'other-receipts',
   ]
   it.each(ids)('%s', (id) => {
     const lines = FORMULAS[id].terms?.map((t) => t.meaning) ?? []

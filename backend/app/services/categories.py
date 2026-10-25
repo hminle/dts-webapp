@@ -12,16 +12,26 @@ from fastapi import HTTPException
 
 from app.constants.categories import (
     CATEGORY_REGISTRY,
+    COMBINED_CATEGORIES,
+    IRS_REFUND_CATEGORY,
     IRS_REFUND_COMPONENT_NAMES,
     MAJOR_RECEIPT_CATEGORIES,
     MAJOR_SPENDING_CATEGORIES,
+    OTHER_RECEIPT_CATEGORIES,
+    OTHER_SPENDING_CATEGORIES,
+    TBILL_INTEREST_CATEGORY,
     TBILL_INTEREST_COMPONENT_NAMES,
     CategoryDef,
+    CategoryKind,
+    CombinedCategoryDef,
 )
 from app.schemas.treasury import (
     CategoryDailyYoYDataPoint,
     CategoryDailyYoYRequest,
     CategoryDailyYoYResponse,
+    CombinedCategoriesResponse,
+    CombinedCategory,
+    CombinedTermValue,
     IrsRefundComponent,
     IrsRefundRequest,
     IrsRefundResponse,
@@ -39,10 +49,11 @@ from app.schemas.treasury import (
 from app.utils.yoy import (
     ComparisonMode,
     FYTDSource,
+    covered,
     fetch_component_fytd,
     find_aligned_previous_date,
     latest_date_for_fy,
-    yoy_change,
+    nullable_yoy,
 )
 
 logger = logging.getLogger(__name__)
@@ -73,6 +84,41 @@ _IRS_REFUND_SOURCE = FYTDSource(
     fytd_column="tax_refund_fytd_amt",
     key_column="tax_refund_type",
 )
+
+
+_SOURCES: dict[CategoryKind, FYTDSource] = {
+    "spending": _SPENDING_SOURCE,
+    "receipt": _RECEIPT_SOURCE,
+    "tbill": _TBILL_SOURCE,
+    "irs_refund": _IRS_REFUND_SOURCE,
+}
+
+
+def _source_for(kind: CategoryKind) -> FYTDSource:
+    """The table, columns and side filter that hold a category kind's lines."""
+    return _SOURCES[kind]
+
+
+def category_fytd(
+    cur: duckdb.DuckDBPyConnection, cat: CategoryDef, day: str
+) -> float | None:
+    """Σ FYTD of ``cat``'s components on ``day``; ``None`` before ``available_from``."""
+    if not covered(cat.available_from, day):
+        return None
+    source = _source_for(cat.kind)
+    return sum(fetch_component_fytd(cur, source, day, c) for c in cat.components)
+
+
+def combined_fytd(
+    cur: duckdb.DuckDBPyConnection, comb: CombinedCategoryDef, day: str
+) -> float | None:
+    """Σ sign × category FYTD over the terms; ``None`` if any term is ``None``."""
+    values = [
+        category_fytd(cur, CATEGORY_REGISTRY[t.category], day) for t in comb.terms
+    ]
+    if any(v is None for v in values):
+        return None
+    return sum(t.sign * v for t, v in zip(comb.terms, values, strict=True))
 
 
 # ── Shared validators / data-resolution helpers ──────────────────────
@@ -161,7 +207,118 @@ def _build_subcategory_breakdown(
     return rows, total_current, total_previous
 
 
+def _covered_totals(
+    cat: CategoryDef,
+    current_date: str,
+    previous_date: str,
+    total_current: float,
+    total_previous: float,
+) -> tuple[float | None, float | None]:
+    """The totals, or ``None`` for a side whose date predates the category."""
+    return (
+        total_current if covered(cat.available_from, current_date) else None,
+        total_previous if covered(cat.available_from, previous_date) else None,
+    )
+
+
 # ── Endpoints ─────────────────────────────────────────────────────────
+
+
+def _category_yoy(
+    cur: duckdb.DuckDBPyConnection,
+    request: MajorSpendingCategoriesRequest | MajorReceiptCategoriesRequest,
+    source: FYTDSource,
+    defs: tuple[CategoryDef, ...],
+    label: str,
+) -> tuple[str, str, ComparisonMode, list[dict]]:
+    """Validate, resolve the aligned dates and total each category in ``defs``.
+
+    Returns ``(current_date, previous_date, comparison_mode, categories)``,
+    where each category is a dict of the fields ``MajorSpendingCategory`` and
+    ``MajorReceiptCategory`` share. Totals before a category's
+    ``available_from`` are ``None``.
+    """
+    comparison_mode = _validate_yoy_request(
+        request.current_fiscal_year,
+        request.previous_fiscal_year,
+        request.comparison_mode,
+    )
+    current_date, previous_date = _resolve_yoy_dates(
+        cur,
+        source,
+        current_fy=request.current_fiscal_year,
+        previous_fy=request.previous_fiscal_year,
+        comparison_mode=comparison_mode,
+    )
+
+    categories: list[dict] = []
+    for cat in defs:
+        subcategories, total_current, total_previous = _build_subcategory_breakdown(
+            cur, source, cat.components, current_date, previous_date
+        )
+        current_total, previous_total = _covered_totals(
+            cat, current_date, previous_date, total_current, total_previous
+        )
+        delta, pct = nullable_yoy(current_total, previous_total)
+        categories.append(
+            {
+                "name": cat.name,
+                "current_fytd": current_total,
+                "previous_fytd": previous_total,
+                "yoy_change": delta,
+                "yoy_percent_change": pct,
+                "available_from": cat.available_from.isoformat(),
+                "subcategories": subcategories,
+            }
+        )
+
+    logger.info(
+        "%s: FY%s (%s) vs FY%s (%s)",
+        label,
+        request.current_fiscal_year,
+        current_date,
+        request.previous_fiscal_year,
+        previous_date,
+    )
+    return current_date, previous_date, comparison_mode, categories
+
+
+def _spending_response(
+    cur: duckdb.DuckDBPyConnection,
+    request: MajorSpendingCategoriesRequest,
+    defs: tuple[CategoryDef, ...],
+    label: str,
+) -> MajorSpendingCategoriesResponse:
+    current_date, previous_date, mode, categories = _category_yoy(
+        cur, request, _SPENDING_SOURCE, defs, label
+    )
+    return MajorSpendingCategoriesResponse(
+        current_fiscal_year=request.current_fiscal_year,
+        previous_fiscal_year=request.previous_fiscal_year,
+        current_date=current_date,
+        previous_date=previous_date,
+        comparison_mode=mode,
+        categories=[MajorSpendingCategory(**c) for c in categories],
+    )
+
+
+def _receipt_response(
+    cur: duckdb.DuckDBPyConnection,
+    request: MajorReceiptCategoriesRequest,
+    defs: tuple[CategoryDef, ...],
+    label: str,
+) -> MajorReceiptCategoriesResponse:
+    current_date, previous_date, mode, categories = _category_yoy(
+        cur, request, _RECEIPT_SOURCE, defs, label
+    )
+    return MajorReceiptCategoriesResponse(
+        current_fiscal_year=request.current_fiscal_year,
+        previous_fiscal_year=request.previous_fiscal_year,
+        current_date=current_date,
+        previous_date=previous_date,
+        comparison_mode=mode,
+        categories=[MajorReceiptCategory(**c) for c in categories],
+    )
 
 
 def get_major_spending(
@@ -178,6 +335,51 @@ def get_major_spending(
         * ``fiscal_day`` — align by day-of-fiscal-year (Day 61 vs Day 61).
         * ``calendar_date`` — align by calendar month-day (Dec 31 vs Dec 31).
     """
+    return _spending_response(cur, request, MAJOR_SPENDING_CATEGORIES, "Major spending")
+
+
+def get_other_spending(
+    cur: duckdb.DuckDBPyConnection, request: MajorSpendingCategoriesRequest
+) -> MajorSpendingCategoriesResponse:
+    """The other preset spending categories (Defense, SNAP & WIC, …) with YoY.
+
+    Same rules as :func:`get_major_spending`, over
+    :data:`app.constants.categories.OTHER_SPENDING_CATEGORIES`.
+    """
+    return _spending_response(cur, request, OTHER_SPENDING_CATEGORIES, "Other spending")
+
+
+def get_major_receipts(
+    cur: duckdb.DuckDBPyConnection, request: MajorReceiptCategoriesRequest
+) -> MajorReceiptCategoriesResponse:
+    """Major federal receipt categories with Y-o-Y comparison.
+
+    Aggregates Employment & Withholding Tax, Customs & Duties (Tariffs), etc.
+    from ``deposits_withdrawals`` (Deposits only) using the registry in
+    :mod:`app.constants.categories`.
+    """
+    return _receipt_response(cur, request, MAJOR_RECEIPT_CATEGORIES, "Major receipts")
+
+
+def get_other_receipts(
+    cur: duckdb.DuckDBPyConnection, request: MajorReceiptCategoriesRequest
+) -> MajorReceiptCategoriesResponse:
+    """The other preset receipt categories (income taxes, …) with YoY.
+
+    Same rules as :func:`get_major_receipts`, over
+    :data:`app.constants.categories.OTHER_RECEIPT_CATEGORIES`.
+    """
+    return _receipt_response(cur, request, OTHER_RECEIPT_CATEGORIES, "Other receipts")
+
+
+def get_combined(
+    cur: duckdb.DuckDBPyConnection, request: MajorSpendingCategoriesRequest
+) -> CombinedCategoriesResponse:
+    """Combined figures (interest income, net customs) with Y-o-Y comparison.
+
+    Dates are resolved on the spending source, like the major spending
+    categories. A figure is ``None`` on a date where any of its terms is.
+    """
     comparison_mode = _validate_yoy_request(
         request.current_fiscal_year,
         request.previous_fiscal_year,
@@ -191,87 +393,44 @@ def get_major_spending(
         comparison_mode=comparison_mode,
     )
 
-    categories: list[MajorSpendingCategory] = []
-    for major_cat in MAJOR_SPENDING_CATEGORIES:
-        subcategories, total_current, total_previous = _build_subcategory_breakdown(
-            cur, _SPENDING_SOURCE, major_cat.components, current_date, previous_date
-        )
-        delta, pct = yoy_change(total_current, total_previous)
+    categories: list[CombinedCategory] = []
+    for comb in COMBINED_CATEGORIES:
+        terms = [
+            CombinedTermValue(
+                category_name=t.category,
+                sign=t.sign,
+                current_fytd=category_fytd(
+                    cur, CATEGORY_REGISTRY[t.category], current_date
+                ),
+                previous_fytd=category_fytd(
+                    cur, CATEGORY_REGISTRY[t.category], previous_date
+                ),
+            )
+            for t in comb.terms
+        ]
+        current_total = combined_fytd(cur, comb, current_date)
+        previous_total = combined_fytd(cur, comb, previous_date)
+        delta, pct = nullable_yoy(current_total, previous_total)
         categories.append(
-            MajorSpendingCategory(
-                name=major_cat.name,
-                current_fytd=total_current,
-                previous_fytd=total_previous,
+            CombinedCategory(
+                name=comb.name,
+                available_from=comb.available_from.isoformat(),
+                current_fytd=current_total,
+                previous_fytd=previous_total,
                 yoy_change=delta,
                 yoy_percent_change=pct,
-                subcategories=subcategories,
+                terms=terms,
             )
         )
 
     logger.info(
-        "Major spending: FY%s (%s) vs FY%s (%s)",
+        "Combined: FY%s (%s) vs FY%s (%s)",
         request.current_fiscal_year,
         current_date,
         request.previous_fiscal_year,
         previous_date,
     )
-    return MajorSpendingCategoriesResponse(
-        current_fiscal_year=request.current_fiscal_year,
-        previous_fiscal_year=request.previous_fiscal_year,
-        current_date=current_date,
-        previous_date=previous_date,
-        comparison_mode=comparison_mode,
-        categories=categories,
-    )
-
-
-def get_major_receipts(
-    cur: duckdb.DuckDBPyConnection, request: MajorReceiptCategoriesRequest
-) -> MajorReceiptCategoriesResponse:
-    """Major federal receipt categories with Y-o-Y comparison.
-
-    Aggregates Employment & Withholding Tax, Customs & Duties (Tariffs), etc.
-    from ``deposits_withdrawals`` (Deposits only) using the registry in
-    :mod:`app.constants.categories`.
-    """
-    comparison_mode = _validate_yoy_request(
-        request.current_fiscal_year,
-        request.previous_fiscal_year,
-        request.comparison_mode,
-    )
-    current_date, previous_date = _resolve_yoy_dates(
-        cur,
-        _RECEIPT_SOURCE,
-        current_fy=request.current_fiscal_year,
-        previous_fy=request.previous_fiscal_year,
-        comparison_mode=comparison_mode,
-    )
-
-    categories: list[MajorReceiptCategory] = []
-    for major_cat in MAJOR_RECEIPT_CATEGORIES:
-        subcategories, total_current, total_previous = _build_subcategory_breakdown(
-            cur, _RECEIPT_SOURCE, major_cat.components, current_date, previous_date
-        )
-        delta, pct = yoy_change(total_current, total_previous)
-        categories.append(
-            MajorReceiptCategory(
-                name=major_cat.name,
-                current_fytd=total_current,
-                previous_fytd=total_previous,
-                yoy_change=delta,
-                yoy_percent_change=pct,
-                subcategories=subcategories,
-            )
-        )
-
-    logger.info(
-        "Major receipts: FY%s (%s) vs FY%s (%s)",
-        request.current_fiscal_year,
-        current_date,
-        request.previous_fiscal_year,
-        previous_date,
-    )
-    return MajorReceiptCategoriesResponse(
+    return CombinedCategoriesResponse(
         current_fiscal_year=request.current_fiscal_year,
         previous_fiscal_year=request.previous_fiscal_year,
         current_date=current_date,
@@ -326,7 +485,14 @@ def get_tbill_interest(
         total_current += current_val
         total_previous += previous_val
 
-    total_delta, total_pct = yoy_change(total_current, total_previous)
+    current_total, previous_total = _covered_totals(
+        TBILL_INTEREST_CATEGORY,
+        current_date,
+        previous_date,
+        total_current,
+        total_previous,
+    )
+    total_delta, total_pct = nullable_yoy(current_total, previous_total)
 
     logger.info(
         "T-Bill interest: FY%s (%s) vs FY%s (%s)",
@@ -341,10 +507,11 @@ def get_tbill_interest(
         current_date=current_date,
         previous_date=previous_date,
         comparison_mode=comparison_mode,
-        total_current_fytd=total_current,
-        total_previous_fytd=total_previous,
+        total_current_fytd=current_total,
+        total_previous_fytd=previous_total,
         total_yoy_change=total_delta,
         total_yoy_percent_change=total_pct,
+        available_from=TBILL_INTEREST_CATEGORY.available_from.isoformat(),
         components=components,
     )
 
@@ -401,7 +568,10 @@ def get_irs_tax_refunds(
         total_current += current_val
         total_previous += previous_val
 
-    total_delta, total_pct = yoy_change(total_current, total_previous)
+    current_total, previous_total = _covered_totals(
+        IRS_REFUND_CATEGORY, current_date, previous_date, total_current, total_previous
+    )
+    total_delta, total_pct = nullable_yoy(current_total, previous_total)
 
     logger.info(
         "IRS Tax Refunds: FY%s (%s) vs FY%s (%s)",
@@ -416,10 +586,11 @@ def get_irs_tax_refunds(
         current_date=current_date,
         previous_date=previous_date,
         comparison_mode=comparison_mode,
-        total_current_fytd=total_current,
-        total_previous_fytd=total_previous,
+        total_current_fytd=current_total,
+        total_previous_fytd=previous_total,
         total_yoy_change=total_delta,
         total_yoy_percent_change=total_pct,
+        available_from=IRS_REFUND_CATEGORY.available_from.isoformat(),
         components=components,
     )
 
@@ -467,17 +638,9 @@ def get_daily_yoy(
             ),
         )
 
-    # Source descriptor — pick the FYTDSource that owns the raw rows.
     # extra_filters are already applied via filter_clause(), which is why
-    # this dispatcher no longer needs separate per-kind SQL templates.
-    if cat_info.kind == "spending":
-        source = _SPENDING_SOURCE
-    elif cat_info.kind == "receipt":
-        source = _RECEIPT_SOURCE
-    elif cat_info.kind == "tbill":
-        source = _TBILL_SOURCE
-    else:
-        source = _IRS_REFUND_SOURCE
+    # this dispatcher needs no separate per-kind SQL templates.
+    source = _source_for(cat_info.kind)
 
     placeholders = ", ".join("?" for _ in cat_info.components)
     extra_clause, extra_params = source.filter_clause()
@@ -511,6 +674,14 @@ def get_daily_yoy(
         date_str = format_date(date)
         previous_data[date_str] = {"fytd": float(fytd) if fytd else 0.0, "day": i + 1}
 
+    def previous_point(prev_info: dict) -> tuple[str | None, float | None]:
+        # A missing aligned date or one before the category's coverage has
+        # no comparable total, which is not the same as a total of 0.
+        prev_date = prev_info["date"]
+        if not covered(cat_info.available_from, prev_date):
+            return prev_date, None
+        return prev_date, prev_info["fytd"]
+
     data_points = []
 
     if comparison_mode == "fiscal_day":
@@ -520,14 +691,15 @@ def get_daily_yoy(
 
         for curr_date, curr_info in sorted(current_data.items()):
             day_num = curr_info["day"]
-            curr_fytd = curr_info["fytd"]
+            curr_fytd = (
+                curr_info["fytd"]
+                if covered(cat_info.available_from, curr_date)
+                else None
+            )
 
-            prev_info = previous_by_day.get(day_num, {"date": None, "fytd": 0.0})
-            prev_date = prev_info["date"]
-            prev_fytd = prev_info["fytd"]
-
-            yoy_delta = curr_fytd - prev_fytd
-            yoy_percent = (yoy_delta / abs(prev_fytd) * 100) if prev_fytd != 0 else None
+            prev_info = previous_by_day.get(day_num, {"date": None, "fytd": None})
+            prev_date, prev_fytd = previous_point(prev_info)
+            yoy_delta, yoy_percent = nullable_yoy(curr_fytd, prev_fytd)
 
             data_points.append(
                 CategoryDailyYoYDataPoint(
@@ -549,15 +721,16 @@ def get_daily_yoy(
 
         for curr_date, curr_info in sorted(current_data.items()):
             day_num = curr_info["day"]
-            curr_fytd = curr_info["fytd"]
+            curr_fytd = (
+                curr_info["fytd"]
+                if covered(cat_info.available_from, curr_date)
+                else None
+            )
             mm_dd = curr_date[5:10]
 
-            prev_info = previous_by_mmdd.get(mm_dd, {"date": None, "fytd": 0.0})
-            prev_date = prev_info["date"]
-            prev_fytd = prev_info["fytd"]
-
-            yoy_delta = curr_fytd - prev_fytd
-            yoy_percent = (yoy_delta / abs(prev_fytd) * 100) if prev_fytd != 0 else None
+            prev_info = previous_by_mmdd.get(mm_dd, {"date": None, "fytd": None})
+            prev_date, prev_fytd = previous_point(prev_info)
+            yoy_delta, yoy_percent = nullable_yoy(curr_fytd, prev_fytd)
 
             data_points.append(
                 CategoryDailyYoYDataPoint(
@@ -586,5 +759,6 @@ def get_daily_yoy(
         previous_fiscal_year=previous_fy,
         comparison_mode=comparison_mode,
         comparison_days=len(data_points),
+        available_from=cat_info.available_from.isoformat(),
         data_points=data_points,
     )

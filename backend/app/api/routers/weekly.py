@@ -18,5 +18,5 @@ router = APIRouter(
 def get_comparison(
     cur: CursorDep, req: Annotated[WeeklyComparisonRequest, Query()]
 ) -> WeeklyComparisonResponse:
-    """Friday-by-Friday net transfers, FYTD, for two fiscal years."""
+    """Net transfers FYTD on each week's anchor day (Friday by default), two FYs."""
     return weekly.get_comparison(cur, req)

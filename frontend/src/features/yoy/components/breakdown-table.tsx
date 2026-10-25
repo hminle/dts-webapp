@@ -9,11 +9,15 @@ import {
 import { formatBillions } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { BreakdownRow } from '../lib'
-import { changeClass, signedPrefix } from './accent'
+import { changeClass, changeText, totalText } from './accent'
 
 type BreakdownTableProps = {
   rows: BreakdownRow[]
-  total: { current: number; previous: number; change: number }
+  total: {
+    current: number | null
+    previous: number | null
+    change: number | null
+  }
   currentFiscalYear: number
   previousFiscalYear: number
 }
@@ -25,10 +29,14 @@ export function BreakdownTable({
   currentFiscalYear,
   previousFiscalYear,
 }: BreakdownTableProps) {
-  const changeCell = (value: number) => (
-    <TableCell className={cn('text-end tabular-nums', changeClass(value))}>
-      {signedPrefix(value)}
-      {formatBillions(value)}
+  const changeCell = (value: number | null) => (
+    <TableCell
+      className={cn(
+        'text-end tabular-nums',
+        value !== null && changeClass(value)
+      )}
+    >
+      {changeText(value)}
     </TableCell>
   )
   return (
@@ -63,10 +71,10 @@ export function BreakdownTable({
           <TableRow className='font-semibold'>
             <TableCell>Total</TableCell>
             <TableCell className='text-end tabular-nums'>
-              {formatBillions(total.current)}
+              {totalText(total.current)}
             </TableCell>
             <TableCell className='text-end tabular-nums'>
-              {formatBillions(total.previous)}
+              {totalText(total.previous)}
             </TableCell>
             {changeCell(total.change)}
           </TableRow>

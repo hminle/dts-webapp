@@ -24,6 +24,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cash-balance/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Daily
+         * @description The TGA closing balance on each statement date.
+         */
+        get: operations["cash_balance_get_daily"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/categories/combined": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Combined
+         * @description Figures made of several categories, with YoY change.
+         */
+        get: operations["categories_get_combined"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/categories/daily-yoy": {
         parameters: {
             query?: never;
@@ -96,6 +136,46 @@ export interface paths {
          * @description FYTD spending of the major categories, with YoY change.
          */
         get: operations["categories_get_major_spending"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/categories/other-receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Other Receipts
+         * @description FYTD receipts of the other preset categories, with YoY change.
+         */
+        get: operations["categories_get_other_receipts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/categories/other-spending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Other Spending
+         * @description FYTD spending of the other preset categories, with YoY change.
+         */
+        get: operations["categories_get_other_spending"];
         put?: never;
         post?: never;
         delete?: never;
@@ -364,6 +444,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/rolling/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Daily
+         * @description Each statement's amount and the mean of the last `window` statements.
+         */
+        get: operations["rolling_get_daily"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/snapshot/weekly": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Weekly
+         * @description One week's statement: month and fiscal year to date, against a year earlier.
+         */
+        get: operations["snapshot_get_weekly"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/weekly/comparison": {
         parameters: {
             query?: never;
@@ -373,7 +493,7 @@ export interface paths {
         };
         /**
          * Get Comparison
-         * @description Friday-by-Friday net transfers, FYTD, for two fiscal years.
+         * @description Net transfers FYTD on each week's anchor day (Friday by default), two FYs.
          */
         get: operations["weekly_get_comparison"];
         put?: never;
@@ -443,6 +563,43 @@ export interface components {
             source: string;
         };
         /**
+         * CashBalancePoint
+         * @description The closing balance on one statement date.
+         */
+        CashBalancePoint: {
+            /**
+             * Closing Balance
+             * @description TGA closing balance, millions of dollars
+             */
+            closing_balance: number;
+            /**
+             * Record Date
+             * @description Statement date
+             */
+            record_date: string;
+        };
+        /**
+         * CashBalanceResponse
+         * @description Schema for cash balance response.
+         */
+        CashBalanceResponse: {
+            /**
+             * End Date
+             * @description Last date requested
+             */
+            end_date: string;
+            /**
+             * Points
+             * @description One point per statement
+             */
+            points?: components["schemas"]["CashBalancePoint"][];
+            /**
+             * Start Date
+             * @description First date requested
+             */
+            start_date: string;
+        };
+        /**
          * CategoryDailyDataPoint
          * @description Schema for a single day's data for a category.
          */
@@ -475,9 +632,9 @@ export interface components {
             current_date: string;
             /**
              * Current Fytd
-             * @description FYTD amount in current year
+             * @description FYTD amount in current year (null when the date is before available_from)
              */
-            current_fytd: number;
+            current_fytd: number | null;
             /**
              * Day Of Fiscal Year
              * @description Day number within the fiscal year
@@ -490,14 +647,14 @@ export interface components {
             previous_date?: string | null;
             /**
              * Previous Fytd
-             * @description FYTD amount in previous year
+             * @description FYTD amount in previous year (null when the date is before available_from)
              */
-            previous_fytd: number;
+            previous_fytd: number | null;
             /**
              * Yoy Change
-             * @description YoY difference (current - previous)
+             * @description YoY difference (current - previous) (null when the date is before available_from)
              */
-            yoy_change: number;
+            yoy_change: number | null;
             /**
              * Yoy Percent Change
              * @description YoY percent change
@@ -509,6 +666,11 @@ export interface components {
          * @description Schema for category daily YoY response.
          */
         CategoryDailyYoYResponse: {
+            /**
+             * Available From
+             * @description First comparable date (ISO); totals before it are null
+             */
+            available_from: string;
             /**
              * Category Name
              * @description Category name
@@ -587,6 +749,109 @@ export interface components {
              * @description 'Deposits' or 'Withdrawals'
              */
             transaction_type: string;
+        };
+        /**
+         * CombinedCategoriesResponse
+         * @description Schema for combined categories response.
+         */
+        CombinedCategoriesResponse: {
+            /**
+             * Categories
+             * @description The combined figures
+             */
+            categories?: components["schemas"]["CombinedCategory"][];
+            /**
+             * Comparison Mode
+             * @description Comparison mode used
+             */
+            comparison_mode: string;
+            /**
+             * Current Date
+             * @description Latest date with data in current fiscal year
+             */
+            current_date: string;
+            /**
+             * Current Fiscal Year
+             * @description Current fiscal year
+             */
+            current_fiscal_year: number;
+            /**
+             * Previous Date
+             * @description Equivalent date in previous fiscal year
+             */
+            previous_date: string;
+            /**
+             * Previous Fiscal Year
+             * @description Previous fiscal year
+             */
+            previous_fiscal_year: number;
+        };
+        /**
+         * CombinedCategory
+         * @description A figure made of several categories, with YoY change.
+         */
+        CombinedCategory: {
+            /**
+             * Available From
+             * @description First comparable date (ISO): the latest of its terms'
+             */
+            available_from: string;
+            /**
+             * Current Fytd
+             * @description Signed sum on current_date; null if any term is
+             */
+            current_fytd: number | null;
+            /**
+             * Name
+             * @description Display name
+             */
+            name: string;
+            /**
+             * Previous Fytd
+             * @description Signed sum on previous_date; null if any term is
+             */
+            previous_fytd: number | null;
+            /**
+             * Terms
+             * @description The categories it is made of
+             */
+            terms?: components["schemas"]["CombinedTermValue"][];
+            /**
+             * Yoy Change
+             * @description current − previous
+             */
+            yoy_change: number | null;
+            /**
+             * Yoy Percent Change
+             * @description yoy_change ÷ |previous| × 100
+             */
+            yoy_percent_change: number | null;
+        };
+        /**
+         * CombinedTermValue
+         * @description One category inside a combined figure.
+         */
+        CombinedTermValue: {
+            /**
+             * Category Name
+             * @description Registry category name
+             */
+            category_name: string;
+            /**
+             * Current Fytd
+             * @description Category FYTD on current_date; null before its coverage
+             */
+            current_fytd: number | null;
+            /**
+             * Previous Fytd
+             * @description Category FYTD on previous_date; null before its coverage
+             */
+            previous_fytd: number | null;
+            /**
+             * Sign
+             * @description 1 adds the category, -1 subtracts it
+             */
+            sign: number;
         };
         /**
          * DailyNetTransfer
@@ -829,6 +1094,11 @@ export interface components {
          */
         IrsRefundResponse: {
             /**
+             * Available From
+             * @description First comparable date (ISO); totals before it are null
+             */
+            available_from: string;
+            /**
              * Comparison Mode
              * @description Comparison mode used
              * @default fiscal_day
@@ -861,19 +1131,19 @@ export interface components {
             previous_fiscal_year: number;
             /**
              * Total Current Fytd
-             * @description Total IRS tax refunds for current fiscal year
+             * @description Total IRS tax refunds for current fiscal year (null when the date is before available_from)
              */
-            total_current_fytd: number;
+            total_current_fytd: number | null;
             /**
              * Total Previous Fytd
-             * @description Total IRS tax refunds for previous fiscal year
+             * @description Total IRS tax refunds for previous fiscal year (null when the date is before available_from)
              */
-            total_previous_fytd: number;
+            total_previous_fytd: number | null;
             /**
              * Total Yoy Change
-             * @description Total year-over-year change
+             * @description Total year-over-year change (null when the date is before available_from)
              */
-            total_yoy_change: number;
+            total_yoy_change: number | null;
             /**
              * Total Yoy Percent Change
              * @description Total year-over-year percent change
@@ -923,10 +1193,15 @@ export interface components {
          */
         MajorReceiptCategory: {
             /**
-             * Current Fytd
-             * @description Total current fiscal year FYTD amount
+             * Available From
+             * @description First comparable date (ISO); totals before it are null
              */
-            current_fytd: number;
+            available_from: string;
+            /**
+             * Current Fytd
+             * @description Total current fiscal year FYTD amount (null when the date is before available_from)
+             */
+            current_fytd: number | null;
             /**
              * Name
              * @description Display name (e.g., 'Employment & Withholding Tax')
@@ -934,9 +1209,9 @@ export interface components {
             name: string;
             /**
              * Previous Fytd
-             * @description Total previous fiscal year FYTD amount
+             * @description Total previous fiscal year FYTD amount (null when the date is before available_from)
              */
-            previous_fytd: number;
+            previous_fytd: number | null;
             /**
              * Subcategories
              * @description Breakdown by subcategory
@@ -944,9 +1219,9 @@ export interface components {
             subcategories?: components["schemas"]["SubcategoryBreakdown"][];
             /**
              * Yoy Change
-             * @description Year-over-year change amount
+             * @description Year-over-year change amount (null when the date is before available_from)
              */
-            yoy_change: number;
+            yoy_change: number | null;
             /**
              * Yoy Percent Change
              * @description Year-over-year percent change
@@ -996,10 +1271,15 @@ export interface components {
          */
         MajorSpendingCategory: {
             /**
-             * Current Fytd
-             * @description Total current fiscal year FYTD amount
+             * Available From
+             * @description First comparable date (ISO); totals before it are null
              */
-            current_fytd: number;
+            available_from: string;
+            /**
+             * Current Fytd
+             * @description Total current fiscal year FYTD amount (null when the date is before available_from)
+             */
+            current_fytd: number | null;
             /**
              * Name
              * @description Display name (e.g., 'Social Security Benefits')
@@ -1007,9 +1287,9 @@ export interface components {
             name: string;
             /**
              * Previous Fytd
-             * @description Total previous fiscal year FYTD amount
+             * @description Total previous fiscal year FYTD amount (null when the date is before available_from)
              */
-            previous_fytd: number;
+            previous_fytd: number | null;
             /**
              * Subcategories
              * @description Breakdown by subcategory
@@ -1017,14 +1297,139 @@ export interface components {
             subcategories?: components["schemas"]["SubcategoryBreakdown"][];
             /**
              * Yoy Change
-             * @description Year-over-year change amount
+             * @description Year-over-year change amount (null when the date is before available_from)
              */
-            yoy_change: number;
+            yoy_change: number | null;
             /**
              * Yoy Percent Change
              * @description Year-over-year percent change
              */
             yoy_percent_change?: number | null;
+        };
+        /**
+         * RollingAverageResponse
+         * @description Schema for rolling average response.
+         */
+        RollingAverageResponse: {
+            /**
+             * End Date
+             * @description Last date returned
+             */
+            end_date: string;
+            /**
+             * Metric
+             * @description Daily amount averaged
+             * @enum {string}
+             */
+            metric: "total_withdrawals" | "unemployment_benefits";
+            /**
+             * Monthly Multiplier
+             * @description Business days a month in the projection; null if none
+             */
+            monthly_multiplier: number | null;
+            /**
+             * Points
+             * @description One point per statement
+             */
+            points?: components["schemas"]["RollingPoint"][];
+            /**
+             * Start Date
+             * @description First date returned
+             */
+            start_date: string;
+            /**
+             * Window
+             * @description Statements per average
+             */
+            window: number;
+        };
+        /**
+         * RollingPoint
+         * @description One statement's amount and the rolling average ending on it.
+         */
+        RollingPoint: {
+            /**
+             * Projected Monthly
+             * @description rolling_average × 20, withdrawals only
+             */
+            projected_monthly: number | null;
+            /**
+             * Record Date
+             * @description Statement date
+             */
+            record_date: string;
+            /**
+             * Rolling Average
+             * @description Mean of the last `window` statements; null until there are that many
+             */
+            rolling_average: number | null;
+            /**
+             * Value
+             * @description That statement's amount
+             */
+            value: number;
+        };
+        /**
+         * SnapshotCashBalance
+         * @description The TGA closing balance on the snapshot date, a week and a year earlier.
+         */
+        SnapshotCashBalance: {
+            /**
+             * Change Week
+             * @description closing − previous_week
+             */
+            change_week: number | null;
+            /**
+             * Change Year
+             * @description closing − year_ago
+             */
+            change_year: number | null;
+            /**
+             * Closing
+             * @description On record_date; null if the statement has no balance row
+             */
+            closing: number | null;
+            /**
+             * Percent Change Year
+             * @description change_year ÷ |year_ago| × 100
+             */
+            percent_change_year: number | null;
+            /**
+             * Previous Week
+             * @description On previous_week_date
+             */
+            previous_week: number | null;
+            /**
+             * Year Ago
+             * @description On previous_date (same fiscal day)
+             */
+            year_ago: number | null;
+        };
+        /**
+         * SnapshotFigure
+         * @description One FYTD figure against the same business day a year earlier.
+         */
+        SnapshotFigure: {
+            /**
+             * Change
+             * @description current − previous
+             */
+            change: number | null;
+            /**
+             * Current
+             * @description FYTD on the snapshot date
+             */
+            current: number | null;
+            /**
+             * Percent Change
+             * @description change ÷ |previous| × 100
+             */
+            percent_change: number | null;
+            /**
+             * Previous
+             * @description FYTD on the aligned previous-FY date
+             */
+            previous: number | null;
         };
         /**
          * SubcategoryBreakdown
@@ -1089,6 +1494,11 @@ export interface components {
          */
         TBillInterestResponse: {
             /**
+             * Available From
+             * @description First comparable date (ISO); totals before it are null
+             */
+            available_from: string;
+            /**
              * Comparison Mode
              * @description Comparison mode used
              * @default fiscal_day
@@ -1121,19 +1531,19 @@ export interface components {
             previous_fiscal_year: number;
             /**
              * Total Current Fytd
-             * @description Total T-Bill interest for current fiscal year
+             * @description Total T-Bill interest for current fiscal year (null when the date is before available_from)
              */
-            total_current_fytd: number;
+            total_current_fytd: number | null;
             /**
              * Total Previous Fytd
-             * @description Total T-Bill interest for previous fiscal year
+             * @description Total T-Bill interest for previous fiscal year (null when the date is before available_from)
              */
-            total_previous_fytd: number;
+            total_previous_fytd: number | null;
             /**
              * Total Yoy Change
-             * @description Total year-over-year change
+             * @description Total year-over-year change (null when the date is before available_from)
              */
-            total_yoy_change: number;
+            total_yoy_change: number | null;
             /**
              * Total Yoy Percent Change
              * @description Total year-over-year percent change
@@ -1330,6 +1740,100 @@ export interface components {
             week_number: number;
         };
         /**
+         * WeeklySnapshotResponse
+         * @description One week's statement: month and fiscal year to date, against a year ago.
+         */
+        WeeklySnapshotResponse: {
+            /**
+             * Anchor Date
+             * @description The Thursday/Friday the week ends on
+             */
+            anchor_date: string;
+            /**
+             * Anchor Weekday
+             * @description Weekday the week ends on
+             * @enum {string}
+             */
+            anchor_weekday: "thursday" | "friday";
+            cash_balance: components["schemas"]["SnapshotCashBalance"];
+            /**
+             * Day Of Fiscal Year
+             * @description Business day of the fiscal year
+             */
+            day_of_fiscal_year: number;
+            deposits_fytd: components["schemas"]["SnapshotFigure"];
+            /**
+             * Fiscal Year
+             * @description Fiscal year of record_date
+             */
+            fiscal_year: number;
+            /**
+             * Gap Change Unavailable Reason
+             * @description Why net_transfers_gap_change is null, when it is
+             */
+            gap_change_unavailable_reason: string | null;
+            interest_income_fytd: components["schemas"]["SnapshotFigure"];
+            net_customs_fytd: components["schemas"]["SnapshotFigure"];
+            net_transfers_fytd: components["schemas"]["SnapshotFigure"];
+            /**
+             * Net Transfers Gap Change
+             * @description This week's net-transfers change minus last week's
+             */
+            net_transfers_gap_change: number | null;
+            /**
+             * Net Transfers Mtd
+             * @description Net transfers, month to date
+             */
+            net_transfers_mtd: number;
+            /**
+             * Previous Date
+             * @description Same day_of_fiscal_year in the previous FY
+             */
+            previous_date: string | null;
+            /**
+             * Previous Fiscal Year
+             * @description fiscal_year − 1
+             */
+            previous_fiscal_year: number;
+            /**
+             * Previous Week Date
+             * @description Statement used for the week before
+             */
+            previous_week_date: string | null;
+            /**
+             * Previous Week Net Transfers Gap
+             * @description Last week's net-transfers FYTD change from a year earlier
+             */
+            previous_week_net_transfers_gap: number | null;
+            /**
+             * Projected Monthly Withdrawals
+             * @description withdrawals_10d_average × 20
+             */
+            projected_monthly_withdrawals: number | null;
+            /**
+             * Record Date
+             * @description Statement used; earlier than anchor_date after a holiday
+             */
+            record_date: string;
+            /**
+             * Unemployment 10D Average
+             * @description Mean unemployment benefits over the last 10 statements
+             */
+            unemployment_10d_average: number | null;
+            /**
+             * Withdrawals 10D Average
+             * @description Mean withdrawals over the last 10 statements
+             */
+            withdrawals_10d_average: number | null;
+            withdrawals_fytd: components["schemas"]["SnapshotFigure"];
+            /**
+             * Withdrawals Mtd
+             * @description Total withdrawals, month to date
+             */
+            withdrawals_mtd: number;
+            withholding_fytd: components["schemas"]["SnapshotFigure"];
+        };
+        /**
          * YoYCategoryComparisonResponse
          * @description Schema for year-over-year category comparison response.
          */
@@ -1477,6 +1981,76 @@ export interface operations {
             };
         };
     };
+    cash_balance_get_daily: {
+        parameters: {
+            query?: {
+                /** @description Default a year before end_date */
+                start_date?: string | null;
+                /** @description Default the latest statement */
+                end_date?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CashBalanceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    categories_get_combined: {
+        parameters: {
+            query: {
+                /** @description Current fiscal year */
+                current_fiscal_year: number;
+                /** @description Previous fiscal year for Y-o-Y comparison */
+                previous_fiscal_year: number;
+                /** @description Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31) */
+                comparison_mode?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CombinedCategoriesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     categories_get_daily_yoy: {
         parameters: {
             query: {
@@ -1590,6 +2164,78 @@ export interface operations {
         };
     };
     categories_get_major_spending: {
+        parameters: {
+            query: {
+                /** @description Current fiscal year */
+                current_fiscal_year: number;
+                /** @description Previous fiscal year for Y-o-Y comparison */
+                previous_fiscal_year: number;
+                /** @description Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31) */
+                comparison_mode?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MajorSpendingCategoriesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    categories_get_other_receipts: {
+        parameters: {
+            query: {
+                /** @description Current fiscal year */
+                current_fiscal_year: number;
+                /** @description Previous fiscal year for Y-o-Y comparison */
+                previous_fiscal_year: number;
+                /** @description Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31) */
+                comparison_mode?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MajorReceiptCategoriesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    categories_get_other_spending: {
         parameters: {
             query: {
                 /** @description Current fiscal year */
@@ -1977,6 +2623,78 @@ export interface operations {
             };
         };
     };
+    rolling_get_daily: {
+        parameters: {
+            query: {
+                /** @description Daily amount to average */
+                metric: "total_withdrawals" | "unemployment_benefits";
+                /** @description Statements per average */
+                window?: number;
+                /** @description First date returned; default a year before end_date */
+                start_date?: string | null;
+                /** @description Last date returned; default latest */
+                end_date?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RollingAverageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    snapshot_get_weekly: {
+        parameters: {
+            query?: {
+                /** @description Weekday the week ends on */
+                anchor_weekday?: "thursday" | "friday";
+                /** @description Read the week on or before this date; default latest */
+                as_of?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeeklySnapshotResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     weekly_get_comparison: {
         parameters: {
             query: {
@@ -1986,6 +2704,8 @@ export interface operations {
                 second_fiscal_year: number;
                 /** @description Filter by data source */
                 data_source?: string | null;
+                /** @description Weekday each week is read on */
+                anchor_weekday?: "thursday" | "friday";
             };
             header?: never;
             path?: never;

@@ -6,12 +6,15 @@ from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 
 from app.api.routers import (
+    cash_balance,
     categories,
     data,
     health,
     lookups,
     meta,
     net_transfers,
+    rolling,
+    snapshot,
     weekly,
     yoy,
 )
@@ -55,7 +58,19 @@ def bad_request(request: Request, exc: ValueError) -> JSONResponse:
     return JSONResponse(status_code=400, content={"detail": str(exc)})
 
 
-for module in (health, meta, lookups, data, net_transfers, weekly, yoy, categories):
+for module in (
+    health,
+    meta,
+    lookups,
+    data,
+    net_transfers,
+    weekly,
+    snapshot,
+    rolling,
+    cash_balance,
+    yoy,
+    categories,
+):
     app.include_router(module.router)
 
 # Mounted last so every /api/v1 route matches first. Stateless: each request

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type {
   IrsRefunds,
+  MajorReceipts,
   MajorSpending,
   TBillInterest,
   YoYCategoryComparison,
@@ -10,6 +11,8 @@ import {
   breakdownRows,
   categoryDiffSeries,
   comparisonRows,
+  otherReceiptCards,
+  otherSpendingCards,
   receiptCards,
   spendingCards,
   summarize,
@@ -55,6 +58,7 @@ describe('category cards', () => {
         previous_fytd: 60,
         yoy_change: -10,
         yoy_percent_change: -16.7,
+        available_from: '2020-03-09',
         subcategories: [],
       },
     ],
@@ -64,6 +68,7 @@ describe('category cards', () => {
     total_previous_fytd: 5,
     total_yoy_change: 3,
     total_yoy_percent_change: 60,
+    available_from: '2022-09-12',
     components: [
       {
         adj_type: 'Bills',
@@ -119,6 +124,106 @@ describe('category cards', () => {
     const irsCard = spendingCards(undefined, undefined, irs)[0]
     expect(irsCard.yoy_percent_change).toBeNull()
     expect(breakdownRows(irsCard)[0].code).toBe('IRS - EFT')
+  })
+
+  it('passes a null total through and keeps availableFrom', () => {
+    const early = {
+      categories: [
+        {
+          name: 'Social Security Benefits',
+          current_fytd: 120,
+          previous_fytd: null,
+          yoy_change: null,
+          yoy_percent_change: null,
+          available_from: '2021-07-19',
+          subcategories: [],
+        },
+      ],
+    } as unknown as MajorSpending
+    const [card] = spendingCards(early, undefined, undefined)
+    expect(card.current_fytd).toBe(120)
+    expect(card.previous_fytd).toBeNull()
+    expect(card.yoy_change).toBeNull()
+    expect(card.availableFrom).toBe('2021-07-19')
+    expect(card.accent).toBe('increase')
+  })
+
+  it('builds other spending cards with their own formula', () => {
+    const [card] = otherSpendingCards(spending)
+    expect(card.formula).toBe('other-spending')
+    expect(card.categoryType).toBe('spending')
+    expect(card.accent).toBe('decrease')
+
+    const receipts = {
+      categories: [
+        {
+          name: 'Corporate Income Taxes',
+          current_fytd: 21,
+          previous_fytd: null,
+          yoy_change: null,
+          yoy_percent_change: null,
+          available_from: '2023-02-14',
+          subcategories: [],
+        },
+      ],
+    } as unknown as MajorReceipts
+    const [receipt] = otherReceiptCards(receipts)
+    expect(receipt.formula).toBe('other-receipts')
+    expect(receipt.accent).toBe('receipt')
+    expect(otherSpendingCards(undefined)).toEqual([])
+  })
+
+  it('sets the formula on every major card', () => {
+    const irs = {
+      total_current_fytd: 1,
+      total_previous_fytd: 1,
+      total_yoy_change: 0,
+      total_yoy_percent_change: 0,
+      available_from: '2023-02-14',
+      components: [],
+    } as unknown as IrsRefunds
+    expect(spendingCards(spending, tbill, irs).map((c) => c.formula)).toEqual([
+      'major-spending',
+      'tbill-interest',
+      'irs-refunds',
+    ])
+    const receipts = {
+      categories: [{ name: 'Customs', available_from: '2005-10-03' }],
+    } as unknown as MajorReceipts
+    expect(receiptCards(receipts)[0].formula).toBe('major-receipts')
+  })
+
+  it('drops breakdown rows that are zero in both years', () => {
+    const medicaid = {
+      categories: [
+        {
+          name: 'Medicaid',
+          current_fytd: 40,
+          previous_fytd: 30,
+          yoy_change: 10,
+          yoy_percent_change: 33.3,
+          available_from: '2005-10-03',
+          subcategories: [
+            {
+              category_name: 'HHS - Grants to States for Medicaid',
+              current_fytd: 40,
+              previous_fytd: 30,
+              yoy_change: 10,
+            },
+            {
+              category_name: 'Medicaid',
+              current_fytd: 0,
+              previous_fytd: 0,
+              yoy_change: 0,
+            },
+          ],
+        },
+      ],
+    } as unknown as MajorSpending
+    const [card] = spendingCards(medicaid, undefined, undefined)
+    expect(breakdownRows(card).map((r) => r.name)).toEqual([
+      'HHS - Grants to States for Medicaid',
+    ])
   })
 })
 

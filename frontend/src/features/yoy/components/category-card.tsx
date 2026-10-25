@@ -1,18 +1,16 @@
 import { TrendingDown, TrendingUp } from 'lucide-react'
 import { FormulaHint } from '@/components/formula-hint'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import type { FormulaId } from '@/features/methodology/formulas'
-import { formatBillions, formatPercent } from '@/lib/format'
+import { formatDate, formatPercent } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import type { CategoryCardData, CategoryKind } from '../lib'
-import { ACCENT, changeClass, signedPrefix } from './accent'
-
-export const CATEGORY_FORMULA: Record<CategoryKind, FormulaId> = {
-  spending: 'major-spending',
-  receipt: 'major-receipts',
-  tbill: 'tbill-interest',
-  irs_refund: 'irs-refunds',
-}
+import type { CategoryCardData } from '../lib'
+import {
+  ACCENT,
+  changeClass,
+  changeText,
+  signedPrefix,
+  totalText,
+} from './accent'
 
 type CategoryCardProps = {
   category: CategoryCardData
@@ -20,7 +18,7 @@ type CategoryCardProps = {
 }
 
 export function CategoryCard({ category, onSelect }: CategoryCardProps) {
-  const up = category.yoy_change >= 0
+  const change = category.yoy_change
   return (
     // The title button stretches over the whole card, so the card opens the
     // dialog on click without nesting the formula hint inside another button.
@@ -42,37 +40,39 @@ export function CategoryCard({ category, onSelect }: CategoryCardProps) {
             {category.name}
           </button>
         </CardTitle>
-        <FormulaHint
-          id={CATEGORY_FORMULA[category.categoryType]}
-          className='relative z-10'
-        />
+        <FormulaHint id={category.formula} className='relative z-10' />
       </CardHeader>
       <CardContent className='flex flex-col gap-1'>
         <div className='text-2xl font-semibold tabular-nums'>
-          {formatBillions(category.current_fytd)}
+          {totalText(category.current_fytd)}
         </div>
-        <div className='flex items-center gap-1'>
-          {up ? (
-            <TrendingUp className='size-4 text-success' />
-          ) : (
-            <TrendingDown className='size-4 text-destructive' />
-          )}
-          <span
-            className={cn(
-              'text-sm font-medium tabular-nums',
-              changeClass(category.yoy_change)
-            )}
-          >
-            {signedPrefix(category.yoy_change)}
-            {formatBillions(category.yoy_change)}
+        {change === null ? (
+          <span className='text-xs text-muted-foreground'>
+            Comparable from {formatDate(category.availableFrom)}
           </span>
-          {category.yoy_percent_change !== null && (
-            <span className='text-xs text-muted-foreground tabular-nums'>
-              ({signedPrefix(category.yoy_percent_change)}
-              {formatPercent(category.yoy_percent_change)})
+        ) : (
+          <div className='flex items-center gap-1'>
+            {change >= 0 ? (
+              <TrendingUp className='size-4 text-success' />
+            ) : (
+              <TrendingDown className='size-4 text-destructive' />
+            )}
+            <span
+              className={cn(
+                'text-sm font-medium tabular-nums',
+                changeClass(change)
+              )}
+            >
+              {changeText(change)}
             </span>
-          )}
-        </div>
+            {category.yoy_percent_change !== null && (
+              <span className='text-xs text-muted-foreground tabular-nums'>
+                ({signedPrefix(category.yoy_percent_change)}
+                {formatPercent(category.yoy_percent_change)})
+              </span>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   )

@@ -11,16 +11,24 @@ export type FormulaId =
   | 'total-withdrawals'
   | 'net-transfers'
   | 'leading-flow'
+  | 'rolling-average'
+  | 'cash-balance'
   | 'yoy-difference'
   | 'yoy-percent'
   | 'yoy-summary'
   | 'comparison-modes'
   | 'major-spending'
   | 'major-receipts'
+  | 'other-spending'
+  | 'other-receipts'
   | 'tbill-interest'
+  | 'interest-income-transfers'
+  | 'net-customs-receipts'
   | 'irs-refunds'
+  | 'category-coverage'
   | 'category-comparison'
   | 'weekly-comparison'
+  | 'weekly-snapshot'
 
 export type FormulaTerm = { term: string; meaning: string }
 
@@ -235,7 +243,7 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
     id: 'major-spending',
     title: 'Major spending categories',
     summary:
-      'Four groups of withdrawal line items, each the sum of the items’ fiscal-year-to-date amounts.',
+      'The four largest groups of withdrawal line items, each the sum of the items’ fiscal-year-to-date amounts.',
     expression: ['Category FYTD = Σ FYTD of its withdrawal line items'],
     terms: [
       { term: 'Social Security Benefits', meaning: 'SSA - Benefits Payments' },
@@ -251,6 +259,7 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
       { term: 'Medicare', meaning: 'HHS - Federal Supple Med Insr Trust Fund' },
       { term: 'Medicare', meaning: 'HHS - Medicare Prescription Drugs' },
       { term: 'Medicaid', meaning: 'HHS - Grants to States for Medicaid' },
+      { term: 'Medicaid', meaning: 'Medicaid' },
       {
         term: 'Interest on Treasury Securities',
         meaning: 'Interest on Treasury Securities',
@@ -266,7 +275,7 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
     id: 'major-receipts',
     title: 'Major receipt categories',
     summary:
-      'Two groups of deposit line items. Customs sums the old and new line names so years on either side of the 2025 rename compare.',
+      'Two groups of deposit line items. Customs sums every name its line has had, so years on either side of a rename compare.',
     expression: ['Category FYTD = Σ FYTD of its deposit line items'],
     terms: [
       {
@@ -275,15 +284,187 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
       },
       {
         term: 'Customs & Duties (Tariffs)',
+        meaning: 'DHS - Customs Duties, Taxes, and Fees',
+      },
+      {
+        term: 'Customs & Duties (Tariffs)',
         meaning: 'DHS - Customs and Certain Excise Taxes',
       },
       {
         term: 'Customs & Duties (Tariffs)',
-        meaning: 'DHS - Customs Duties, Taxes, and Fees',
+        meaning: 'Customs and Certain Excise Taxes',
       },
     ],
     pitfalls: [
-      'The Treasury renamed the customs line in November 2025; reading only one name would make customs look like it vanished.',
+      'The Treasury renamed the customs line in May 2020 and November 2025; reading only one name would make customs look like it vanished.',
+    ],
+    source: DEPOSITS_TABLE,
+  },
+  'other-spending': {
+    id: 'other-spending',
+    title: 'Other spending categories',
+    summary:
+      'Ten more groups of withdrawal line items, each the sum of the items’ fiscal-year-to-date amounts.',
+    expression: ['Category FYTD = Σ FYTD of its withdrawal line items'],
+    terms: [
+      {
+        term: 'Department of Defense',
+        meaning: 'Dept of Defense (DoD) - misc',
+      },
+      { term: 'Military Pay', meaning: 'DoD - Military Active Duty Pay' },
+      { term: 'Military Pay', meaning: 'DoD - Military Retirement' },
+      { term: 'Federal Salaries', meaning: 'Federal Salaries (EFT)' },
+      {
+        term: 'Healthcare Subsidies (Marketplace)',
+        meaning: 'HHS - Marketplace Payments',
+      },
+      {
+        term: 'Healthcare Subsidies (Marketplace)',
+        meaning: 'Marketplace Payments',
+      },
+      { term: 'Department of Education', meaning: 'Dept of Education (ED)' },
+      {
+        term: 'Department of Education',
+        meaning: 'Education Department programs',
+      },
+      {
+        term: 'Housing & Urban Development',
+        meaning: 'Dept of Housing & Urban Dev (HUD) - misc',
+      },
+      {
+        term: 'Housing & Urban Development',
+        meaning: 'HUD - Federal Housing Admin (FHA)',
+      },
+      {
+        term: 'Housing & Urban Development',
+        meaning: 'Housing and Urban Development programs',
+      },
+      {
+        term: 'SNAP & WIC',
+        meaning: 'USDA - Supp Nutrition Assist Prog (SNAP)',
+      },
+      {
+        term: 'SNAP & WIC',
+        meaning: 'USDA - Supp Nutrition Assist Prog (WIC)',
+      },
+      { term: 'Veterans Benefits', meaning: 'VA - Benefits' },
+      { term: 'Unemployment Benefits', meaning: 'DOL - Unemployment Benefits' },
+      {
+        term: 'Unemployment Benefits',
+        meaning: 'Unemployment Insurance Benefits',
+      },
+      {
+        term: 'Customs Refunds (CBP)',
+        meaning: 'DHS - Customs & Border Protection (CBP)',
+      },
+    ],
+    pitfalls: [
+      'Customs Refunds (CBP) is every Customs and Border Protection payment; since 2026 most of it is tariff refunds.',
+      'Department of Defense is the DoD misc line only; military pay and DoD health are separate lines.',
+    ],
+    source: DEPOSITS_TABLE,
+  },
+  'other-receipts': {
+    id: 'other-receipts',
+    title: 'Other receipt categories',
+    summary: 'Four more groups of deposit line items.',
+    expression: ['Category FYTD = Σ FYTD of its deposit line items'],
+    terms: [
+      {
+        term: 'Individual Income Taxes',
+        meaning: 'Taxes - Non Withheld Ind/SECA Electronic',
+      },
+      {
+        term: 'Individual Income Taxes',
+        meaning: 'Taxes - Non Withheld Ind/SECA Other',
+      },
+      { term: 'Corporate Income Taxes', meaning: 'Taxes - Corporate Income' },
+      {
+        term: 'Education Receipts (Student Loans)',
+        meaning: 'Dept of Education (ED)',
+      },
+      {
+        term: 'Education Receipts (Student Loans)',
+        meaning: 'Education Department programs',
+      },
+      {
+        term: 'Public Debt Cash Issues',
+        meaning: 'Public Debt Cash Issues (Table IIIB)',
+      },
+      {
+        term: 'Public Debt Cash Issues',
+        meaning: 'Public Debt Cash Issues (Table III-B)',
+      },
+    ],
+    pitfalls: [
+      'Public debt cash issues is borrowing, not revenue; net transfers exclude it.',
+    ],
+    source: DEPOSITS_TABLE,
+  },
+  'rolling-average': {
+    id: 'rolling-average',
+    title: 'Rolling average and monthly rate',
+    summary:
+      'The mean of the last 10 statements’ amounts; for withdrawals, × 20 gives a projected monthly rate.',
+    expression: [
+      '10-day average = Σ amount over the last 10 statements ÷ 10',
+      'Projected monthly rate = 10-day average of withdrawals × 20',
+    ],
+    pitfalls: [
+      'It counts statements, not calendar days: weekends and holidays are skipped.',
+      'A window holding the 1st of the month or a mid-month interest date runs high; the rate swings with payment calendars.',
+    ],
+    source: DEPOSITS_TABLE,
+  },
+  'cash-balance': {
+    id: 'cash-balance',
+    title: 'Treasury cash balance',
+    summary:
+      'The Treasury General Account’s closing balance at the Federal Reserve on each statement date.',
+    expression: [
+      'Closing balance = opening balance + deposits − withdrawals (Table I)',
+    ],
+    pitfalls: [
+      'Unlike net transfers, the balance includes borrowing: debt sales raise it, redemptions lower it.',
+      'Since April 2022 the Treasury reports the closing balance on its own row.',
+    ],
+    source: 'Operating Cash Balance (Table I)',
+  },
+  'interest-income-transfers': {
+    id: 'interest-income-transfers',
+    title: 'Interest income transfers',
+    summary:
+      'Cash interest on notes and bonds plus the T-bill discount: all interest the Treasury pays holders.',
+    expression: [
+      'Interest income = Interest on Treasury Securities + T-Bill interest',
+    ],
+    terms: [
+      {
+        term: 'Interest on Treasury Securities',
+        meaning: 'Cash interest on notes and bonds (withdrawals)',
+      },
+      {
+        term: 'T-Bill Interest',
+        meaning: 'Bills (−) + Bonds and Notes (−) discount (adjustments)',
+      },
+    ],
+    pitfalls: [
+      'Comparable from 2022-09-12, when T-bill interest got its own lines.',
+    ],
+    source:
+      'Tables II and IIIB: Deposits & Withdrawals, and Adjustment of Public Debt Transactions',
+  },
+  'net-customs-receipts': {
+    id: 'net-customs-receipts',
+    title: 'Net customs receipts',
+    summary:
+      'Customs deposits minus Customs and Border Protection payments, which since 2026 are mostly tariff refunds.',
+    expression: [
+      'Net customs = Customs & Duties (Tariffs) − Customs Refunds (CBP)',
+    ],
+    pitfalls: [
+      'CBP payments include more than refunds; before 2026 they are small.',
+      'Comparable from 2020-05-11, when the CBP line starts.',
     ],
     source: DEPOSITS_TABLE,
   },
@@ -328,6 +509,36 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
     ],
     source: 'Income Tax Refunds Issued (Table V)',
   },
+  'category-coverage': {
+    id: 'category-coverage',
+    title: 'When a category can be compared',
+    summary:
+      'A category is compared only from the date its Treasury lines took their current shape; earlier totals are blank, not zero.',
+    expression: [
+      'Total on a date = Σ FYTD of its lines, if date ≥ first comparable date',
+      'Otherwise: no value',
+    ],
+    terms: [
+      { term: 'Social Security Benefits', meaning: 'Comparable from 2021-07-19' },
+      { term: 'Medicare', meaning: 'Comparable from 2020-03-09' },
+      { term: 'Medicaid', meaning: 'October 2005 (all data)' },
+      {
+        term: 'Interest on Treasury Securities',
+        meaning: 'October 2005 (all data)',
+      },
+      {
+        term: 'Employment & Withholding Tax',
+        meaning: 'Comparable from 2023-02-14',
+      },
+      { term: 'Customs & Duties (Tariffs)', meaning: 'October 2005 (all data)' },
+      { term: 'T-Bill Interest', meaning: 'Comparable from 2022-09-12' },
+      { term: 'IRS Tax Refunds', meaning: 'Comparable from 2023-02-14' },
+    ],
+    pitfalls: [
+      'A renamed line is summed under every name it has had; only one name exists on any date.',
+    ],
+    source: DEPOSITS_TABLE,
+  },
   'category-comparison': {
     id: 'category-comparison',
     title: 'Category comparison',
@@ -346,14 +557,30 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
     id: 'weekly-comparison',
     title: 'Weekly comparison',
     summary:
-      'Fiscal-year-to-date net transfers on each Friday, or the closest earlier statement when Friday had none, for two fiscal years.',
+      'Fiscal-year-to-date net transfers on each week’s anchor day, or the closest earlier statement when it had none, for two fiscal years.',
     expression: [
-      'Week N = the Nth Friday on or after October 1',
-      'Value = FYTD net transfers on that Friday, else up to 5 days earlier',
+      'Week N = the Nth anchor day (Friday by default, or Thursday) on or after October 1',
+      'Value = FYTD net transfers on that day, else up to 5 days earlier',
       'Weeks are matched by week number',
     ],
     pitfalls: [
       'The second year stops at the first year’s last week, so a year still in progress is compared with the same stretch of the other.',
+    ],
+    source: DEPOSITS_TABLE,
+  },
+  'weekly-snapshot': {
+    id: 'weekly-snapshot',
+    title: 'Weekly snapshot',
+    summary:
+      'One week’s statement against the same business day a year earlier, and how the net-transfers gap moved since the week before.',
+    expression: [
+      'Snapshot date = latest statement on or up to 5 days before the anchor weekday',
+      'Change = FYTD(snapshot) − FYTD(same day of the previous fiscal year)',
+      'Gap change = this week’s net-transfers change − last week’s',
+    ],
+    pitfalls: [
+      'The gap change is blank in the first week of a fiscal year: last week belongs to another pair of years.',
+      'After a holiday the snapshot uses the closest earlier statement, so its month-to-date covers one day less.',
     ],
     source: DEPOSITS_TABLE,
   },
@@ -368,14 +595,22 @@ export const FORMULA_ORDER: FormulaId[] = [
   'total-withdrawals',
   'net-transfers',
   'leading-flow',
+  'rolling-average',
+  'cash-balance',
   'yoy-difference',
   'yoy-percent',
   'yoy-summary',
   'comparison-modes',
   'major-spending',
   'major-receipts',
+  'other-spending',
+  'other-receipts',
+  'net-customs-receipts',
   'tbill-interest',
+  'interest-income-transfers',
   'irs-refunds',
+  'category-coverage',
   'category-comparison',
   'weekly-comparison',
+  'weekly-snapshot',
 ]

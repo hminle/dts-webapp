@@ -9,6 +9,7 @@ from app.api.deps import CursorDep
 from app.schemas.treasury import (
     CategoryDailyYoYRequest,
     CategoryDailyYoYResponse,
+    CombinedCategoriesResponse,
     IrsRefundRequest,
     IrsRefundResponse,
     MajorReceiptCategoriesRequest,
@@ -41,6 +42,30 @@ def get_major_receipts(
 ) -> MajorReceiptCategoriesResponse:
     """FYTD receipts of the major categories, with YoY change."""
     return categories.get_major_receipts(cur, req)
+
+
+@router.get("/other-spending", response_model=MajorSpendingCategoriesResponse)
+def get_other_spending(
+    cur: CursorDep, req: Annotated[MajorSpendingCategoriesRequest, Query()]
+) -> MajorSpendingCategoriesResponse:
+    """FYTD spending of the other preset categories, with YoY change."""
+    return categories.get_other_spending(cur, req)
+
+
+@router.get("/other-receipts", response_model=MajorReceiptCategoriesResponse)
+def get_other_receipts(
+    cur: CursorDep, req: Annotated[MajorReceiptCategoriesRequest, Query()]
+) -> MajorReceiptCategoriesResponse:
+    """FYTD receipts of the other preset categories, with YoY change."""
+    return categories.get_other_receipts(cur, req)
+
+
+@router.get("/combined", response_model=CombinedCategoriesResponse)
+def get_combined(
+    cur: CursorDep, req: Annotated[MajorSpendingCategoriesRequest, Query()]
+) -> CombinedCategoriesResponse:
+    """Figures made of several categories, with YoY change."""
+    return categories.get_combined(cur, req)
 
 
 @router.get("/tbill-interest", response_model=TBillInterestResponse)

@@ -24,6 +24,10 @@ YEARS = {"current_fiscal_year": 2026, "previous_fiscal_year": 2025}
         ("/api/v1/yoy/daily-comparison", {**YEARS, "metric": "net_flow"}),
         ("/api/v1/categories/major-spending", YEARS),
         ("/api/v1/categories/major-receipts", YEARS),
+        ("/api/v1/categories/other-spending", YEARS),
+        ("/api/v1/categories/other-receipts", YEARS),
+        ("/api/v1/categories/combined", YEARS),
+        ("/api/v1/rolling/daily", {"metric": "total_withdrawals", "window": 2}),
         ("/api/v1/categories/tbill-interest", YEARS),
         ("/api/v1/categories/irs-tax-refunds", YEARS),
         (
@@ -84,3 +88,9 @@ def test_bad_inputs_are_400(client: TestClient, path: str, params: dict) -> None
 
     assert response.status_code == 400
     assert response.json()["detail"]
+
+
+def test_cash_balance_without_rows_is_404(client: TestClient) -> None:
+    # The seed's operating_cash_balance rows have no account_type, so none is a
+    # balance row.
+    assert client.get("/api/v1/cash-balance/daily").status_code == 404

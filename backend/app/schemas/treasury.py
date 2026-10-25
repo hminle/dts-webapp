@@ -5,9 +5,12 @@ These schemas define the structure and validation rules for API requests
 and responses related to Treasury data.
 """
 
-from datetime import datetime
+from datetime import date, datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
+
+from app.utils.anchor import AnchorWeekday
 
 
 class TreasuryDataBase(BaseModel):
@@ -100,6 +103,9 @@ class WeeklyComparisonRequest(BaseModel):
         ..., ge=2000, le=2100, description="Second fiscal year to compare"
     )
     data_source: str | None = Field(None, description="Filter by data source")
+    anchor_weekday: AnchorWeekday = Field(
+        "friday", description="Weekday each week is read on"
+    )
 
 
 class WeeklyDataPoint(BaseModel):
@@ -369,15 +375,31 @@ class MajorSpendingCategory(BaseModel):
     name: str = Field(
         ..., description="Display name (e.g., 'Social Security Benefits')"
     )
-    current_fytd: float = Field(
-        ..., description="Total current fiscal year FYTD amount"
+    current_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total current fiscal year FYTD amount"
+            " (null when the date is before available_from)"
+        ),
     )
-    previous_fytd: float = Field(
-        ..., description="Total previous fiscal year FYTD amount"
+    previous_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total previous fiscal year FYTD amount"
+            " (null when the date is before available_from)"
+        ),
     )
-    yoy_change: float = Field(..., description="Year-over-year change amount")
+    yoy_change: float | None = Field(
+        ...,
+        description=(
+            "Year-over-year change amount (null when the date is before available_from)"
+        ),
+    )
     yoy_percent_change: float | None = Field(
         None, description="Year-over-year percent change"
+    )
+    available_from: str = Field(
+        ..., description="First comparable date (ISO); totals before it are null"
     )
     subcategories: list[SubcategoryBreakdown] = Field(
         default_factory=list, description="Breakdown by subcategory"
@@ -430,15 +452,31 @@ class MajorReceiptCategory(BaseModel):
     name: str = Field(
         ..., description="Display name (e.g., 'Employment & Withholding Tax')"
     )
-    current_fytd: float = Field(
-        ..., description="Total current fiscal year FYTD amount"
+    current_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total current fiscal year FYTD amount"
+            " (null when the date is before available_from)"
+        ),
     )
-    previous_fytd: float = Field(
-        ..., description="Total previous fiscal year FYTD amount"
+    previous_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total previous fiscal year FYTD amount"
+            " (null when the date is before available_from)"
+        ),
     )
-    yoy_change: float = Field(..., description="Year-over-year change amount")
+    yoy_change: float | None = Field(
+        ...,
+        description=(
+            "Year-over-year change amount (null when the date is before available_from)"
+        ),
+    )
     yoy_percent_change: float | None = Field(
         None, description="Year-over-year percent change"
+    )
+    available_from: str = Field(
+        ..., description="First comparable date (ISO); totals before it are null"
     )
     subcategories: list[SubcategoryBreakdown] = Field(
         default_factory=list, description="Breakdown by subcategory"
@@ -529,13 +567,29 @@ class TBillInterestResponse(BaseModel):
     comparison_mode: str = Field(
         default="fiscal_day", description="Comparison mode used"
     )
-    total_current_fytd: float = Field(
-        ..., description="Total T-Bill interest for current fiscal year"
+    total_current_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total T-Bill interest for current fiscal year"
+            " (null when the date is before available_from)"
+        ),
     )
-    total_previous_fytd: float = Field(
-        ..., description="Total T-Bill interest for previous fiscal year"
+    total_previous_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total T-Bill interest for previous fiscal year"
+            " (null when the date is before available_from)"
+        ),
     )
-    total_yoy_change: float = Field(..., description="Total year-over-year change")
+    total_yoy_change: float | None = Field(
+        ...,
+        description=(
+            "Total year-over-year change (null when the date is before available_from)"
+        ),
+    )
+    available_from: str = Field(
+        ..., description="First comparable date (ISO); totals before it are null"
+    )
     total_yoy_percent_change: float | None = Field(
         None, description="Total year-over-year percent change"
     )
@@ -580,9 +634,25 @@ class CategoryDailyYoYDataPoint(BaseModel):
     )
     current_date: str = Field(..., description="Date in current fiscal year")
     previous_date: str | None = Field(None, description="Date in previous fiscal year")
-    current_fytd: float = Field(..., description="FYTD amount in current year")
-    previous_fytd: float = Field(..., description="FYTD amount in previous year")
-    yoy_change: float = Field(..., description="YoY difference (current - previous)")
+    current_fytd: float | None = Field(
+        ...,
+        description=(
+            "FYTD amount in current year (null when the date is before available_from)"
+        ),
+    )
+    previous_fytd: float | None = Field(
+        ...,
+        description=(
+            "FYTD amount in previous year (null when the date is before available_from)"
+        ),
+    )
+    yoy_change: float | None = Field(
+        ...,
+        description=(
+            "YoY difference (current - previous)"
+            " (null when the date is before available_from)"
+        ),
+    )
     yoy_percent_change: float | None = Field(None, description="YoY percent change")
 
 
@@ -599,6 +669,9 @@ class CategoryDailyYoYResponse(BaseModel):
         default="fiscal_day", description="Comparison mode used"
     )
     comparison_days: int = Field(..., description="Number of days compared")
+    available_from: str = Field(
+        ..., description="First comparable date (ISO); totals before it are null"
+    )
     data_points: list[CategoryDailyYoYDataPoint] = Field(
         default_factory=list, description="Daily YoY data points"
     )
@@ -653,16 +726,253 @@ class IrsRefundResponse(BaseModel):
     comparison_mode: str = Field(
         default="fiscal_day", description="Comparison mode used"
     )
-    total_current_fytd: float = Field(
-        ..., description="Total IRS tax refunds for current fiscal year"
+    total_current_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total IRS tax refunds for current fiscal year"
+            " (null when the date is before available_from)"
+        ),
     )
-    total_previous_fytd: float = Field(
-        ..., description="Total IRS tax refunds for previous fiscal year"
+    total_previous_fytd: float | None = Field(
+        ...,
+        description=(
+            "Total IRS tax refunds for previous fiscal year"
+            " (null when the date is before available_from)"
+        ),
     )
-    total_yoy_change: float = Field(..., description="Total year-over-year change")
+    total_yoy_change: float | None = Field(
+        ...,
+        description=(
+            "Total year-over-year change (null when the date is before available_from)"
+        ),
+    )
+    available_from: str = Field(
+        ..., description="First comparable date (ISO); totals before it are null"
+    )
     total_yoy_percent_change: float | None = Field(
         None, description="Total year-over-year percent change"
     )
     components: list[IrsRefundComponent] = Field(
         default_factory=list, description="Breakdown by component"
+    )
+
+
+# Weekly Snapshot Schemas
+
+
+class SnapshotFigure(BaseModel):
+    """One FYTD figure against the same business day a year earlier."""
+
+    current: float | None = Field(..., description="FYTD on the snapshot date")
+    previous: float | None = Field(
+        ..., description="FYTD on the aligned previous-FY date"
+    )
+    change: float | None = Field(..., description="current − previous")
+    percent_change: float | None = Field(..., description="change ÷ |previous| × 100")
+
+
+class WeeklySnapshotRequest(BaseModel):
+    """Schema for requesting one week's snapshot."""
+
+    anchor_weekday: AnchorWeekday = Field(
+        "thursday", description="Weekday the week ends on"
+    )
+    as_of: date | None = Field(
+        None, description="Read the week on or before this date; default latest"
+    )
+
+
+class SnapshotCashBalance(BaseModel):
+    """The TGA closing balance on the snapshot date, a week and a year earlier."""
+
+    closing: float | None = Field(
+        ..., description="On record_date; null if the statement has no balance row"
+    )
+    previous_week: float | None = Field(..., description="On previous_week_date")
+    change_week: float | None = Field(..., description="closing − previous_week")
+    year_ago: float | None = Field(
+        ..., description="On previous_date (same fiscal day)"
+    )
+    change_year: float | None = Field(..., description="closing − year_ago")
+    percent_change_year: float | None = Field(
+        ..., description="change_year ÷ |year_ago| × 100"
+    )
+
+
+class WeeklySnapshotResponse(BaseModel):
+    """One week's statement: month and fiscal year to date, against a year ago."""
+
+    anchor_weekday: AnchorWeekday = Field(..., description="Weekday the week ends on")
+    anchor_date: str = Field(..., description="The Thursday/Friday the week ends on")
+    record_date: str = Field(
+        ..., description="Statement used; earlier than anchor_date after a holiday"
+    )
+    fiscal_year: int = Field(..., description="Fiscal year of record_date")
+    day_of_fiscal_year: int = Field(..., description="Business day of the fiscal year")
+    previous_fiscal_year: int = Field(..., description="fiscal_year − 1")
+    previous_date: str | None = Field(
+        ..., description="Same day_of_fiscal_year in the previous FY"
+    )
+    withdrawals_mtd: float = Field(..., description="Total withdrawals, month to date")
+    net_transfers_mtd: float = Field(..., description="Net transfers, month to date")
+    withdrawals_fytd: SnapshotFigure
+    deposits_fytd: SnapshotFigure
+    net_transfers_fytd: SnapshotFigure
+    withholding_fytd: SnapshotFigure
+    withdrawals_10d_average: float | None = Field(
+        ..., description="Mean withdrawals over the last 10 statements"
+    )
+    projected_monthly_withdrawals: float | None = Field(
+        ..., description="withdrawals_10d_average × 20"
+    )
+    unemployment_10d_average: float | None = Field(
+        ..., description="Mean unemployment benefits over the last 10 statements"
+    )
+    interest_income_fytd: SnapshotFigure
+    net_customs_fytd: SnapshotFigure
+    cash_balance: SnapshotCashBalance
+    previous_week_date: str | None = Field(
+        ..., description="Statement used for the week before"
+    )
+    previous_week_net_transfers_gap: float | None = Field(
+        ..., description="Last week's net-transfers FYTD change from a year earlier"
+    )
+    net_transfers_gap_change: float | None = Field(
+        ..., description="This week's net-transfers change minus last week's"
+    )
+    gap_change_unavailable_reason: str | None = Field(
+        ..., description="Why net_transfers_gap_change is null, when it is"
+    )
+
+
+# Rolling Average Schemas
+
+RollingMetric = Literal["total_withdrawals", "unemployment_benefits"]
+
+
+class RollingAverageRequest(BaseModel):
+    """Schema for requesting a rolling average of a daily amount."""
+
+    metric: RollingMetric = Field(..., description="Daily amount to average")
+    window: int = Field(10, ge=2, le=60, description="Statements per average")
+    start_date: date | None = Field(
+        None, description="First date returned; default a year before end_date"
+    )
+    end_date: date | None = Field(
+        None, description="Last date returned; default latest"
+    )
+
+
+class RollingPoint(BaseModel):
+    """One statement's amount and the rolling average ending on it."""
+
+    record_date: str = Field(..., description="Statement date")
+    value: float = Field(..., description="That statement's amount")
+    rolling_average: float | None = Field(
+        ...,
+        description=(
+            "Mean of the last `window` statements; null until there are that many"
+        ),
+    )
+    projected_monthly: float | None = Field(
+        ..., description="rolling_average × 20, withdrawals only"
+    )
+
+
+class RollingAverageResponse(BaseModel):
+    """Schema for rolling average response."""
+
+    metric: RollingMetric = Field(..., description="Daily amount averaged")
+    window: int = Field(..., description="Statements per average")
+    monthly_multiplier: int | None = Field(
+        ..., description="Business days a month in the projection; null if none"
+    )
+    start_date: str = Field(..., description="First date returned")
+    end_date: str = Field(..., description="Last date returned")
+    points: list[RollingPoint] = Field(
+        default_factory=list, description="One point per statement"
+    )
+
+
+# Combined Category Schemas
+
+
+class CombinedTermValue(BaseModel):
+    """One category inside a combined figure."""
+
+    category_name: str = Field(..., description="Registry category name")
+    sign: int = Field(..., description="1 adds the category, -1 subtracts it")
+    current_fytd: float | None = Field(
+        ..., description="Category FYTD on current_date; null before its coverage"
+    )
+    previous_fytd: float | None = Field(
+        ..., description="Category FYTD on previous_date; null before its coverage"
+    )
+
+
+class CombinedCategory(BaseModel):
+    """A figure made of several categories, with YoY change."""
+
+    name: str = Field(..., description="Display name")
+    available_from: str = Field(
+        ..., description="First comparable date (ISO): the latest of its terms'"
+    )
+    current_fytd: float | None = Field(
+        ..., description="Signed sum on current_date; null if any term is"
+    )
+    previous_fytd: float | None = Field(
+        ..., description="Signed sum on previous_date; null if any term is"
+    )
+    yoy_change: float | None = Field(..., description="current − previous")
+    yoy_percent_change: float | None = Field(
+        ..., description="yoy_change ÷ |previous| × 100"
+    )
+    terms: list[CombinedTermValue] = Field(
+        default_factory=list, description="The categories it is made of"
+    )
+
+
+class CombinedCategoriesResponse(BaseModel):
+    """Schema for combined categories response."""
+
+    current_fiscal_year: int = Field(..., description="Current fiscal year")
+    previous_fiscal_year: int = Field(..., description="Previous fiscal year")
+    current_date: str = Field(
+        ..., description="Latest date with data in current fiscal year"
+    )
+    previous_date: str = Field(
+        ..., description="Equivalent date in previous fiscal year"
+    )
+    comparison_mode: str = Field(..., description="Comparison mode used")
+    categories: list[CombinedCategory] = Field(
+        default_factory=list, description="The combined figures"
+    )
+
+
+# Cash Balance Schemas
+
+
+class CashBalanceRequest(BaseModel):
+    """Schema for requesting the TGA closing balance over a range."""
+
+    start_date: date | None = Field(None, description="Default a year before end_date")
+    end_date: date | None = Field(None, description="Default the latest statement")
+
+
+class CashBalancePoint(BaseModel):
+    """The closing balance on one statement date."""
+
+    record_date: str = Field(..., description="Statement date")
+    closing_balance: float = Field(
+        ..., description="TGA closing balance, millions of dollars"
+    )
+
+
+class CashBalanceResponse(BaseModel):
+    """Schema for cash balance response."""
+
+    start_date: str = Field(..., description="First date requested")
+    end_date: str = Field(..., description="Last date requested")
+    points: list[CashBalancePoint] = Field(
+        default_factory=list, description="One point per statement"
     )
