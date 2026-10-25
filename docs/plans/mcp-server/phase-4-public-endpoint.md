@@ -115,7 +115,10 @@ never CDN-cached."
       prints the five tool names and the `yoy_*` operations.
 - [x] Stdio still works: the Phase 2 stdio smoke test passes unchanged.
 - [x] Preview checks 1, 3 and 4 in §3 pass (check 2 needs the protection bypass; run it against production after merge).
-- [ ] After merge, the same `curl` against production returns 200.
+- [x] After merge, the same `curl` against production returns 200. (2026-10-24: 200,
+  `text/event-stream`, 0.28 s. Over the FastMCP HTTP client: all five tools listed read-only,
+  `call_api` net transfers 2026-10-19 = −16,755 today and 108,932 FYTD, `data-model` lists 11
+  tables, `COPY` and a `read_csv` of a URL are both rejected.)
 
 ## Notes
 
