@@ -83,6 +83,23 @@ def test_example_placeholder(cur: duckdb.DuckDBPyConnection) -> None:
 
 
 @pytest.mark.parametrize(
+    ("path", "expected"),
+    [("net_transfers.fiscal_year", "2027"), ("yoy.day_of_fiscal_year", "12")],
+)
+def test_example_year_has_no_separator(
+    path: str, expected: str, cur: duckdb.DuckDBPyConnection
+) -> None:
+    assert render(f"{{{{example:{path}}}}}", cur) == expected
+
+
+@pytest.mark.parametrize("name", sorted(load_skills()))
+def test_rendered_skill_has_no_comma_year(
+    name: str, cur: duckdb.DuckDBPyConnection
+) -> None:
+    assert not re.search(r"FY\d,\d", render(load_skills()[name].body, cur))
+
+
+@pytest.mark.parametrize(
     "body", ["{{nope}}", "{{example:no.such.path}}", "{{example:net_transfers}}"]
 )
 def test_unknown_placeholder(body: str, cur: duckdb.DuckDBPyConnection) -> None:

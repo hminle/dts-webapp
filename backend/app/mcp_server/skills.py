@@ -123,8 +123,9 @@ def _render_example(path: str) -> str:
         node = node[part]
     if isinstance(node, dict | list):
         raise SkillError(f"Worked example {path!r} is not a single value")
+    # Amounts get thousands separators; a year is a label, not an amount.
     if isinstance(node, int | float) and not isinstance(node, bool):
-        return f"{node:,}"
+        return str(node) if part.endswith("year") else f"{node:,}"
     return str(node)
 
 
