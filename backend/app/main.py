@@ -17,6 +17,7 @@ from app.api.routers import (
 )
 from app.core.config import get_settings
 from app.core.duckdb import DataUnavailable
+from app.mcp_server.server import build_server
 
 
 def generate_unique_id(route: APIRoute) -> str:
@@ -56,3 +57,11 @@ def bad_request(request: Request, exc: ValueError) -> JSONResponse:
 
 for module in (health, meta, lookups, data, net_transfers, weekly, yoy, categories):
     app.include_router(module.router)
+
+# Mounted last so every /api/v1 route matches first. Stateless: each request
+# stands alone, so any Fluid compute instance can serve it.
+mcp_app = build_server(app).http_app(path="/", stateless_http=True)
+# The MCP session manager starts in this lifespan, and Starlette ignores the
+# lifespans of mounted apps, so the FastAPI app has to run it.
+app.router.lifespan_context = mcp_app.lifespan
+app.mount("/api/mcp", mcp_app)

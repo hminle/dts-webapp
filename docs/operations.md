@@ -93,6 +93,39 @@ with `/api/` → Rate Limit, fixed window 60 s, 300 requests, keyed on IP, actio
 hits count too, but a person browsing makes a few dozen API requests a minute at most. A false
 positive shows up as 429s in Firewall → Overview; raise the limit or switch the action to Log.
 
+## MCP server
+
+`https://dts-webapp.vercel.app/api/mcp/` serves the same MCP server Claude Code runs locally
+from `.mcp.json` (`app/mcp_server/`): stateless streamable HTTP, no auth, read-only. Its tools
+are `list_api`, `describe_api`, `call_api`, `run_query` and `get_skills`.
+
+Connect: `claude mcp add --transport http dts https://dts-webapp.vercel.app/api/mcp/`
+
+**Keep the trailing slash.** `/api/mcp` without it answers `307` to `/api/mcp/`, and some MCP
+clients do not re-send a `POST` after a redirect.
+
+Limits live in `Settings` (`backend/app/core/config.py`); override them with `APP_`-prefixed
+Vercel env vars:
+
+| Setting | Default | Limits |
+|---|---|---|
+| `duckdb_memory_limit` | `1GB` | DuckDB memory before it spills to `/tmp/duckdb` (applies to the API too) |
+| `query_default_rows` | `200` | Rows `run_query` returns when no `max_rows` is given |
+| `query_max_rows` | `2000` | The largest `max_rows` allowed |
+| `query_timeout_seconds` | `10` | A query is interrupted after this; the function's `maxDuration` is 30 s |
+| `query_concurrency` | `2` | Queries running at once per instance; more get "retry in a few seconds" |
+| `mcp_max_response_bytes` | `262144` | Larger `call_api` / `run_query` responses fail with an error saying how to narrow them |
+
+Agent SQL cannot read files, reach the network, or change settings: `app/core/duckdb.py` locks
+the shared connection down after opening it.
+
+MCP requests count against `api-per-ip` (300/min, see Rate limiting). An agent makes a handful
+of requests per question, so the limit stays as it is. If agents hit 429s, Firewall → Overview
+shows them for `/api/mcp/`.
+
+**Turning it off:** there is no flag. Remove the mount at the end of `backend/app/main.py`
+and deploy.
+
 ## Sentry
 
 The backend reports unhandled exceptions to Sentry when `APP_SENTRY_DSN` is set (Vercel env var,
