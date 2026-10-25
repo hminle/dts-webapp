@@ -14,7 +14,14 @@ from fastmcp.exceptions import ToolError
 
 from app.core.config import get_settings
 from app.core.duckdb import DataUnavailable, get_connection
-from app.mcp_server.models import ApiCallResult, OperationDetail, OperationSummary
+from app.mcp_server import skills
+from app.mcp_server.models import (
+    ApiCallResult,
+    OperationDetail,
+    OperationSummary,
+    Skill,
+    SkillSummary,
+)
 from app.mcp_server.openapi_catalog import (
     CatalogError,
     build_request_path,
@@ -27,9 +34,9 @@ from app.services import sql as sql_service
 INSTRUCTIONS = (
     "U.S. Treasury Daily Treasury Statement data (public domain), refreshed once per "
     "business day. Amounts are millions of U.S. dollars. The fiscal year starts "
-    "October 1. Use list_api and describe_api to find an endpoint, then call_api. "
-    "Use run_query (DuckDB SQL, one SELECT) for anything the API doesn't answer; "
-    'run "SHOW TABLES" and "DESCRIBE <table>" first.'
+    'October 1. Start with get_skills("start-here"): it says which tool to use for '
+    "which question. Read the matching skill before computing a figure yourself, so "
+    "your numbers match the app's."
 )
 
 READ_ONLY = {"readOnlyHint": True, "openWorldHint": False}
@@ -132,6 +139,49 @@ def build_server(api: FastAPI) -> FastMCP:
                 "columns or lower max_rows."
             )
         return result
+
+    @mcp.tool(annotations=READ_ONLY)
+    async def get_skills(name: str | None = None) -> list[SkillSummary] | Skill:
+        """Read a methodology guide: how the app computes a figure, with SQL.
+
+        Without a name, lists the guides. Start with get_skills(name="start-here").
+        """
+        try:
+            loaded = skills.load_skills()
+        except skills.SkillError as exc:
+            raise ToolError(str(exc)) from exc
+        if name is None:
+            return [
+                SkillSummary(name=s.name, description=s.description)
+                for s in loaded.values()
+            ]
+        if name not in loaded:
+            raise ToolError(f"No skill {name!r}. Available: {', '.join(loaded)}.")
+        skill = loaded[name]
+
+        def _render() -> str:
+            cur = get_connection().cursor()
+            try:
+                return skills.render(skill.body, cur)
+            finally:
+                cur.close()
+
+        # {{schema}} runs a query, so keep it off the event loop like run_query.
+        try:
+            body = await anyio.to_thread.run_sync(_render)
+        except (skills.SkillError, sql_service.QueryRejected) as exc:
+            raise ToolError(str(exc)) from exc
+        except DataUnavailable as exc:
+            raise ToolError(
+                "Data is not loaded yet. Locally: cd backend && uv run python -m "
+                "scripts.fetch_artifact"
+            ) from exc
+        return Skill(
+            name=skill.name,
+            description=skill.description,
+            formulas=list(skill.formulas),
+            body=body,
+        )
 
     return mcp
 

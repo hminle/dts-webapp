@@ -1,4 +1,4 @@
-# Phase 3: Skills — ⬜ Not Started
+# Phase 3: Skills — ✅ Done
 
 **Goal**: A `get_skills` tool that serves Markdown methodology guides, with every fact that the
 code already knows (schema, category line items, worked-example numbers) filled in from the
@@ -154,11 +154,11 @@ must be updated in the same commit."
 
 ## Verification
 
-- [ ] `cd backend && uv run pytest tests/test_mcp_skills.py tests/test_mcp_tools.py -x` — all pass.
-- [ ] `cd backend && uv run pytest` — full suite passes.
-- [ ] `cd backend && uv run ruff check . && uv run ruff format --check .` — clean.
-- [ ] `git diff --exit-code docs/contracts/openapi.json` — no change.
-- [ ] Drift check by hand: change one number in the frontend `worked-examples.json`, run
+- [x] `cd backend && uv run pytest tests/test_mcp_skills.py tests/test_mcp_tools.py -x` — all pass.
+- [x] `cd backend && uv run pytest` — full suite passes.
+- [x] `cd backend && uv run ruff check . && uv run ruff format --check .` — clean.
+- [x] `git diff --exit-code docs/contracts/openapi.json` — no change.
+- [x] Drift check by hand: change one number in the frontend `worked-examples.json`, run
       `uv run pytest tests/test_mcp_skills.py` — `test_worked_examples_copy_matches_frontend`
       fails (and `test_formula_examples.py` too). Revert.
 - [ ] In Claude Code: ask "how does this app compute net transfers, and what was it FYTD on the
@@ -170,3 +170,21 @@ must be updated in the same commit."
 - A skill explains *how to get a number with these tools*. The Methodology page explains *what
   the number means* to a person. Overlap is expected; the formulas come from the same
   `formulas.ts` entries.
+- **Found while writing `net-transfers.md`.** The two TGA total rows exist only from
+  2022-04-18; before that `calculate_daily_net_transfers` sums the day's TGA rows, and up to
+  2021-09-30 statements use `account_type = 'Federal Reserve Account'`. The skill's SQL is
+  marked as valid from 2022-04-18 and points to `daily_net_transfers` for earlier dates.
+- `data-model.md` writes the day-number rule as
+  `DENSE_RANK() OVER (PARTITION BY record_fiscal_year ORDER BY record_date)`, the same rule as
+  CLAUDE.md's "within the fiscal year" wording, in a form that runs.
+- `run_select` is called for `{{schema}}`, so the placeholder goes through the same lockdown
+  and limits as agent SQL; `get_skills` maps `DataUnavailable` like `run_query` does.
+- Verified on landing:
+  - Every skill SQL block, run on the real artifact, reproduces the worked examples:
+    - Medicare FYTD 81,533.
+    - Net transfers −16,755 today and 108,932 FYTD on 2026-10-19.
+    - YoY day 12 is 108,932 vs 94,000: a difference of 14,932, or 15.89 %.
+  - The hand drift check failed `test_worked_examples_copy_matches_frontend` and two
+    `test_formula_examples.py` tests, then was reverted.
+  - 33 skill and tool tests; full suite 183 passed.
+  - The Claude Code conversation check is left for the owner.

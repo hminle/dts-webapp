@@ -13,7 +13,7 @@ mounted publicly at `/api/mcp` on Vercel without changing the tool code.
 | Phase 0: Setup | ✅ Done | Existing state, architecture, tool contracts, decisions, file inventory |
 | Phase 1: Query guard | ✅ Done | Lock down the shared DuckDB connection; `run_select` service with single-SELECT check, row cap, timeout, concurrency slots |
 | Phase 2: Local MCP server | ✅ Done | `app/mcp_server/` with `list_api`, `describe_api`, `call_api`, `run_query`; stdio entrypoint; `.mcp.json` for Claude Code |
-| Phase 3: Skills | ⬜ Not Started | `get_skills` tool, Markdown skills folder with placeholders rendered from live schema, category registry and worked examples; drift tests |
+| Phase 3: Skills | ✅ Done | `get_skills` tool, Markdown skills folder with placeholders rendered from live schema, category registry and worked examples; drift tests |
 | Phase 4: Public endpoint | ⬜ Not Started | Mount stateless streamable HTTP at `/api/mcp` in the FastAPI app, verify on a Vercel preview, document operations |
 
 ## Phase Dependencies

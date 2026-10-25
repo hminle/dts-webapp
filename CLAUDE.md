@@ -147,8 +147,9 @@ The shell, design tokens, and component layers are copied from
   time through `src/lib/format.ts`.
 - Formula copy lives in `features/methodology/formulas.ts`; worked-example numbers live in
   `features/methodology/worked-examples.json`, which `backend/tests/test_formula_examples.py`
-  checks against the real formula code — change a formula and both must be updated in the same
-  commit.
+  checks against the real formula code. `backend/app/mcp_server/worked-examples.json` is a copy
+  the MCP skills read (`test_mcp_skills.py` enforces it). Change a formula and all three must be
+  updated in the same commit.
 
 ## Conventions
 
