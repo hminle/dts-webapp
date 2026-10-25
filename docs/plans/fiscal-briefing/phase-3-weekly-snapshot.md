@@ -1,4 +1,4 @@
-# Phase 3: Weekly snapshot — ⬜ Not Started
+# Phase 3: Weekly snapshot — ✅ Done
 
 **Goal**: A "Weekly snapshot" page that shows, for one week's statement, the figures a weekly
 fiscal briefing leads with:
@@ -438,3 +438,10 @@ Commit `routeTree.gen.ts` with the route.
 - The snapshot reads `daily_net_transfers` only, plus one category sum. It needs no new
   ingestion.
 - `as_of` makes any past issue of the newsletter checkable: `as_of=<the issue's Thursday>`.
+
+## Implementation notes
+
+Landed on `feat/weekly-snapshot` (4a2d32c), stacked on Phase 2.
+- **Holiday test.** It needs a statement after the holiday. Rule 2 anchors on the latest statement, so with only Wed 2025-11-26 the snapshot reads the week before. The real data has Fri 2025-11-28, and `as_of=2025-11-28` gives `record_date` 2025-11-26 as planned. Consequence: `as_of` set to a holiday Thursday itself, or "latest" before the next statement is out, still shows the previous week.
+- **Seed check.** `test_snapshot_thursday_has_no_statement_in_the_seed` is a 404, as planned.
+- **Route tree.** `pnpm build` runs `tsc` before Vite regenerates `routeTree.gen.ts`, so a new route needs `pnpm exec vite build` once first.

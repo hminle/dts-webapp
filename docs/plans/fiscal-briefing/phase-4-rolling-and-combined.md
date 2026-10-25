@@ -1,4 +1,4 @@
-# Phase 4: Rolling averages & combined figures — ⬜ Not Started
+# Phase 4: Rolling averages & combined figures — ✅ Done
 
 **Goal**:
 - **Rolling averages.** A 10-statement rolling average of daily withdrawals, with its
@@ -419,3 +419,11 @@ cd ../frontend && pnpm gen:api && pnpm build
 - Our unemployment average for 2025-12-04 is 173.6. The newsletter printed 173.5. The
   definition here is the documented one (the last 10 statements); the newsletter's small
   differences are noted in `docs/research/mmt-trader-dts-method.md` §2.5.
+
+## Implementation notes
+
+Landed on `feat/rolling-and-combined` (b381828), stacked on Phase 3.
+- **`RollingMetric`.** It lives in `app/schemas/treasury.py`, the plan's fallback, because the service imports the schemas.
+- **Snapshot test.** The new snapshot fields are tested in `test_snapshot_adds_leading_flows_and_combined_figures` rather than by extending the Dec 4 test.
+- **Rolling 400.** `start_date > end_date` is tested through the service (`ValueError` → 400).
+- **New lib helper.** `frontend/src/features/daily/lib.ts` also gained `lastWithValue`, which the stat cards use for the last non-null point.

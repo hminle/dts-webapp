@@ -1,4 +1,4 @@
-# Phase 2: Preset categories — ⬜ Not Started
+# Phase 2: Preset categories — ✅ Done
 
 **Goal**: Add 14 categories that the newsletter tracks and the app lacks: 10 spending and
 4 receipt. Each gets the same card, detail dialog and year-over-year treatment as the major
@@ -319,3 +319,9 @@ cd ../frontend && pnpm gen:api
 - Several new categories go back to 2005 only because of the old names in `components`.
   If the Treasury renames a line again, add the new name first in the tuple and add a row to
   Phase 0's history table.
+
+## Implementation notes
+
+Landed on `feat/preset-categories` (fdd295f), stacked on Phase 1.
+- `backend/tests/test_mcp_catalog.py::test_lists_every_v1_get_operation` hard-codes the operation count. It went 20 → 22 here, and each later phase bumps it (23, 25, 26). The plan's file inventory missed this test.
+- The `available_from` assertion in `test_the_category_groups_match_the_methodology` covers the 14 new categories through `CATEGORY_REGISTRY`.

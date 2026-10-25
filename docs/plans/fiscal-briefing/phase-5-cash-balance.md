@@ -1,4 +1,4 @@
-# Phase 5: Cash balance — ⬜ Not Started
+# Phase 5: Cash balance — ✅ Done
 
 **Goal**: Show the Treasury General Account (TGA) closing balance, the Treasury's cash at the
 Federal Reserve, as a daily series back to 2005:
@@ -279,3 +279,10 @@ cd ../frontend && pnpm gen:api && pnpm build
 
 - The balance changes by net transfers **plus** net borrowing, so it is not a fiscal-stance
   measure. The formula's first pitfall says so, because readers often confuse the two.
+
+## Implementation notes
+
+Landed on `feat/cash-balance` (44737e0), stacked on Phase 4.
+- **"All" range.** It always sends `start_date=2005-10-03`. `useCashBalance(null)` still means the API default (a year).
+- **Snapshot cash test.** It uses the real Dec 4, 2025 balances: 878,666, 899,678 and 815,011. The changes are −21,012 and +63,655 (+7.81%), which match the explainer mockup.
+- **Real data.** 5,286 points from 2005. The 2021 and 2022 switch-overs are continuous.

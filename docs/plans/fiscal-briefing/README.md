@@ -17,11 +17,16 @@ the Treasury's line renames. GDP comparisons are out of scope.
 | Phase | Status | Description |
 |-------|--------|-------------|
 | Phase 0: Setup | ✅ Done | Existing state, Treasury line history, contracts, worked examples, decisions |
-| Phase 1: Category coverage | ⬜ Not Started | `available_from` per category; old line names summed; totals before coverage are `null`, not 0 |
-| Phase 2: Preset categories | ⬜ Not Started | 10 spending + 4 receipt categories, two endpoints, "Other categories" grids |
-| Phase 3: Weekly snapshot | ⬜ Not Started | `/snapshot` page + `snapshot_get_weekly`; Thursday/Friday anchor, also on the weekly comparison |
-| Phase 4: Rolling averages & combined figures | ⬜ Not Started | 10-statement averages (× 20 monthly rate), interest income transfers, net customs receipts; `/daily/leading-flows` |
-| Phase 5: Cash balance | ⬜ Not Started | TGA closing balance across three storage eras; `/cash-balance` page and snapshot card |
+| Phase 1: Category coverage | ✅ Done | `available_from` per category; old line names summed; totals before coverage are `null`, not 0 |
+| Phase 2: Preset categories | ✅ Done | 10 spending + 4 receipt categories, two endpoints, "Other categories" grids |
+| Phase 3: Weekly snapshot | ✅ Done | `/snapshot` page + `snapshot_get_weekly`; Thursday/Friday anchor, also on the weekly comparison |
+| Phase 4: Rolling averages & combined figures | ✅ Done | 10-statement averages (× 20 monthly rate), interest income transfers, net customs receipts; `/daily/leading-flows` |
+| Phase 5: Cash balance | ✅ Done | TGA closing balance across three storage eras; `/cash-balance` page and snapshot card |
+
+All five phases landed on 2026-10-25 as stacked branches, each branched from the one before:
+`fix/category-coverage` → `feat/preset-categories` → `feat/weekly-snapshot` →
+`feat/rolling-and-combined` → `feat/cash-balance`. Each phase file ends with implementation
+notes on where the build departed from the plan.
 
 ## Phase Dependencies
 

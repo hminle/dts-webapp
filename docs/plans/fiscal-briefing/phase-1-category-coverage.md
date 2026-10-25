@@ -1,4 +1,4 @@
-# Phase 1: Category coverage — ⬜ Not Started
+# Phase 1: Category coverage — ✅ Done
 
 **Goal**: Every category knows the first date it can be compared from. A total for an earlier
 date is `null`, not a silent `0`. Renamed Treasury lines whose FYTD carries forward are summed
@@ -275,3 +275,9 @@ place that formats a total.
   published number changes.
 - `fetch_component_fytd` keeps returning `0.0` for a missing component. That is correct at
   line level. Coverage is decided at category level only.
+
+## Implementation notes
+
+Landed on `fix/category-coverage` (c84423c).
+- `accent.ts` gained `totalText` and `changeText`, so the card, the breakdown table, the dialog and later the snapshot all render `null` as "—" the same way.
+- `categories.md` frontmatter lists `category-coverage`. `test_frontmatter_formulas_exist` checks it against `formulas.ts`.
