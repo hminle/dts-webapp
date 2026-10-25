@@ -7,7 +7,7 @@ from fastapi import HTTPException
 
 from app.schemas.treasury import WeeklySnapshotRequest
 from app.services.snapshot import get_weekly
-from tests.fixtures import catg_row, dnt_row, formula_db
+from tests.fixtures import apd_row, catg_row, dnt_row, dw_row, formula_db
 
 WITHHELD = "Taxes - Withheld Individual/FICA"
 
@@ -85,6 +85,79 @@ def test_thursday_snapshot_pairs_the_same_fiscal_day() -> None:
     assert s.net_transfers_fytd.percent_change == pytest.approx(-19.075, abs=1e-3)
     assert s.withholding_fytd.change == 23007
     assert s.withholding_fytd.percent_change == pytest.approx(4.045, abs=1e-3)
+
+
+def test_snapshot_adds_leading_flows_and_combined_figures() -> None:
+    # The 10 statements ending 2025-12-04 (Thanksgiving skipped).
+    days = [date(2025, 11, d) for d in (20, 21, 24, 25, 26, 28)] + [
+        date(2025, 12, d) for d in (1, 2, 3)
+    ]
+    withdrawals = [19815, 31192, 16793, 19998, 54507, 13595, 125763, 13764, 44733]
+    unemployment = [78, 63, 193, 241, 353, 56, 212, 269, 164, 107]
+    rows = [
+        dnt_row(
+            d, 2026, 34 + i, withdrawals_fytd=0, deposits_fytd=0, withdrawals_today=v
+        )
+        for i, (d, v) in enumerate(zip(days, withdrawals, strict=True))
+    ]
+    current, previous = _dec_4_rows()
+    current["total_withdrawals_today"] = 15928
+    rows += [current, previous]
+
+    def line(day, fy, side, catg, fytd):
+        return catg_row(
+            day, fy, transaction_type=side, transaction_catg=catg, fytd=fytd
+        )
+
+    cur_day, prev_day = date(2025, 12, 4), date(2024, 12, 4)
+    lines = [
+        dw_row(
+            d,
+            2026,
+            account_type="Treasury General Account (TGA)",
+            transaction_type="Withdrawals",
+            transaction_catg="DOL - Unemployment Benefits",
+            today=v,
+        )
+        for d, v in zip([*days, cur_day], unemployment, strict=True)
+    ]
+    interest, cbp = (
+        "Interest on Treasury Securities",
+        ("DHS - Customs & Border Protection (CBP)"),
+    )
+    lines += [
+        line(cur_day, 2026, "Withdrawals", interest, 141720),
+        line(prev_day, 2025, "Withdrawals", interest, 120038),
+        line(cur_day, 2026, "Deposits", "DHS - Customs Duties, Taxes, and Fees", 68584),
+        line(cur_day, 2026, "Withdrawals", cbp, 3180),
+        line(
+            prev_day, 2025, "Deposits", "DHS - Customs and Certain Excise Taxes", 17730
+        ),
+        line(prev_day, 2025, "Withdrawals", cbp, 1807),
+    ]
+    adjustments = [
+        apd_row(cur_day, 2026, adj_type="Bills (-)", fytd=49128),
+        apd_row(cur_day, 2026, adj_type="Bonds and Notes (-)", fytd=1749),
+        apd_row(prev_day, 2025, adj_type="Bills (-)", fytd=53521),
+        apd_row(prev_day, 2025, adj_type="Bonds and Notes (-)", fytd=4122),
+    ]
+    conn = formula_db(
+        {
+            "daily_net_transfers": rows,
+            "deposits_withdrawals": lines,
+            "adjustment_public_debt": adjustments,
+        }
+    )
+    s = _snapshot(conn)
+    assert s.withdrawals_10d_average == pytest.approx(35608.8)
+    assert s.projected_monthly_withdrawals == pytest.approx(712176)
+    assert s.unemployment_10d_average == pytest.approx(173.6)
+    assert (s.interest_income_fytd.current, s.interest_income_fytd.previous) == (
+        192597,
+        177681,
+    )
+    assert s.interest_income_fytd.change == 14916
+    assert (s.net_customs_fytd.current, s.net_customs_fytd.change) == (65404, 49481)
 
 
 def test_a_holiday_anchor_uses_the_closest_earlier_statement() -> None:

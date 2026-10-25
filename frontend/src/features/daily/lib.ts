@@ -50,3 +50,20 @@ export function formulaSteps(day: DailyNetTransfer): FormulaStep[] {
     },
   ]
 }
+
+/** The ISO date `days` before `today`, in local time. */
+export function rangeStart(days: number, today: Date): string {
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  start.setDate(start.getDate() - days)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const month = pad(start.getMonth() + 1)
+  return `${start.getFullYear()}-${month}-${pad(start.getDate())}`
+}
+
+/** The newest point whose `key` has a value, for "latest" stat cards. */
+export function lastWithValue<T>(points: T[], key: keyof T): T | undefined {
+  for (let i = points.length - 1; i >= 0; i--) {
+    if (points[i][key] != null) return points[i]
+  }
+  return undefined
+}

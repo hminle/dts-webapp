@@ -13,19 +13,28 @@ from datetime import date, timedelta
 import duckdb
 from fastapi import HTTPException
 
-from app.constants.categories import CATEGORY_REGISTRY
+from app.constants.categories import (
+    CATEGORY_REGISTRY,
+    COMBINED_CATEGORIES,
+    CombinedCategoryDef,
+)
 from app.schemas.treasury import (
     SnapshotFigure,
     WeeklySnapshotRequest,
     WeeklySnapshotResponse,
 )
-from app.services.categories import category_fytd
+from app.services.categories import category_fytd, combined_fytd
+from app.services.rolling import MONTHLY_MULTIPLIER, rolling_on
 from app.utils.anchor import LOOK_BACK_DAYS, anchor_on_or_before
 from app.utils.yoy import nullable_yoy
 
 logger = logging.getLogger(__name__)
 
 WITHHOLDING = CATEGORY_REGISTRY["Employment & Withholding Tax"]
+_COMBINED = {c.name: c for c in COMBINED_CATEGORIES}
+INTEREST_INCOME = _COMBINED["Interest Income Transfers"]
+NET_CUSTOMS = _COMBINED["Net Customs Receipts"]
+ROLLING_WINDOW = 10
 
 _ROW_COLUMNS = """
     record_date, record_fiscal_year, day_of_fiscal_year,
@@ -151,6 +160,16 @@ def get_weekly(
         category_fytd(cur, WITHHOLDING, previous.record_date) if previous else None,
     )
 
+    def combined(comb: CombinedCategoryDef) -> SnapshotFigure:
+        return _figure(
+            combined_fytd(cur, comb, current.record_date),
+            combined_fytd(cur, comb, previous.record_date) if previous else None,
+        )
+
+    withdrawals_avg = rolling_on(
+        cur, "total_withdrawals", ROLLING_WINDOW, current.record_date
+    )
+
     week_before = _statement_for_week(cur, anchor - timedelta(days=7))
     previous_gap: float | None = None
     gap_change: float | None = None
@@ -192,6 +211,15 @@ def get_weekly(
         deposits_fytd=pair("deposits_fytd"),
         net_transfers_fytd=net,
         withholding_fytd=withholding,
+        withdrawals_10d_average=withdrawals_avg,
+        projected_monthly_withdrawals=(
+            None if withdrawals_avg is None else withdrawals_avg * MONTHLY_MULTIPLIER
+        ),
+        unemployment_10d_average=rolling_on(
+            cur, "unemployment_benefits", ROLLING_WINDOW, current.record_date
+        ),
+        interest_income_fytd=combined(INTEREST_INCOME),
+        net_customs_fytd=combined(NET_CUSTOMS),
         previous_week_date=week_before.record_date if week_before else None,
         previous_week_net_transfers_gap=previous_gap,
         net_transfers_gap_change=gap_change,

@@ -19,6 +19,7 @@ export const MENU_ITEMS: NavItem[] = [
     items: [
       { title: 'Single date', url: '/daily/single-date' },
       { title: 'Net transfers', url: '/daily/net-transfers' },
+      { title: 'Leading flows', url: '/daily/leading-flows' },
     ],
   },
   { title: 'Fiscal year', url: '/fiscal-year', icon: BarChart3 },

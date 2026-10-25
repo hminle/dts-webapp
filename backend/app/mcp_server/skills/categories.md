@@ -1,7 +1,7 @@
 ---
 name: categories
 description: The major and other spending and receipt categories, T-bill interest and IRS refunds: which Treasury lines each sums, with SQL.
-formulas: [major-spending, major-receipts, other-spending, other-receipts, tbill-interest, irs-refunds, category-coverage, category-comparison]
+formulas: [major-spending, major-receipts, other-spending, other-receipts, tbill-interest, irs-refunds, interest-income-transfers, net-customs-receipts, category-coverage, category-comparison]
 ---
 
 # Categories
@@ -33,6 +33,19 @@ Pitfalls:
 ## The categories
 
 {{categories}}
+
+## Combined figures
+
+Two figures are signed sums of the categories above, on the same dates:
+
+- **Interest Income Transfers** = Interest on Treasury Securities + T-Bill Interest: all
+  interest the Treasury pays holders, cash and discount. Comparable from 2022-09-12.
+- **Net Customs Receipts** = Customs & Duties (Tariffs) − Customs Refunds (CBP): tariffs
+  collected less CBP payments, which since 2026 are mostly tariff refunds. Comparable from
+  2020-05-11.
+
+A combined figure is `null` on a date where any of its terms is. Get them with
+`call_api("categories_get_combined", {"current_fiscal_year": 2027, "previous_fiscal_year": 2026})`.
 
 ## Worked example: Medicare
 

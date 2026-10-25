@@ -17,6 +17,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SnapshotRouteImport } from './routes/snapshot'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WeeklyRouteImport } from './routes/weekly'
+import { Route as DailyLeadingFlowsRouteImport } from './routes/daily/leading-flows'
 import { Route as DailyNetTransfersRouteImport } from './routes/daily/net-transfers'
 import { Route as DailySingleDateRouteImport } from './routes/daily/single-date'
 import { Route as YoyCategoriesRouteImport } from './routes/yoy/categories'
@@ -64,6 +65,11 @@ const WeeklyRoute = WeeklyRouteImport.update({
   path: '/weekly',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DailyLeadingFlowsRoute = DailyLeadingFlowsRouteImport.update({
+  id: '/daily/leading-flows',
+  path: '/daily/leading-flows',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DailyNetTransfersRoute = DailyNetTransfersRouteImport.update({
   id: '/daily/net-transfers',
   path: '/daily/net-transfers',
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/snapshot': typeof SnapshotRoute
   '/terms': typeof TermsRoute
   '/weekly': typeof WeeklyRoute
+  '/daily/leading-flows': typeof DailyLeadingFlowsRoute
   '/daily/net-transfers': typeof DailyNetTransfersRoute
   '/daily/single-date': typeof DailySingleDateRoute
   '/yoy/categories': typeof YoyCategoriesRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/snapshot': typeof SnapshotRoute
   '/terms': typeof TermsRoute
   '/weekly': typeof WeeklyRoute
+  '/daily/leading-flows': typeof DailyLeadingFlowsRoute
   '/daily/net-transfers': typeof DailyNetTransfersRoute
   '/daily/single-date': typeof DailySingleDateRoute
   '/yoy/categories': typeof YoyCategoriesRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/snapshot': typeof SnapshotRoute
   '/terms': typeof TermsRoute
   '/weekly': typeof WeeklyRoute
+  '/daily/leading-flows': typeof DailyLeadingFlowsRoute
   '/daily/net-transfers': typeof DailyNetTransfersRoute
   '/daily/single-date': typeof DailySingleDateRoute
   '/yoy/categories': typeof YoyCategoriesRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/snapshot'
     | '/terms'
     | '/weekly'
+    | '/daily/leading-flows'
     | '/daily/net-transfers'
     | '/daily/single-date'
     | '/yoy/categories'
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/snapshot'
     | '/terms'
     | '/weekly'
+    | '/daily/leading-flows'
     | '/daily/net-transfers'
     | '/daily/single-date'
     | '/yoy/categories'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/snapshot'
     | '/terms'
     | '/weekly'
+    | '/daily/leading-flows'
     | '/daily/net-transfers'
     | '/daily/single-date'
     | '/yoy/categories'
@@ -204,6 +216,7 @@ export interface RootRouteChildren {
   SnapshotRoute: typeof SnapshotRoute
   TermsRoute: typeof TermsRoute
   WeeklyRoute: typeof WeeklyRoute
+  DailyLeadingFlowsRoute: typeof DailyLeadingFlowsRoute
   DailyNetTransfersRoute: typeof DailyNetTransfersRoute
   DailySingleDateRoute: typeof DailySingleDateRoute
   YoyCategoriesRoute: typeof YoyCategoriesRoute
@@ -270,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WeeklyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/daily/leading-flows': {
+      id: '/daily/leading-flows'
+      path: '/daily/leading-flows'
+      fullPath: '/daily/leading-flows'
+      preLoaderRoute: typeof DailyLeadingFlowsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/daily/net-transfers': {
       id: '/daily/net-transfers'
       path: '/daily/net-transfers'
@@ -324,6 +344,7 @@ const rootRouteChildren: RootRouteChildren = {
   SnapshotRoute: SnapshotRoute,
   TermsRoute: TermsRoute,
   WeeklyRoute: WeeklyRoute,
+  DailyLeadingFlowsRoute: DailyLeadingFlowsRoute,
   DailyNetTransfersRoute: DailyNetTransfersRoute,
   DailySingleDateRoute: DailySingleDateRoute,
   YoyCategoriesRoute: YoyCategoriesRoute,

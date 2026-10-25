@@ -6,6 +6,7 @@ and responses related to Treasury data.
 """
 
 from datetime import date, datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -801,6 +802,17 @@ class WeeklySnapshotResponse(BaseModel):
     deposits_fytd: SnapshotFigure
     net_transfers_fytd: SnapshotFigure
     withholding_fytd: SnapshotFigure
+    withdrawals_10d_average: float | None = Field(
+        ..., description="Mean withdrawals over the last 10 statements"
+    )
+    projected_monthly_withdrawals: float | None = Field(
+        ..., description="withdrawals_10d_average × 20"
+    )
+    unemployment_10d_average: float | None = Field(
+        ..., description="Mean unemployment benefits over the last 10 statements"
+    )
+    interest_income_fytd: SnapshotFigure
+    net_customs_fytd: SnapshotFigure
     previous_week_date: str | None = Field(
         ..., description="Statement used for the week before"
     )
@@ -812,4 +824,108 @@ class WeeklySnapshotResponse(BaseModel):
     )
     gap_change_unavailable_reason: str | None = Field(
         ..., description="Why net_transfers_gap_change is null, when it is"
+    )
+
+
+# Rolling Average Schemas
+
+RollingMetric = Literal["total_withdrawals", "unemployment_benefits"]
+
+
+class RollingAverageRequest(BaseModel):
+    """Schema for requesting a rolling average of a daily amount."""
+
+    metric: RollingMetric = Field(..., description="Daily amount to average")
+    window: int = Field(10, ge=2, le=60, description="Statements per average")
+    start_date: date | None = Field(
+        None, description="First date returned; default a year before end_date"
+    )
+    end_date: date | None = Field(
+        None, description="Last date returned; default latest"
+    )
+
+
+class RollingPoint(BaseModel):
+    """One statement's amount and the rolling average ending on it."""
+
+    record_date: str = Field(..., description="Statement date")
+    value: float = Field(..., description="That statement's amount")
+    rolling_average: float | None = Field(
+        ...,
+        description=(
+            "Mean of the last `window` statements; null until there are that many"
+        ),
+    )
+    projected_monthly: float | None = Field(
+        ..., description="rolling_average × 20, withdrawals only"
+    )
+
+
+class RollingAverageResponse(BaseModel):
+    """Schema for rolling average response."""
+
+    metric: RollingMetric = Field(..., description="Daily amount averaged")
+    window: int = Field(..., description="Statements per average")
+    monthly_multiplier: int | None = Field(
+        ..., description="Business days a month in the projection; null if none"
+    )
+    start_date: str = Field(..., description="First date returned")
+    end_date: str = Field(..., description="Last date returned")
+    points: list[RollingPoint] = Field(
+        default_factory=list, description="One point per statement"
+    )
+
+
+# Combined Category Schemas
+
+
+class CombinedTermValue(BaseModel):
+    """One category inside a combined figure."""
+
+    category_name: str = Field(..., description="Registry category name")
+    sign: int = Field(..., description="1 adds the category, -1 subtracts it")
+    current_fytd: float | None = Field(
+        ..., description="Category FYTD on current_date; null before its coverage"
+    )
+    previous_fytd: float | None = Field(
+        ..., description="Category FYTD on previous_date; null before its coverage"
+    )
+
+
+class CombinedCategory(BaseModel):
+    """A figure made of several categories, with YoY change."""
+
+    name: str = Field(..., description="Display name")
+    available_from: str = Field(
+        ..., description="First comparable date (ISO): the latest of its terms'"
+    )
+    current_fytd: float | None = Field(
+        ..., description="Signed sum on current_date; null if any term is"
+    )
+    previous_fytd: float | None = Field(
+        ..., description="Signed sum on previous_date; null if any term is"
+    )
+    yoy_change: float | None = Field(..., description="current − previous")
+    yoy_percent_change: float | None = Field(
+        ..., description="yoy_change ÷ |previous| × 100"
+    )
+    terms: list[CombinedTermValue] = Field(
+        default_factory=list, description="The categories it is made of"
+    )
+
+
+class CombinedCategoriesResponse(BaseModel):
+    """Schema for combined categories response."""
+
+    current_fiscal_year: int = Field(..., description="Current fiscal year")
+    previous_fiscal_year: int = Field(..., description="Previous fiscal year")
+    current_date: str = Field(
+        ..., description="Latest date with data in current fiscal year"
+    )
+    previous_date: str = Field(
+        ..., description="Equivalent date in previous fiscal year"
+    )
+    comparison_mode: str = Field(..., description="Comparison mode used")
+    categories: list[CombinedCategory] = Field(
+        default_factory=list, description="The combined figures"
     )

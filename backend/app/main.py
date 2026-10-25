@@ -12,6 +12,7 @@ from app.api.routers import (
     lookups,
     meta,
     net_transfers,
+    rolling,
     snapshot,
     weekly,
     yoy,
@@ -64,6 +65,7 @@ for module in (
     net_transfers,
     weekly,
     snapshot,
+    rolling,
     yoy,
     categories,
 ):

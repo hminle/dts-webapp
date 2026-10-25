@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { DailyNetTransfer } from './api'
-import { flowDirection, formulaSteps } from './lib'
+import { flowDirection, formulaSteps, lastWithValue, rangeStart } from './lib'
 
 // 2026-10-15 from the bootstrap artifact (millions of dollars).
 const DAY = {
@@ -37,5 +37,24 @@ describe('formulaSteps', () => {
     for (const [result, left, right] of steps.map((s) => s.values)) {
       expect(result).toBe(left - right)
     }
+  })
+})
+
+describe('rangeStart', () => {
+  it('counts back calendar days from today', () => {
+    expect(rangeStart(365, new Date(2025, 11, 4, 15, 30))).toBe('2024-12-04')
+    expect(rangeStart(183, new Date(2026, 2, 1))).toBe('2025-08-30')
+  })
+})
+
+describe('lastWithValue', () => {
+  it('skips trailing points without a value', () => {
+    const points = [
+      { d: 1, v: 5 },
+      { d: 2, v: 7 },
+      { d: 3, v: null },
+    ]
+    expect(lastWithValue(points, 'v')).toEqual({ d: 2, v: 7 })
+    expect(lastWithValue([{ v: null }], 'v')).toBeUndefined()
   })
 })

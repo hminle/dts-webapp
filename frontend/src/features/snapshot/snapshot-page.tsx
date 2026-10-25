@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import {
   AnchorWeekdaySelect,
   type AnchorWeekday,
@@ -38,6 +39,9 @@ function gapNote(s: WeeklySnapshot): string {
       return `Unchanged ${since}`
   }
 }
+
+const dash = (value: number | null, format: (v: number) => string) =>
+  value === null ? '—' : format(value)
 
 function Section({
   title,
@@ -134,6 +138,50 @@ export function SnapshotPage() {
                   title='Withholding tax'
                   hint='major-receipts'
                   figure={s.withholding_fytd}
+                  previousFiscalYear={s.previous_fiscal_year}
+                />
+              </div>
+            </Section>
+
+            <Section title='Leading flows'>
+              <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
+                <StatCard
+                  title='10-day average of withdrawals'
+                  hint='rolling-average'
+                  value={dash(s.withdrawals_10d_average, formatBillions)}
+                />
+                <StatCard
+                  title='Projected monthly rate'
+                  hint='rolling-average'
+                  value={dash(s.projected_monthly_withdrawals, formatBillions)}
+                  note='10-day average × 20'
+                />
+                <StatCard
+                  title='Unemployment benefits, 10-day average'
+                  hint='rolling-average'
+                  value={dash(s.unemployment_10d_average, formatTreasuryValue)}
+                />
+              </div>
+              <Link
+                to='/daily/leading-flows'
+                className='w-fit text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground'
+              >
+                See the trend
+              </Link>
+            </Section>
+
+            <Section title='Combined figures'>
+              <div className='grid gap-4 sm:grid-cols-2'>
+                <FigureCard
+                  title='Interest income transfers'
+                  hint='interest-income-transfers'
+                  figure={s.interest_income_fytd}
+                  previousFiscalYear={s.previous_fiscal_year}
+                />
+                <FigureCard
+                  title='Net customs receipts'
+                  hint='net-customs-receipts'
+                  figure={s.net_customs_fytd}
                   previousFiscalYear={s.previous_fiscal_year}
                 />
               </div>

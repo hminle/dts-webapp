@@ -24,6 +24,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/categories/combined": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Combined
+         * @description Figures made of several categories, with YoY change.
+         */
+        get: operations["categories_get_combined"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/categories/daily-yoy": {
         parameters: {
             query?: never;
@@ -404,6 +424,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/rolling/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Daily
+         * @description Each statement's amount and the mean of the last `window` statements.
+         */
+        get: operations["rolling_get_daily"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/snapshot/weekly": {
         parameters: {
             query?: never;
@@ -652,6 +692,109 @@ export interface components {
              * @description 'Deposits' or 'Withdrawals'
              */
             transaction_type: string;
+        };
+        /**
+         * CombinedCategoriesResponse
+         * @description Schema for combined categories response.
+         */
+        CombinedCategoriesResponse: {
+            /**
+             * Categories
+             * @description The combined figures
+             */
+            categories?: components["schemas"]["CombinedCategory"][];
+            /**
+             * Comparison Mode
+             * @description Comparison mode used
+             */
+            comparison_mode: string;
+            /**
+             * Current Date
+             * @description Latest date with data in current fiscal year
+             */
+            current_date: string;
+            /**
+             * Current Fiscal Year
+             * @description Current fiscal year
+             */
+            current_fiscal_year: number;
+            /**
+             * Previous Date
+             * @description Equivalent date in previous fiscal year
+             */
+            previous_date: string;
+            /**
+             * Previous Fiscal Year
+             * @description Previous fiscal year
+             */
+            previous_fiscal_year: number;
+        };
+        /**
+         * CombinedCategory
+         * @description A figure made of several categories, with YoY change.
+         */
+        CombinedCategory: {
+            /**
+             * Available From
+             * @description First comparable date (ISO): the latest of its terms'
+             */
+            available_from: string;
+            /**
+             * Current Fytd
+             * @description Signed sum on current_date; null if any term is
+             */
+            current_fytd: number | null;
+            /**
+             * Name
+             * @description Display name
+             */
+            name: string;
+            /**
+             * Previous Fytd
+             * @description Signed sum on previous_date; null if any term is
+             */
+            previous_fytd: number | null;
+            /**
+             * Terms
+             * @description The categories it is made of
+             */
+            terms?: components["schemas"]["CombinedTermValue"][];
+            /**
+             * Yoy Change
+             * @description current − previous
+             */
+            yoy_change: number | null;
+            /**
+             * Yoy Percent Change
+             * @description yoy_change ÷ |previous| × 100
+             */
+            yoy_percent_change: number | null;
+        };
+        /**
+         * CombinedTermValue
+         * @description One category inside a combined figure.
+         */
+        CombinedTermValue: {
+            /**
+             * Category Name
+             * @description Registry category name
+             */
+            category_name: string;
+            /**
+             * Current Fytd
+             * @description Category FYTD on current_date; null before its coverage
+             */
+            current_fytd: number | null;
+            /**
+             * Previous Fytd
+             * @description Category FYTD on previous_date; null before its coverage
+             */
+            previous_fytd: number | null;
+            /**
+             * Sign
+             * @description 1 adds the category, -1 subtracts it
+             */
+            sign: number;
         };
         /**
          * DailyNetTransfer
@@ -1107,6 +1250,69 @@ export interface components {
             yoy_percent_change?: number | null;
         };
         /**
+         * RollingAverageResponse
+         * @description Schema for rolling average response.
+         */
+        RollingAverageResponse: {
+            /**
+             * End Date
+             * @description Last date returned
+             */
+            end_date: string;
+            /**
+             * Metric
+             * @description Daily amount averaged
+             * @enum {string}
+             */
+            metric: "total_withdrawals" | "unemployment_benefits";
+            /**
+             * Monthly Multiplier
+             * @description Business days a month in the projection; null if none
+             */
+            monthly_multiplier: number | null;
+            /**
+             * Points
+             * @description One point per statement
+             */
+            points?: components["schemas"]["RollingPoint"][];
+            /**
+             * Start Date
+             * @description First date returned
+             */
+            start_date: string;
+            /**
+             * Window
+             * @description Statements per average
+             */
+            window: number;
+        };
+        /**
+         * RollingPoint
+         * @description One statement's amount and the rolling average ending on it.
+         */
+        RollingPoint: {
+            /**
+             * Projected Monthly
+             * @description rolling_average × 20, withdrawals only
+             */
+            projected_monthly: number | null;
+            /**
+             * Record Date
+             * @description Statement date
+             */
+            record_date: string;
+            /**
+             * Rolling Average
+             * @description Mean of the last `window` statements; null until there are that many
+             */
+            rolling_average: number | null;
+            /**
+             * Value
+             * @description That statement's amount
+             */
+            value: number;
+        };
+        /**
          * SnapshotFigure
          * @description One FYTD figure against the same business day a year earlier.
          */
@@ -1472,6 +1678,8 @@ export interface components {
              * @description Why net_transfers_gap_change is null, when it is
              */
             gap_change_unavailable_reason: string | null;
+            interest_income_fytd: components["schemas"]["SnapshotFigure"];
+            net_customs_fytd: components["schemas"]["SnapshotFigure"];
             net_transfers_fytd: components["schemas"]["SnapshotFigure"];
             /**
              * Net Transfers Gap Change
@@ -1504,10 +1712,25 @@ export interface components {
              */
             previous_week_net_transfers_gap: number | null;
             /**
+             * Projected Monthly Withdrawals
+             * @description withdrawals_10d_average × 20
+             */
+            projected_monthly_withdrawals: number | null;
+            /**
              * Record Date
              * @description Statement used; earlier than anchor_date after a holiday
              */
             record_date: string;
+            /**
+             * Unemployment 10D Average
+             * @description Mean unemployment benefits over the last 10 statements
+             */
+            unemployment_10d_average: number | null;
+            /**
+             * Withdrawals 10D Average
+             * @description Mean withdrawals over the last 10 statements
+             */
+            withdrawals_10d_average: number | null;
             withdrawals_fytd: components["schemas"]["SnapshotFigure"];
             /**
              * Withdrawals Mtd
@@ -1660,6 +1883,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    categories_get_combined: {
+        parameters: {
+            query: {
+                /** @description Current fiscal year */
+                current_fiscal_year: number;
+                /** @description Previous fiscal year for Y-o-Y comparison */
+                previous_fiscal_year: number;
+                /** @description Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31) */
+                comparison_mode?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CombinedCategoriesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2223,6 +2482,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DailyNetTransfer"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rolling_get_daily: {
+        parameters: {
+            query: {
+                /** @description Daily amount to average */
+                metric: "total_withdrawals" | "unemployment_benefits";
+                /** @description Statements per average */
+                window?: number;
+                /** @description First date returned; default a year before end_date */
+                start_date?: string | null;
+                /** @description Last date returned; default latest */
+                end_date?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RollingAverageResponse"];
                 };
             };
             /** @description Validation Error */

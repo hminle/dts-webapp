@@ -19,6 +19,10 @@ const YOY = examples.yoy
 const NEG = examples.yoy_negative_base
 const CATS = examples.categories
 const WS = examples.weekly_snapshot
+const ROLL = examples.rolling
+const COMB = examples.combined
+const COMB_CUR = `FY2026 · ${formatShortDate(COMB.current_date)}`
+const COMB_PREV = `FY2025 · ${formatShortDate(COMB.previous_date)}`
 
 // Display names from backend/app/constants/endpoints.py (ENDPOINTS).
 const TABLES = [
@@ -425,6 +429,17 @@ export function MethodologyPage() {
             spending is spread across every day.
           </p>
           <FormulaBlock id='leading-flow' />
+          <p>
+            One day’s withdrawals swing with payment calendars, so a rolling
+            average of the last {ROLL.window} statements shows the pace. On{' '}
+            {formatShortDate(ROLL.end_date)} the last {ROLL.window} statements
+            (weekends and Thanksgiving skipped) averaged{' '}
+            <Strong>{millions(ROLL.withdrawals_average)}</Strong> a day. At
+            about 20 business days a month, that is a projected monthly rate
+            of <Strong>{millions(ROLL.projected_monthly)}</Strong>. Unemployment
+            benefits averaged {millions(ROLL.unemployment_average)} a day.
+          </p>
+          <FormulaBlock id='rolling-average' />
         </ProseSection>
 
         <ProseSection id='year-over-year' title='5. Comparing with a year ago'>
@@ -602,6 +617,49 @@ export function MethodologyPage() {
             id='other-receipts'
             termLabels={['Category', 'Treasury line item']}
           />
+          <p>
+            Since 2026 Customs and Border Protection has paid out large tariff
+            refunds, so customs deposits alone overstate what the tariffs bring
+            in:
+          </p>
+          <FormulaBlock
+            id='net-customs-receipts'
+            example={
+              <div className='flex flex-col gap-2'>
+                <ArithmeticTable
+                  columns={[COMB_CUR, COMB_PREV]}
+                  caption='Fiscal year to date. Millions of dollars.'
+                  rows={[
+                    {
+                      label: 'Customs & Duties (Tariffs)',
+                      values: [
+                        COMB.net_customs.current.customs,
+                        COMB.net_customs.previous.customs,
+                      ],
+                    },
+                    {
+                      label: 'Customs Refunds (CBP)',
+                      op: '−',
+                      values: [
+                        COMB.net_customs.current.cbp,
+                        COMB.net_customs.previous.cbp,
+                      ],
+                    },
+                    {
+                      label: 'Net customs receipts',
+                      op: '=',
+                      values: [
+                        COMB.net_customs.current_total,
+                        COMB.net_customs.previous_total,
+                      ],
+                      result: true,
+                    },
+                  ]}
+                />
+                {changeSentence(COMB.net_customs)}
+              </div>
+            }
+          />
         </ProseSection>
 
         <ProseSection id='t-bill-discount' title='9. T-Bill interest'>
@@ -622,6 +680,24 @@ export function MethodologyPage() {
                   rows={categoryRows(CATS.tbill)}
                 />
                 {changeSentence(CATS.tbill)}
+              </div>
+            }
+          />
+          <p>
+            Adding T-bill interest to the cash interest on notes and bonds gives
+            all the interest the Treasury pays its holders:
+          </p>
+          <FormulaBlock
+            id='interest-income-transfers'
+            termLabels={['Category', 'What it is']}
+            example={
+              <div className='flex flex-col gap-2'>
+                <ArithmeticTable
+                  columns={[COMB_CUR, COMB_PREV]}
+                  caption='Fiscal year to date. Millions of dollars.'
+                  rows={categoryRows(COMB.interest_income)}
+                />
+                {changeSentence(COMB.interest_income)}
               </div>
             }
           />

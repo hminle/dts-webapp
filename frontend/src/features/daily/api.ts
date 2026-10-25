@@ -48,3 +48,21 @@ export function useNetTransfersForFiscalYear(fiscalYear: number | null) {
     },
   })
 }
+
+export type RollingAverage = components['schemas']['RollingAverageResponse']
+export type RollingMetric = RollingAverage['metric']
+
+/** A 10-statement rolling average of one daily amount, from `startDate`. */
+export function useRollingAverage(metric: RollingMetric, startDate: string) {
+  return useQuery({
+    queryKey: ['rolling', metric, startDate],
+    queryFn: async () => {
+      const { data, error, response } = await api.GET('/api/v1/rolling/daily', {
+        params: { query: { metric, window: 10, start_date: startDate } },
+      })
+      if (error)
+        throwApiError(error, response, 'Could not load the rolling average')
+      return data
+    },
+  })
+}

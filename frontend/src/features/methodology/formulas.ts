@@ -11,6 +11,7 @@ export type FormulaId =
   | 'total-withdrawals'
   | 'net-transfers'
   | 'leading-flow'
+  | 'rolling-average'
   | 'yoy-difference'
   | 'yoy-percent'
   | 'yoy-summary'
@@ -20,6 +21,8 @@ export type FormulaId =
   | 'other-spending'
   | 'other-receipts'
   | 'tbill-interest'
+  | 'interest-income-transfers'
+  | 'net-customs-receipts'
   | 'irs-refunds'
   | 'category-coverage'
   | 'category-comparison'
@@ -397,6 +400,59 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
     ],
     source: DEPOSITS_TABLE,
   },
+  'rolling-average': {
+    id: 'rolling-average',
+    title: 'Rolling average and monthly rate',
+    summary:
+      'The mean of the last 10 statements’ amounts; for withdrawals, × 20 gives a projected monthly rate.',
+    expression: [
+      '10-day average = Σ amount over the last 10 statements ÷ 10',
+      'Projected monthly rate = 10-day average of withdrawals × 20',
+    ],
+    pitfalls: [
+      'It counts statements, not calendar days: weekends and holidays are skipped.',
+      'A window holding the 1st of the month or a mid-month interest date runs high; the rate swings with payment calendars.',
+    ],
+    source: DEPOSITS_TABLE,
+  },
+  'interest-income-transfers': {
+    id: 'interest-income-transfers',
+    title: 'Interest income transfers',
+    summary:
+      'Cash interest on notes and bonds plus the T-bill discount: all interest the Treasury pays holders.',
+    expression: [
+      'Interest income = Interest on Treasury Securities + T-Bill interest',
+    ],
+    terms: [
+      {
+        term: 'Interest on Treasury Securities',
+        meaning: 'Cash interest on notes and bonds (withdrawals)',
+      },
+      {
+        term: 'T-Bill Interest',
+        meaning: 'Bills (−) + Bonds and Notes (−) discount (adjustments)',
+      },
+    ],
+    pitfalls: [
+      'Comparable from 2022-09-12, when T-bill interest got its own lines.',
+    ],
+    source:
+      'Tables II and IIIB: Deposits & Withdrawals, and Adjustment of Public Debt Transactions',
+  },
+  'net-customs-receipts': {
+    id: 'net-customs-receipts',
+    title: 'Net customs receipts',
+    summary:
+      'Customs deposits minus Customs and Border Protection payments, which since 2026 are mostly tariff refunds.',
+    expression: [
+      'Net customs = Customs & Duties (Tariffs) − Customs Refunds (CBP)',
+    ],
+    pitfalls: [
+      'CBP payments include more than refunds; before 2026 they are small.',
+      'Comparable from 2020-05-11, when the CBP line starts.',
+    ],
+    source: DEPOSITS_TABLE,
+  },
   'tbill-interest': {
     id: 'tbill-interest',
     title: 'T-Bill interest',
@@ -524,6 +580,7 @@ export const FORMULA_ORDER: FormulaId[] = [
   'total-withdrawals',
   'net-transfers',
   'leading-flow',
+  'rolling-average',
   'yoy-difference',
   'yoy-percent',
   'yoy-summary',
@@ -532,7 +589,9 @@ export const FORMULA_ORDER: FormulaId[] = [
   'major-receipts',
   'other-spending',
   'other-receipts',
+  'net-customs-receipts',
   'tbill-interest',
+  'interest-income-transfers',
   'irs-refunds',
   'category-coverage',
   'category-comparison',

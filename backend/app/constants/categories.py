@@ -271,3 +271,42 @@ CATEGORY_REGISTRY: dict[str, CategoryDef] = {
         IRS_REFUND_CATEGORY,
     )
 }
+
+
+# ── Combined figures (signed sums of registry categories) ──────────────
+@dataclass(frozen=True)
+class CombinedTerm:
+    """One registry category inside a combined figure, added or subtracted."""
+
+    category: str
+    sign: Literal[1, -1]
+
+
+@dataclass(frozen=True)
+class CombinedCategoryDef:
+    """A figure made of registry categories; comparable once every term is."""
+
+    name: str
+    terms: tuple[CombinedTerm, ...]
+
+    @property
+    def available_from(self) -> date:
+        return max(CATEGORY_REGISTRY[t.category].available_from for t in self.terms)
+
+
+COMBINED_CATEGORIES: tuple[CombinedCategoryDef, ...] = (
+    CombinedCategoryDef(
+        name="Interest Income Transfers",
+        terms=(
+            CombinedTerm("Interest on Treasury Securities", 1),
+            CombinedTerm("T-Bill Interest", 1),
+        ),
+    ),
+    CombinedCategoryDef(
+        name="Net Customs Receipts",
+        terms=(
+            CombinedTerm("Customs & Duties (Tariffs)", 1),
+            CombinedTerm("Customs Refunds (CBP)", -1),
+        ),
+    ),
+)

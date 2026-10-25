@@ -12,6 +12,7 @@ from fastapi import HTTPException
 
 from app.constants.categories import (
     CATEGORY_REGISTRY,
+    COMBINED_CATEGORIES,
     IRS_REFUND_CATEGORY,
     IRS_REFUND_COMPONENT_NAMES,
     MAJOR_RECEIPT_CATEGORIES,
@@ -22,11 +23,15 @@ from app.constants.categories import (
     TBILL_INTEREST_COMPONENT_NAMES,
     CategoryDef,
     CategoryKind,
+    CombinedCategoryDef,
 )
 from app.schemas.treasury import (
     CategoryDailyYoYDataPoint,
     CategoryDailyYoYRequest,
     CategoryDailyYoYResponse,
+    CombinedCategoriesResponse,
+    CombinedCategory,
+    CombinedTermValue,
     IrsRefundComponent,
     IrsRefundRequest,
     IrsRefundResponse,
@@ -102,6 +107,18 @@ def category_fytd(
         return None
     source = _source_for(cat.kind)
     return sum(fetch_component_fytd(cur, source, day, c) for c in cat.components)
+
+
+def combined_fytd(
+    cur: duckdb.DuckDBPyConnection, comb: CombinedCategoryDef, day: str
+) -> float | None:
+    """Σ sign × category FYTD over the terms; ``None`` if any term is ``None``."""
+    values = [
+        category_fytd(cur, CATEGORY_REGISTRY[t.category], day) for t in comb.terms
+    ]
+    if any(v is None for v in values):
+        return None
+    return sum(t.sign * v for t, v in zip(comb.terms, values, strict=True))
 
 
 # ── Shared validators / data-resolution helpers ──────────────────────
@@ -353,6 +370,74 @@ def get_other_receipts(
     :data:`app.constants.categories.OTHER_RECEIPT_CATEGORIES`.
     """
     return _receipt_response(cur, request, OTHER_RECEIPT_CATEGORIES, "Other receipts")
+
+
+def get_combined(
+    cur: duckdb.DuckDBPyConnection, request: MajorSpendingCategoriesRequest
+) -> CombinedCategoriesResponse:
+    """Combined figures (interest income, net customs) with Y-o-Y comparison.
+
+    Dates are resolved on the spending source, like the major spending
+    categories. A figure is ``None`` on a date where any of its terms is.
+    """
+    comparison_mode = _validate_yoy_request(
+        request.current_fiscal_year,
+        request.previous_fiscal_year,
+        request.comparison_mode,
+    )
+    current_date, previous_date = _resolve_yoy_dates(
+        cur,
+        _SPENDING_SOURCE,
+        current_fy=request.current_fiscal_year,
+        previous_fy=request.previous_fiscal_year,
+        comparison_mode=comparison_mode,
+    )
+
+    categories: list[CombinedCategory] = []
+    for comb in COMBINED_CATEGORIES:
+        terms = [
+            CombinedTermValue(
+                category_name=t.category,
+                sign=t.sign,
+                current_fytd=category_fytd(
+                    cur, CATEGORY_REGISTRY[t.category], current_date
+                ),
+                previous_fytd=category_fytd(
+                    cur, CATEGORY_REGISTRY[t.category], previous_date
+                ),
+            )
+            for t in comb.terms
+        ]
+        current_total = combined_fytd(cur, comb, current_date)
+        previous_total = combined_fytd(cur, comb, previous_date)
+        delta, pct = nullable_yoy(current_total, previous_total)
+        categories.append(
+            CombinedCategory(
+                name=comb.name,
+                available_from=comb.available_from.isoformat(),
+                current_fytd=current_total,
+                previous_fytd=previous_total,
+                yoy_change=delta,
+                yoy_percent_change=pct,
+                terms=terms,
+            )
+        )
+
+    logger.info(
+        "Combined: FY%s (%s) vs FY%s (%s)",
+        request.current_fiscal_year,
+        current_date,
+        request.previous_fiscal_year,
+        previous_date,
+    )
+    return CombinedCategoriesResponse(
+        current_fiscal_year=request.current_fiscal_year,
+        previous_fiscal_year=request.previous_fiscal_year,
+        current_date=current_date,
+        previous_date=previous_date,
+        comparison_mode=comparison_mode,
+        categories=categories,
+    )
 
 
 def get_tbill_interest(

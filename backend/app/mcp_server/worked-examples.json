@@ -142,6 +142,21 @@
     },
     "withdrawals_mtd": 200188,
     "net_transfers_mtd": 120817,
+    "withdrawals_10d_average": 35608.8,
+    "projected_monthly_withdrawals": 712176,
+    "unemployment_10d_average": 173.6,
+    "interest_income_fytd": {
+      "current": 192597,
+      "previous": 177681,
+      "change": 14916,
+      "percent_change": 8.39
+    },
+    "net_customs_fytd": {
+      "current": 65404,
+      "previous": 15923,
+      "change": 49481,
+      "percent_change": 310.75
+    },
     "previous_week": {
       "anchor_date": "2025-11-27",
       "record_date": "2025-11-26",
@@ -152,5 +167,56 @@
       "gap": -89579
     },
     "gap_change": -22497
+  },
+  "rolling": {
+    "end_date": "2025-12-04",
+    "window": 10,
+    "withdrawals_dates": [
+      "2025-11-20",
+      "2025-11-21",
+      "2025-11-24",
+      "2025-11-25",
+      "2025-11-26",
+      "2025-11-28",
+      "2025-12-01",
+      "2025-12-02",
+      "2025-12-03",
+      "2025-12-04"
+    ],
+    "withdrawals_today": [
+      19815, 31192, 16793, 19998, 54507, 13595, 125763, 13764, 44733, 15928
+    ],
+    "withdrawals_average": 35608.8,
+    "projected_monthly": 712176,
+    "unemployment_today": [78, 63, 193, 241, 353, 56, 212, 269, 164, 107],
+    "unemployment_average": 173.6
+  },
+  "combined": {
+    "current_date": "2025-12-04",
+    "previous_date": "2024-12-04",
+    "interest_income": {
+      "current": {
+        "Interest on Treasury Securities": 141720,
+        "Bills (-)": 49128,
+        "Bonds and Notes (-)": 1749
+      },
+      "previous": {
+        "Interest on Treasury Securities": 120038,
+        "Bills (-)": 53521,
+        "Bonds and Notes (-)": 4122
+      },
+      "current_total": 192597,
+      "previous_total": 177681,
+      "difference": 14916,
+      "percent_change": 8.39
+    },
+    "net_customs": {
+      "current": { "customs": 68584, "cbp": 3180 },
+      "previous": { "customs": 17730, "cbp": 1807 },
+      "current_total": 65404,
+      "previous_total": 15923,
+      "difference": 49481,
+      "percent_change": 310.75
+    }
   }
 }

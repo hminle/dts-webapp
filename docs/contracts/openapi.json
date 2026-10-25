@@ -257,6 +257,181 @@
         "title": "CategoryYearData",
         "type": "object"
       },
+      "CombinedCategoriesResponse": {
+        "description": "Schema for combined categories response.",
+        "properties": {
+          "categories": {
+            "description": "The combined figures",
+            "items": {
+              "$ref": "#/components/schemas/CombinedCategory"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "comparison_mode": {
+            "description": "Comparison mode used",
+            "title": "Comparison Mode",
+            "type": "string"
+          },
+          "current_date": {
+            "description": "Latest date with data in current fiscal year",
+            "title": "Current Date",
+            "type": "string"
+          },
+          "current_fiscal_year": {
+            "description": "Current fiscal year",
+            "title": "Current Fiscal Year",
+            "type": "integer"
+          },
+          "previous_date": {
+            "description": "Equivalent date in previous fiscal year",
+            "title": "Previous Date",
+            "type": "string"
+          },
+          "previous_fiscal_year": {
+            "description": "Previous fiscal year",
+            "title": "Previous Fiscal Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "current_fiscal_year",
+          "previous_fiscal_year",
+          "current_date",
+          "previous_date",
+          "comparison_mode"
+        ],
+        "title": "CombinedCategoriesResponse",
+        "type": "object"
+      },
+      "CombinedCategory": {
+        "description": "A figure made of several categories, with YoY change.",
+        "properties": {
+          "available_from": {
+            "description": "First comparable date (ISO): the latest of its terms'",
+            "title": "Available From",
+            "type": "string"
+          },
+          "current_fytd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Signed sum on current_date; null if any term is",
+            "title": "Current Fytd"
+          },
+          "name": {
+            "description": "Display name",
+            "title": "Name",
+            "type": "string"
+          },
+          "previous_fytd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Signed sum on previous_date; null if any term is",
+            "title": "Previous Fytd"
+          },
+          "terms": {
+            "description": "The categories it is made of",
+            "items": {
+              "$ref": "#/components/schemas/CombinedTermValue"
+            },
+            "title": "Terms",
+            "type": "array"
+          },
+          "yoy_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "current \u2212 previous",
+            "title": "Yoy Change"
+          },
+          "yoy_percent_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "yoy_change \u00f7 |previous| \u00d7 100",
+            "title": "Yoy Percent Change"
+          }
+        },
+        "required": [
+          "name",
+          "available_from",
+          "current_fytd",
+          "previous_fytd",
+          "yoy_change",
+          "yoy_percent_change"
+        ],
+        "title": "CombinedCategory",
+        "type": "object"
+      },
+      "CombinedTermValue": {
+        "description": "One category inside a combined figure.",
+        "properties": {
+          "category_name": {
+            "description": "Registry category name",
+            "title": "Category Name",
+            "type": "string"
+          },
+          "current_fytd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Category FYTD on current_date; null before its coverage",
+            "title": "Current Fytd"
+          },
+          "previous_fytd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Category FYTD on previous_date; null before its coverage",
+            "title": "Previous Fytd"
+          },
+          "sign": {
+            "description": "1 adds the category, -1 subtracts it",
+            "title": "Sign",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "category_name",
+          "sign",
+          "current_fytd",
+          "previous_fytd"
+        ],
+        "title": "CombinedTermValue",
+        "type": "object"
+      },
       "DailyNetTransfer": {
         "description": "Schema for daily net transfers stored in database.",
         "properties": {
@@ -969,6 +1144,111 @@
         "title": "MajorSpendingCategory",
         "type": "object"
       },
+      "RollingAverageResponse": {
+        "description": "Schema for rolling average response.",
+        "properties": {
+          "end_date": {
+            "description": "Last date returned",
+            "title": "End Date",
+            "type": "string"
+          },
+          "metric": {
+            "description": "Daily amount averaged",
+            "enum": [
+              "total_withdrawals",
+              "unemployment_benefits"
+            ],
+            "title": "Metric",
+            "type": "string"
+          },
+          "monthly_multiplier": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Business days a month in the projection; null if none",
+            "title": "Monthly Multiplier"
+          },
+          "points": {
+            "description": "One point per statement",
+            "items": {
+              "$ref": "#/components/schemas/RollingPoint"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "start_date": {
+            "description": "First date returned",
+            "title": "Start Date",
+            "type": "string"
+          },
+          "window": {
+            "description": "Statements per average",
+            "title": "Window",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "metric",
+          "window",
+          "monthly_multiplier",
+          "start_date",
+          "end_date"
+        ],
+        "title": "RollingAverageResponse",
+        "type": "object"
+      },
+      "RollingPoint": {
+        "description": "One statement's amount and the rolling average ending on it.",
+        "properties": {
+          "projected_monthly": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "rolling_average \u00d7 20, withdrawals only",
+            "title": "Projected Monthly"
+          },
+          "record_date": {
+            "description": "Statement date",
+            "title": "Record Date",
+            "type": "string"
+          },
+          "rolling_average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean of the last `window` statements; null until there are that many",
+            "title": "Rolling Average"
+          },
+          "value": {
+            "description": "That statement's amount",
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "record_date",
+          "value",
+          "rolling_average",
+          "projected_monthly"
+        ],
+        "title": "RollingPoint",
+        "type": "object"
+      },
       "SnapshotFigure": {
         "description": "One FYTD figure against the same business day a year earlier.",
         "properties": {
@@ -1611,6 +1891,12 @@
             "description": "Why net_transfers_gap_change is null, when it is",
             "title": "Gap Change Unavailable Reason"
           },
+          "interest_income_fytd": {
+            "$ref": "#/components/schemas/SnapshotFigure"
+          },
+          "net_customs_fytd": {
+            "$ref": "#/components/schemas/SnapshotFigure"
+          },
           "net_transfers_fytd": {
             "$ref": "#/components/schemas/SnapshotFigure"
           },
@@ -1672,10 +1958,46 @@
             "description": "Last week's net-transfers FYTD change from a year earlier",
             "title": "Previous Week Net Transfers Gap"
           },
+          "projected_monthly_withdrawals": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "withdrawals_10d_average \u00d7 20",
+            "title": "Projected Monthly Withdrawals"
+          },
           "record_date": {
             "description": "Statement used; earlier than anchor_date after a holiday",
             "title": "Record Date",
             "type": "string"
+          },
+          "unemployment_10d_average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean unemployment benefits over the last 10 statements",
+            "title": "Unemployment 10D Average"
+          },
+          "withdrawals_10d_average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean withdrawals over the last 10 statements",
+            "title": "Withdrawals 10D Average"
           },
           "withdrawals_fytd": {
             "$ref": "#/components/schemas/SnapshotFigure"
@@ -1703,6 +2025,11 @@
           "deposits_fytd",
           "net_transfers_fytd",
           "withholding_fytd",
+          "withdrawals_10d_average",
+          "projected_monthly_withdrawals",
+          "unemployment_10d_average",
+          "interest_income_fytd",
+          "net_customs_fytd",
           "previous_week_date",
           "previous_week_net_transfers_gap",
           "net_transfers_gap_change",
@@ -1903,6 +2230,78 @@
         "summary": "Health",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/api/v1/categories/combined": {
+      "get": {
+        "description": "Figures made of several categories, with YoY change.",
+        "operationId": "categories_get_combined",
+        "parameters": [
+          {
+            "description": "Current fiscal year",
+            "in": "query",
+            "name": "current_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Current fiscal year",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Current Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Previous fiscal year for Y-o-Y comparison",
+            "in": "query",
+            "name": "previous_fiscal_year",
+            "required": true,
+            "schema": {
+              "description": "Previous fiscal year for Y-o-Y comparison",
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Previous Fiscal Year",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+            "in": "query",
+            "name": "comparison_mode",
+            "required": false,
+            "schema": {
+              "default": "fiscal_day",
+              "description": "Comparison mode: 'fiscal_day' (Day N vs Day N) or 'calendar_date' (Dec 31 vs Dec 31)",
+              "title": "Comparison Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CombinedCategoriesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Combined",
+        "tags": [
+          "categories"
         ]
       }
     },
@@ -2961,6 +3360,107 @@
         "summary": "Get For Fiscal Year",
         "tags": [
           "net_transfers"
+        ]
+      }
+    },
+    "/api/v1/rolling/daily": {
+      "get": {
+        "description": "Each statement's amount and the mean of the last `window` statements.",
+        "operationId": "rolling_get_daily",
+        "parameters": [
+          {
+            "description": "Daily amount to average",
+            "in": "query",
+            "name": "metric",
+            "required": true,
+            "schema": {
+              "description": "Daily amount to average",
+              "enum": [
+                "total_withdrawals",
+                "unemployment_benefits"
+              ],
+              "title": "Metric",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Statements per average",
+            "in": "query",
+            "name": "window",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "description": "Statements per average",
+              "maximum": 60,
+              "minimum": 2,
+              "title": "Window",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "First date returned; default a year before end_date",
+            "in": "query",
+            "name": "start_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "First date returned; default a year before end_date",
+              "title": "Start Date"
+            }
+          },
+          {
+            "description": "Last date returned; default latest",
+            "in": "query",
+            "name": "end_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Last date returned; default latest",
+              "title": "End Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RollingAverageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Daily",
+        "tags": [
+          "rolling"
         ]
       }
     },
