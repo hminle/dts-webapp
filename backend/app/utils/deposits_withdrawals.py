@@ -1,259 +1,174 @@
-"""
-Utility functions for calculating daily net transfers from deposits & withdrawals data.
+"""Daily net transfers from ``deposits_withdrawals`` rows.
 
-This module provides functions to calculate various treasury metrics from
-deposits_withdrawals table data.
+The Treasury has published Table II in more than one shape, and the totals are
+read differently in each:
+
+- From 2022-04-18 the statement carries its own total rows
+  (``Treasury General Account Total Deposits`` / ``... Total Withdrawals``),
+  with the Treasury's MTD and FYTD.
+- Before that the app adds up the day's line items. Until FY2013 cash sat in
+  two accounts, the Federal Reserve Account and the Tax and Loan Note
+  Accounts, so both are summed and the transfers between them are dropped.
+- The old format printed some lines (the "Other Withdrawals" sub-lines) only
+  on days they had activity, so adding up a day's FYTD column misses every
+  line absent that day. :func:`net_transfer_series` rebuilds MTD and FYTD for
+  those days as running sums of the daily amounts.
+
+Borrowing is removed on both sides. The debt lines were renamed on 2022-09-12,
+from "(Table III-B)" to "(Table IIIB)", so they are matched by prefix.
 """
 
 import logging
+from datetime import date
 from typing import Any
 
 import pandas as pd
 
+from app.utils.fiscal import current_fiscal_year
+
 logger = logging.getLogger(__name__)
+
+TOTAL_DEPOSITS = "Treasury General Account Total Deposits"
+TOTAL_WITHDRAWALS = "Treasury General Account Total Withdrawals"
+# "Other Withdrawals" is not an account: the 2020-08-14 statement filed nine
+# withdrawal lines under it, and they are real spending.
+CASH_ACCOUNTS = (
+    "Treasury General Account (TGA)",
+    "Federal Reserve Account",
+    "Tax and Loan Note Accounts",
+    "Other Withdrawals",
+)
+DEBT_ISSUES = "Public Debt Cash Issues"
+DEBT_REDEMPTIONS = "Public Debt Cash Redemp."
+TRANSFERS = "Transfers"
+
+_COLUMNS = {
+    "today": "transaction_today_amt",
+    "mtd": "transaction_mtd_amt",
+    "fytd": "transaction_fytd_amt",
+}
+_BASES = (
+    "tga_total_deposits",
+    "tga_total_withdrawals",
+    "public_debt_issues",
+    "public_debt_redemptions",
+    "total_deposits",
+    "total_withdrawals",
+    "net_flow",
+)
+
+Amounts = dict[str, float]
+
+
+def _amounts(rows: pd.DataFrame) -> Amounts:
+    return {p: float(rows[col].fillna(0).sum()) for p, col in _COLUMNS.items()}
+
+
+def _catg(df: pd.DataFrame) -> pd.Series:
+    # Hand-built frames in tests may omit the column; real rows always have it.
+    if "transaction_catg" not in df:
+        return pd.Series("", index=df.index)
+    return df["transaction_catg"].fillna("")
+
+
+def _side(
+    df: pd.DataFrame, transaction_type: str, total_account: str
+) -> tuple[Amounts, bool] | None:
+    """One side's gross amounts and whether they came from line items."""
+    total = df[df["account_type"] == total_account]
+    if not total.empty:
+        return _amounts(total), False
+    catg = _catg(df)
+    items = df[
+        df["account_type"].isin(CASH_ACCOUNTS)
+        & (df["transaction_type"] == transaction_type)
+        & ~catg.str.startswith(TRANSFERS)
+    ]
+    if items.empty:
+        return None
+    return _amounts(items), True
+
+
+def _debt(df: pd.DataFrame, transaction_type: str, prefix: str) -> Amounts:
+    catg = _catg(df)
+    return _amounts(
+        df[
+            df["account_type"].isin(CASH_ACCOUNTS)
+            & (df["transaction_type"] == transaction_type)
+            & catg.str.startswith(prefix)
+        ]
+    )
 
 
 def calculate_daily_net_transfers(df: pd.DataFrame, date: str) -> dict[str, Any] | None:
-    """
-    Calculate daily net transfer metrics from deposits & withdrawals for one date.
+    """Net transfer metrics for one statement date.
 
-    This function extracts and calculates:
-    - Total Deposits (excluding Public Debt Cash Issues)
-    - Total Withdrawals (excluding Public Debt Cash Redemptions)
-    - Net Flow (Total Withdrawals - Total Deposits)
-    - Leading Flow (Total Withdrawals)
+    - Total deposits = gross deposits − public debt cash issues
+    - Total withdrawals = gross withdrawals − public debt cash redemptions
+    - Net flow = total withdrawals − total deposits
+    - Leading flow = total withdrawals (today)
+
+    MTD and FYTD are the statement's own columns. When ``line_items`` is true
+    those undercount, and :func:`net_transfer_series` replaces them.
 
     Args:
-        df: DataFrame containing deposits_withdrawals data for the date
-        date: Date in YYYY-MM-DD format
+        df: The ``deposits_withdrawals`` rows for the date.
+        date: The date, ``YYYY-MM-DD``.
 
     Returns:
-        Dictionary with calculated metrics, or None if data is incomplete
-
-    Raises:
-        ValueError: If required data is missing
+        The metrics, or None when either side has no usable rows.
     """
     if df.empty:
-        logger.warning(f"No data provided for date {date}")
+        logger.warning("No data provided for date %s", date)
         return None
+    deposits = _side(df, "Deposits", TOTAL_DEPOSITS)
+    withdrawals = _side(df, "Withdrawals", TOTAL_WITHDRAWALS)
+    if deposits is None or withdrawals is None:
+        logger.warning("No deposits or no withdrawals for %s", date)
+        return None
+    (gross_in, in_items), (gross_out, out_items) = deposits, withdrawals
+    issues = _debt(df, "Deposits", DEBT_ISSUES)
+    redemptions = _debt(df, "Withdrawals", DEBT_REDEMPTIONS)
 
-    # Debug: Log unique account types in the data
-    unique_account_types = df["account_type"].unique().tolist()
-    logger.debug(f"Date {date} has account types: {unique_account_types}")
-
-    try:
-        # 1. Treasury General Account Total Deposits
-        # First, try to get the pre-aggregated row
-        tga_deposits_row = df[
-            df["account_type"] == "Treasury General Account Total Deposits"
-        ]
-
-        if not tga_deposits_row.empty:
-            # Use pre-aggregated data
-            tga_deposits_today = float(
-                tga_deposits_row["transaction_today_amt"].iloc[0] or 0
-            )
-            tga_deposits_mtd = float(
-                tga_deposits_row["transaction_mtd_amt"].iloc[0] or 0
-            )
-            tga_deposits_fytd = float(
-                tga_deposits_row["transaction_fytd_amt"].iloc[0] or 0
-            )
-        else:
-            # Calculate ourselves: sum all TGA Deposits rows
-            logger.info(
-                f"Pre-aggregated TGA Total Deposits not found for {date}, "
-                "calculating from individual rows"
-            )
-
-            # Try Treasury General Account (TGA) first
-            tga_deposits_rows = df[
-                (df["account_type"] == "Treasury General Account (TGA)")
-                & (df["transaction_type"] == "Deposits")
-            ]
-
-            # If no TGA rows, try Federal Reserve Account
-            if tga_deposits_rows.empty:
-                logger.debug(
-                    f"No TGA rows found, trying Federal Reserve Account for {date}"
-                )
-                tga_deposits_rows = df[
-                    (df["account_type"] == "Federal Reserve Account")
-                    & (df["transaction_type"] == "Deposits")
-                ]
-
-            if tga_deposits_rows.empty:
-                logger.warning(
-                    f"No Deposits data found for {date} in either TGA or "
-                    "Federal Reserve Account"
-                )
-                return None
-
-            tga_deposits_today = float(
-                tga_deposits_rows["transaction_today_amt"].sum() or 0
-            )
-            tga_deposits_mtd = float(
-                tga_deposits_rows["transaction_mtd_amt"].sum() or 0
-            )
-            tga_deposits_fytd = float(
-                tga_deposits_rows["transaction_fytd_amt"].sum() or 0
-            )
-
-        # 2. Treasury General Account Total Withdrawals
-        # First, try to get the pre-aggregated row
-        tga_withdrawals_row = df[
-            df["account_type"] == "Treasury General Account Total Withdrawals"
-        ]
-
-        if not tga_withdrawals_row.empty:
-            # Use pre-aggregated data
-            tga_withdrawals_today = float(
-                tga_withdrawals_row["transaction_today_amt"].iloc[0] or 0
-            )
-            tga_withdrawals_mtd = float(
-                tga_withdrawals_row["transaction_mtd_amt"].iloc[0] or 0
-            )
-            tga_withdrawals_fytd = float(
-                tga_withdrawals_row["transaction_fytd_amt"].iloc[0] or 0
-            )
-        else:
-            # Calculate ourselves: sum all TGA Withdrawals rows
-            logger.info(
-                f"Pre-aggregated TGA Total Withdrawals not found for {date}, "
-                "calculating from individual rows"
-            )
-
-            # Try Treasury General Account (TGA) first
-            tga_withdrawals_rows = df[
-                (df["account_type"] == "Treasury General Account (TGA)")
-                & (df["transaction_type"] == "Withdrawals")
-            ]
-
-            # If no TGA rows, try Federal Reserve Account
-            if tga_withdrawals_rows.empty:
-                logger.debug(
-                    f"No TGA rows found, trying Federal Reserve Account for {date}"
-                )
-                tga_withdrawals_rows = df[
-                    (df["account_type"] == "Federal Reserve Account")
-                    & (df["transaction_type"] == "Withdrawals")
-                ]
-
-            if tga_withdrawals_rows.empty:
-                logger.warning(
-                    f"No Withdrawals data found for {date} in either TGA or "
-                    "Federal Reserve Account"
-                )
-                return None
-
-            tga_withdrawals_today = float(
-                tga_withdrawals_rows["transaction_today_amt"].sum() or 0
-            )
-            tga_withdrawals_mtd = float(
-                tga_withdrawals_rows["transaction_mtd_amt"].sum() or 0
-            )
-            tga_withdrawals_fytd = float(
-                tga_withdrawals_rows["transaction_fytd_amt"].sum() or 0
-            )
-
-        # 3. Public Debt Cash Issues (Table IIIB) - TGA, then Federal Reserve Acct
-        debt_issues_row = df[
-            (df["account_type"] == "Treasury General Account (TGA)")
-            & (df["transaction_catg"] == "Public Debt Cash Issues (Table IIIB)")
-        ]
-        if debt_issues_row.empty:
-            debt_issues_row = df[
-                (df["account_type"] == "Federal Reserve Account")
-                & (df["transaction_catg"] == "Public Debt Cash Issues (Table IIIB)")
-            ]
-
-        # 4. Public Debt Cash Redemptions (Table IIIB) - TGA, then Federal Reserve Acct
-        debt_redemp_row = df[
-            (df["account_type"] == "Treasury General Account (TGA)")
-            & (df["transaction_catg"] == "Public Debt Cash Redemp. (Table IIIB)")
-        ]
-        if debt_redemp_row.empty:
-            debt_redemp_row = df[
-                (df["account_type"] == "Federal Reserve Account")
-                & (df["transaction_catg"] == "Public Debt Cash Redemp. (Table IIIB)")
-            ]
-
-        # Extract debt values
-        debt_issues_today = (
-            float(debt_issues_row["transaction_today_amt"].iloc[0])
-            if not debt_issues_row.empty
-            else 0.0
-        )
-        debt_issues_mtd = (
-            float(debt_issues_row["transaction_mtd_amt"].iloc[0])
-            if not debt_issues_row.empty
-            else 0.0
-        )
-        debt_issues_fytd = (
-            float(debt_issues_row["transaction_fytd_amt"].iloc[0])
-            if not debt_issues_row.empty
-            else 0.0
-        )
-
-        debt_redemp_today = (
-            float(debt_redemp_row["transaction_today_amt"].iloc[0])
-            if not debt_redemp_row.empty
-            else 0.0
-        )
-        debt_redemp_mtd = (
-            float(debt_redemp_row["transaction_mtd_amt"].iloc[0])
-            if not debt_redemp_row.empty
-            else 0.0
-        )
-        debt_redemp_fytd = (
-            float(debt_redemp_row["transaction_fytd_amt"].iloc[0])
-            if not debt_redemp_row.empty
-            else 0.0
-        )
-
-        # Calculate totals (matching Streamlit logic)
-        total_deposits_today = tga_deposits_today - debt_issues_today
-        total_deposits_mtd = tga_deposits_mtd - debt_issues_mtd
-        total_deposits_fytd = tga_deposits_fytd - debt_issues_fytd
-
-        total_withdrawals_today = tga_withdrawals_today - debt_redemp_today
-        total_withdrawals_mtd = tga_withdrawals_mtd - debt_redemp_mtd
-        total_withdrawals_fytd = tga_withdrawals_fytd - debt_redemp_fytd
-
-        # Net Government Transfers = Total Withdrawals - Total Deposits
-        net_flow_today = total_withdrawals_today - total_deposits_today
-        net_flow_mtd = total_withdrawals_mtd - total_deposits_mtd
-        net_flow_fytd = total_withdrawals_fytd - total_deposits_fytd
-
-        # Leading Flow = Total Withdrawals
-        leading_flow = total_withdrawals_today
-
-        return {
-            "date": date,
-            "tga_total_deposits_today": tga_deposits_today,
-            "tga_total_withdrawals_today": tga_withdrawals_today,
-            "public_debt_issues_today": debt_issues_today,
-            "public_debt_redemptions_today": debt_redemp_today,
-            "total_deposits_today": total_deposits_today,
-            "total_withdrawals_today": total_withdrawals_today,
-            "net_flow_today": net_flow_today,
-            "leading_flow": leading_flow,
-            "tga_total_deposits_mtd": tga_deposits_mtd,
-            "tga_total_withdrawals_mtd": tga_withdrawals_mtd,
-            "public_debt_issues_mtd": debt_issues_mtd,
-            "public_debt_redemptions_mtd": debt_redemp_mtd,
-            "total_deposits_mtd": total_deposits_mtd,
-            "total_withdrawals_mtd": total_withdrawals_mtd,
-            "net_flow_mtd": net_flow_mtd,
-            "tga_total_deposits_fytd": tga_deposits_fytd,
-            "tga_total_withdrawals_fytd": tga_withdrawals_fytd,
-            "public_debt_issues_fytd": debt_issues_fytd,
-            "public_debt_redemptions_fytd": debt_redemp_fytd,
-            "total_deposits_fytd": total_deposits_fytd,
-            "total_withdrawals_fytd": total_withdrawals_fytd,
-            "net_flow_fytd": net_flow_fytd,
+    metrics: dict[str, Any] = {"date": date, "line_items": in_items or out_items}
+    for p in _COLUMNS:
+        total_in = gross_in[p] - issues[p]
+        total_out = gross_out[p] - redemptions[p]
+        metrics |= {
+            f"tga_total_deposits_{p}": gross_in[p],
+            f"tga_total_withdrawals_{p}": gross_out[p],
+            f"public_debt_issues_{p}": issues[p],
+            f"public_debt_redemptions_{p}": redemptions[p],
+            f"total_deposits_{p}": total_in,
+            f"total_withdrawals_{p}": total_out,
+            f"net_flow_{p}": total_out - total_in,
         }
+    metrics["leading_flow"] = metrics["total_withdrawals_today"]
+    return metrics
 
-    except Exception as e:
-        logger.exception(f"Error calculating daily net transfers for {date}: {e}")
-        return None
+
+def net_transfer_series(df: pd.DataFrame) -> list[dict[str, Any]]:
+    """Metrics for every date in ``df`` that has them, oldest first.
+
+    Line-item days get MTD and FYTD as running sums of the daily amounts, so
+    ``df`` must hold each fiscal year from its first statement. A date without
+    usable rows is left out and adds nothing to the running sums.
+    """
+    if df.empty:
+        return []
+    dates = pd.to_datetime(df["record_date"]).dt.strftime("%Y-%m-%d")
+    sums: dict[tuple[Any, ...], dict[str, float]] = {}
+    series: list[dict[str, Any]] = []
+    for day, day_df in df.groupby(dates, sort=True):
+        metrics = calculate_daily_net_transfers(day_df, day)
+        if metrics is None:
+            continue
+        fy = current_fiscal_year(date.fromisoformat(day))
+        for period, key in (("mtd", (fy, day[:7])), ("fytd", (fy,))):
+            running = sums.setdefault((period, *key), dict.fromkeys(_BASES, 0.0))
+            for base in _BASES:
+                running[base] += metrics[f"{base}_today"]
+                if metrics["line_items"]:
+                    metrics[f"{base}_{period}"] = running[base]
+        series.append(metrics)
+    return series

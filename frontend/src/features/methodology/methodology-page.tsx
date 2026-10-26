@@ -1,6 +1,14 @@
 import { useEffect } from 'react'
 import { ProsePage, ProseSection } from '@/components/prose-section'
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
   formatNumber,
   formatShortDate,
   formatSignedPercent,
@@ -24,6 +32,20 @@ const COMB = examples.combined
 const COMB_CUR = `FY2026 · ${formatShortDate(COMB.current_date)}`
 const COMB_PREV = `FY2025 · ${formatShortDate(COMB.previous_date)}`
 const CASH = examples.cash_balance
+const OLD = examples.older_statements
+
+// How Table II has been laid out over time; backend/app/utils/deposits_withdrawals.py
+// reads each shape.
+const STATEMENT_SHAPES: [string, string, string][] = [
+  [
+    'Oct 2005 – Sep 2012',
+    'Lines of the Federal Reserve Account and the Tax and Loan Note Accounts, without the transfers between them',
+    'Table III-B',
+  ],
+  ['Oct 2012 – Apr 15, 2022', 'Lines of the one cash account', 'Table III-B'],
+  ['Apr 18 – Sep 9, 2022', 'The Treasury’s total rows', 'Table III-B'],
+  ['From Sep 12, 2022', 'The Treasury’s total rows', 'Table IIIB'],
+]
 
 // Display names from backend/app/constants/endpoints.py (ENDPOINTS).
 const TABLES = [
@@ -384,10 +406,60 @@ export function MethodologyPage() {
             }
           />
           <p>
-            Some older statements lack the TGA total rows. For those days the
-            app adds up the individual deposit and withdrawal lines itself, then
-            removes borrowing the same way.
+            The statement has changed shape over the years. The app reads each
+            shape so that the totals mean the same thing in every year:
           </p>
+          <figure className='flex flex-col gap-2'>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Statements</TableHead>
+                  <TableHead>Gross totals</TableHead>
+                  <TableHead>Borrowing lines</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {STATEMENT_SHAPES.map(([dates, totals, debt]) => (
+                  <TableRow key={dates}>
+                    <TableCell className='font-medium whitespace-normal'>
+                      {dates}
+                    </TableCell>
+                    <TableCell className='whitespace-normal'>{totals}</TableCell>
+                    <TableCell className='whitespace-nowrap'>{debt}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <figcaption className='text-xs'>
+              Borrowing lines are the public debt cash issues and redemptions.
+            </figcaption>
+          </figure>
+          <p>
+            Before the total rows, the fiscal year to date needs care too. The
+            old statement printed some lines, such as the parts of “Other
+            Withdrawals”, only on days they had activity, so adding up a day’s
+            FYTD column misses every line not printed that day. The app adds up
+            the daily amounts since October 1 instead:
+          </p>
+          <ArithmeticTable
+            columns={['FYTD']}
+            caption={`${formatShortDate(OLD.date)}, FY${OLD.fiscal_year} day ${OLD.day_of_fiscal_year}. Millions of dollars.`}
+            rows={[
+              {
+                label: 'Total withdrawals, from the printed FYTD column',
+                values: [OLD.fytd_columns.total_withdrawals],
+              },
+              {
+                label: `Total withdrawals, adding up ${OLD.days.length} days`,
+                values: [OLD.fytd_total_withdrawals],
+                result: true,
+              },
+              {
+                label: 'Missing from the printed column',
+                values: [OLD.shortfall],
+              },
+            ]}
+          />
         </ProseSection>
 
         <ProseSection id='surplus-or-deficit' title='4. Net transfers'>
@@ -811,8 +883,13 @@ export function MethodologyPage() {
               rebuilt in full.
             </li>
             <li>
-              Days whose statement lacks the totals above are skipped in net
-              transfer figures.
+              Days whose statement has no deposit or no withdrawal lines are
+              skipped in net transfer figures.
+            </li>
+            <li>
+              The fiscal year to date is the Treasury’s own figure from April
+              18, 2022. The Treasury sometimes adjusts it on a later day, so it
+              can differ from the sum of the daily amounts.
             </li>
             <li>
               The Treasury has renamed and reorganized its lines over the

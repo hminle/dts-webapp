@@ -35,11 +35,23 @@ All four are in `deposits_withdrawals`:
 | Public debt cash issues | `Treasury General Account (TGA)` | `Public Debt Cash Issues (Table IIIB)` |
 | Public debt cash redemptions | `Treasury General Account (TGA)` | `Public Debt Cash Redemp. (Table IIIB)` |
 
-The two total rows exist only from 2022-04-18. Before that the app adds up the day's
-`Treasury General Account (TGA)` deposit or withdrawal rows instead, and statements up to
-2021-09-30 report under `account_type = 'Federal Reserve Account'` rather than the TGA. The SQL
-below works only from 2022-04-18; for earlier dates read `daily_net_transfers`, which ingestion
-built with the same fallbacks.
+The statement has changed shape, and `daily_net_transfers` already handles every shape:
+
+| Dates | Gross totals | Debt lines |
+|---|---|---|
+| 2005-10-03 to 2012-09-28 | Sum of `Federal Reserve Account` and `Tax and Loan Note Accounts` rows, without `Transfers…` lines | `(Table III-B)` |
+| 2012-10-01 to 2022-04-15 | Sum of the cash account's rows (`Federal Reserve Account` to 2021-09-30, then `Treasury General Account (TGA)`) | `(Table III-B)` |
+| 2022-04-18 to 2022-09-09 | The two total rows | `(Table III-B)` |
+| 2022-09-12 on | The two total rows | `(Table IIIB)` |
+
+Before 2022-04-18, MTD and FYTD are running sums of the daily amounts, not the statement's
+columns: the old statement printed some lines (the parts of "Other Withdrawals") only on days
+they had activity, so summing one day's FYTD column misses every line not printed that day. On
+{{example:older_statements.date}}, the FYTD column gives total withdrawals of
+{{example:older_statements.fytd_columns.total_withdrawals}}; adding up the days gives
+{{example:older_statements.fytd_total_withdrawals}}.
+
+The SQL below works only from 2022-09-12; for earlier dates read `daily_net_transfers`.
 
 ## Worked example
 

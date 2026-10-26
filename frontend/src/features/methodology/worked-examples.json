@@ -255,5 +255,40 @@
         "value": 578473
       }
     ]
+  },
+  "older_statements": {
+    "date": "2021-10-29",
+    "fiscal_year": 2022,
+    "day_of_fiscal_year": 20,
+    "debt_line": "Public Debt Cash Redemp. (Table III-B)",
+    "days": [
+      { "date": "2021-10-01", "gross_withdrawals": 111934, "debt_redemptions": 7433 },
+      { "date": "2021-10-04", "gross_withdrawals": 18401, "debt_redemptions": 1586 },
+      { "date": "2021-10-05", "gross_withdrawals": 121332, "debt_redemptions": 103290 },
+      { "date": "2021-10-06", "gross_withdrawals": 21370, "debt_redemptions": 1564 },
+      { "date": "2021-10-07", "gross_withdrawals": 180011, "debt_redemptions": 166528 },
+      { "date": "2021-10-08", "gross_withdrawals": 17884, "debt_redemptions": 1554 },
+      { "date": "2021-10-12", "gross_withdrawals": 117634, "debt_redemptions": 96933 },
+      { "date": "2021-10-13", "gross_withdrawals": 39294, "debt_redemptions": 1558 },
+      { "date": "2021-10-14", "gross_withdrawals": 140257, "debt_redemptions": 122438 },
+      { "date": "2021-10-15", "gross_withdrawals": 152822, "debt_redemptions": 113468 },
+      { "date": "2021-10-18", "gross_withdrawals": 16918, "debt_redemptions": 1557 },
+      { "date": "2021-10-19", "gross_withdrawals": 102682, "debt_redemptions": 87399 },
+      { "date": "2021-10-20", "gross_withdrawals": 38068, "debt_redemptions": 1550 },
+      { "date": "2021-10-21", "gross_withdrawals": 146740, "debt_redemptions": 123458 },
+      { "date": "2021-10-22", "gross_withdrawals": 13890, "debt_redemptions": 1549 },
+      { "date": "2021-10-25", "gross_withdrawals": 18139, "debt_redemptions": 1559 },
+      { "date": "2021-10-26", "gross_withdrawals": 98987, "debt_redemptions": 82139 },
+      { "date": "2021-10-27", "gross_withdrawals": 42671, "debt_redemptions": 1552 },
+      { "date": "2021-10-28", "gross_withdrawals": 149396, "debt_redemptions": 132727 },
+      { "date": "2021-10-29", "gross_withdrawals": 20922, "debt_redemptions": 1552 }
+    ],
+    "fytd_columns": {
+      "gross_withdrawals": 1548701,
+      "debt_redemptions": 1051395,
+      "total_withdrawals": 497306
+    },
+    "fytd_total_withdrawals": 517958,
+    "shortfall": 20652
   }
 }
