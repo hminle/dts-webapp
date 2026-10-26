@@ -9,7 +9,10 @@ from datetime import date
 import pandas as pd
 import pytest
 
-from app.utils.deposits_withdrawals import calculate_daily_net_transfers
+from app.utils.deposits_withdrawals import (
+    calculate_daily_net_transfers,
+    net_transfer_series,
+)
 from tests.fixtures import dw_day, dw_day_without_totals, dw_row
 
 DAY = date(2026, 10, 19)
@@ -175,3 +178,162 @@ def test_positive_means_more_went_out_than_came_in(
     )
     net = m["net_flow_today"]
     assert (net > 0) - (net < 0) == sign
+
+
+OLD_ISSUES = "Public Debt Cash Issues (Table III-B)"
+OLD_REDEMPTIONS = "Public Debt Cash Redemp. (Table III-B)"
+TTL = "Tax and Loan Note Accounts"
+
+
+def test_debt_lines_under_their_pre_2022_09_12_names_are_removed() -> None:
+    m = _run(
+        dw_row(DAY, FY, account_type=TGA, transaction_type="Deposits", today=100),
+        dw_row(
+            DAY,
+            FY,
+            account_type=TGA,
+            transaction_type="Deposits",
+            transaction_catg=OLD_ISSUES,
+            today=900,
+        ),
+        dw_row(DAY, FY, account_type=TGA, transaction_type="Withdrawals", today=60),
+        dw_row(
+            DAY,
+            FY,
+            account_type=TGA,
+            transaction_type="Withdrawals",
+            transaction_catg=OLD_REDEMPTIONS,
+            today=800,
+        ),
+    )
+    assert m["public_debt_issues_today"] == 900
+    assert m["public_debt_redemptions_today"] == 800
+    assert m["total_deposits_today"] == 100
+    assert m["total_withdrawals_today"] == 60
+
+
+def test_before_fy2013_both_accounts_count_and_transfers_between_them_do_not() -> None:
+    # Taxes landed in the Tax and Loan Note Accounts and were moved on to the
+    # Federal Reserve Account; counting the move would count the taxes twice.
+    m = _run(
+        dw_row(DAY, FY, account_type=FRA, transaction_type="Deposits", today=70),
+        dw_row(
+            DAY,
+            FY,
+            account_type=TTL,
+            transaction_type="Deposits",
+            transaction_catg="FTD's Received (Table IV)",
+            today=30,
+        ),
+        dw_row(
+            DAY,
+            FY,
+            account_type=FRA,
+            transaction_type="Deposits",
+            transaction_catg="Transfers from Depositaries",
+            today=25,
+        ),
+        dw_row(
+            DAY,
+            FY,
+            account_type=TTL,
+            transaction_type="Withdrawals",
+            transaction_catg="Transfers to Federal Reserve Account (Table V)",
+            today=25,
+        ),
+        dw_row(DAY, FY, account_type=FRA, transaction_type="Withdrawals", today=95),
+    )
+    assert m["total_deposits_today"] == 100
+    assert m["total_withdrawals_today"] == 95
+
+
+def test_withdrawals_misfiled_under_other_withdrawals_still_count() -> None:
+    # The 2020-08-14 statement filed nine lines under this account_type.
+    m = _run(
+        dw_row(DAY, FY, account_type=FRA, transaction_type="Deposits", today=10),
+        dw_row(DAY, FY, account_type=FRA, transaction_type="Withdrawals", today=40),
+        dw_row(
+            DAY,
+            FY,
+            account_type="Other Withdrawals",
+            transaction_type="Withdrawals",
+            transaction_catg="Military Active Duty Pay (EFT)",
+            today=5,
+        ),
+    )
+    assert m["total_withdrawals_today"] == 45
+
+
+def _line_item_day(day: date, withdrawals: float, fytd: float) -> pd.DataFrame:
+    return pd.concat(
+        [
+            dw_row(day, FY, account_type=TGA, transaction_type="Deposits", today=0),
+            dw_row(
+                day,
+                FY,
+                account_type=TGA,
+                transaction_type="Withdrawals",
+                today=withdrawals,
+                mtd=fytd,
+                fytd=fytd,
+            ),
+        ],
+        ignore_index=True,
+    )
+
+
+def test_line_item_days_rebuild_mtd_and_fytd_from_the_daily_amounts() -> None:
+    # The FYTD columns (1 each) are what an old statement's printed lines add
+    # up to; the series ignores them and sums the days.
+    frame = pd.concat(
+        [
+            _line_item_day(date(2026, 10, 30), 100, fytd=1),
+            _line_item_day(date(2026, 11, 2), 40, fytd=1),
+            _line_item_day(date(2026, 11, 3), 5, fytd=1),
+        ],
+        ignore_index=True,
+    )
+    series = net_transfer_series(frame)
+    assert [m["total_withdrawals_fytd"] for m in series] == [100, 140, 145]
+    assert [m["total_withdrawals_mtd"] for m in series] == [100, 40, 45]
+    assert [m["net_flow_fytd"] for m in series] == [100, 140, 145]
+
+
+def test_days_with_treasury_totals_keep_the_treasury_columns() -> None:
+    series = net_transfer_series(
+        pd.concat(
+            [
+                dw_day(
+                    date(2026, 10, 1),
+                    FY,
+                    deposits=5,
+                    withdrawals=8,
+                    debt_issues=1,
+                    debt_redemptions=2,
+                ),
+                dw_day(
+                    date(2026, 10, 2),
+                    FY,
+                    deposits=5,
+                    withdrawals=8,
+                    debt_issues=1,
+                    debt_redemptions=2,
+                ),
+            ],
+            ignore_index=True,
+        )
+    )
+    # dw_day's FYTD column is today × 100, not a running sum.
+    assert [m["total_withdrawals_fytd"] for m in series] == [600, 600]
+
+
+def test_a_fiscal_year_boundary_restarts_the_running_sums() -> None:
+    frame = pd.concat(
+        [
+            _line_item_day(date(2026, 9, 30), 100, fytd=1),
+            _line_item_day(date(2026, 10, 1), 7, fytd=1),
+        ],
+        ignore_index=True,
+    )
+    series = net_transfer_series(frame)
+    assert [m["total_withdrawals_fytd"] for m in series] == [100, 7]

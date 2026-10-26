@@ -12,6 +12,7 @@ from app.services.weekly import (
     get_comparison,
 )
 from app.utils.anchor import anchor_days
+from app.utils.deposits_withdrawals import net_transfer_series
 from tests.fixtures import dw_day, formula_db
 
 
@@ -55,7 +56,8 @@ def test_a_holiday_friday_uses_the_closest_earlier_statement() -> None:
     )
     df["record_date"] = pd.to_datetime(df["record_date"])
     fridays = anchor_days(datetime(2025, 10, 1), datetime(2025, 10, 24), "friday")
-    points = _build_weekly_points(df, fridays)
+    by_date = {m["date"]: m for m in net_transfer_series(df)}
+    points = _build_weekly_points(by_date, fridays)
     # Week 2's Friday (Oct 10) had no statement, so Thursday Oct 9 stands in.
     # Week 3 has nothing within 5 days back and is skipped; week 4 keeps its number.
     assert [(p.week_number, p.record_date) for p in points] == [

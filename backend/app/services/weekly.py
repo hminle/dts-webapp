@@ -6,9 +6,9 @@ to ``app/api/routers/weekly.py``.
 
 import logging
 from datetime import datetime, timedelta
+from typing import Any
 
 import duckdb
-import pandas as pd
 
 from app.schemas.treasury import (
     WeeklyComparisonRequest,
@@ -16,7 +16,7 @@ from app.schemas.treasury import (
     WeeklyDataPoint,
 )
 from app.utils.anchor import LOOK_BACK_DAYS, anchor_days
-from app.utils.deposits_withdrawals import calculate_daily_net_transfers
+from app.utils.deposits_withdrawals import net_transfer_series
 
 logger = logging.getLogger(__name__)
 
@@ -30,26 +30,22 @@ def _fiscal_year_dates(fiscal_year: int) -> tuple[datetime, datetime]:
 
 
 def _build_weekly_points(
-    df: pd.DataFrame,
+    by_date: dict[str, dict[str, Any]],
     anchors: list[datetime],
     *,
     max_days_back: int = LOOK_BACK_DAYS,
 ) -> list[WeeklyDataPoint]:
     """One ``WeeklyDataPoint`` per anchor day, with up to ``max_days_back`` look-back.
 
-    Empty days (or days where ``calculate_daily_net_transfers`` returns
-    ``None``) are skipped — the inner loop walks backward and tries the
-    next earlier day, mirroring the legacy behavior.
+    ``by_date`` maps ``YYYY-MM-DD`` to :func:`net_transfer_series` metrics. A
+    day without metrics is skipped and the next earlier day tried, mirroring
+    the legacy behavior.
     """
     points: list[WeeklyDataPoint] = []
     for week_num, anchor in enumerate(anchors, start=1):
         for offset in range(max_days_back + 1):
             check_date = anchor - timedelta(days=offset)
-            day_df = df[df["record_date"] == check_date]
-            if day_df.empty:
-                continue
-            date_str = check_date.strftime("%Y-%m-%d")
-            metrics = calculate_daily_net_transfers(day_df, date_str)
+            metrics = by_date.get(check_date.strftime("%Y-%m-%d"))
             if metrics is None:
                 continue
             points.append(
@@ -74,7 +70,7 @@ def get_comparison(
 
     Picks each anchor weekday (Friday by default, or Thursday), or the
     closest earlier day with data, and runs
-    the shared ``calculate_daily_net_transfers`` math on that day's
+    the shared ``net_transfer_series`` math on that day's
     rows. The second year is truncated to the first year's last week
     number so the side-by-side comparison stays apples-to-apples.
     """
@@ -121,8 +117,7 @@ def get_comparison(
 
     logger.info(f"Retrieved {len(df)} records from deposits_withdrawals table")
 
-    if not pd.api.types.is_datetime64_any_dtype(df["record_date"]):
-        df["record_date"] = pd.to_datetime(df["record_date"])
+    by_date = {m["date"]: m for m in net_transfer_series(df)}
 
     weekday = request.anchor_weekday
     first_anchors = anchor_days(first_start, first_end, weekday)
@@ -136,14 +131,14 @@ def get_comparison(
         f"{request.second_fiscal_year}"
     )
 
-    first_year_data = _build_weekly_points(df, first_anchors)
+    first_year_data = _build_weekly_points(by_date, first_anchors)
 
     # Cut the second year at the first year's last week number, not its point
     # count: a first-year week with no statement is skipped, so counting points
     # would drop the second year's final week and leave the first year's
     # unpaired.
     comparison_weeks = first_year_data[-1].week_number if first_year_data else 0
-    second_year_data = _build_weekly_points(df, second_anchors[:comparison_weeks])
+    second_year_data = _build_weekly_points(by_date, second_anchors[:comparison_weeks])
 
     logger.info(
         f"Returning {len(first_year_data)} weeks for FY {request.first_fiscal_year} "

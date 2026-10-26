@@ -30,7 +30,10 @@ from app.services.categories import (
 )
 from app.services.rolling import get_daily
 from app.services.snapshot import get_weekly
-from app.utils.deposits_withdrawals import calculate_daily_net_transfers
+from app.utils.deposits_withdrawals import (
+    calculate_daily_net_transfers,
+    net_transfer_series,
+)
 from app.utils.yoy import yoy_change
 from tests.fixtures import (
     apd_row,
@@ -99,6 +102,56 @@ def test_net_transfers_example() -> None:
         assert m[f"total_deposits_{period}"] == out["total_deposits"]
         assert m[f"total_withdrawals_{period}"] == out["total_withdrawals"]
         assert m[f"net_flow_{period}"] == out["net_transfers"]
+
+
+def test_older_statements_example() -> None:
+    ex = EX["older_statements"]
+    tga = "Treasury General Account (TGA)"
+    cols = ex["fytd_columns"]
+    last = len(ex["days"]) - 1
+
+    def day_rows(i: int, d: dict) -> pd.DataFrame:
+        day = date.fromisoformat(d["date"])
+        # Only the last day's FYTD column matters; it is what the printed
+        # lines of that statement add up to.
+        lines_fytd = cols["gross_withdrawals"] - cols["debt_redemptions"]
+        return pd.concat(
+            [
+                dw_row(
+                    day,
+                    ex["fiscal_year"],
+                    account_type=tga,
+                    transaction_type="Deposits",
+                    today=0,
+                ),
+                dw_row(
+                    day,
+                    ex["fiscal_year"],
+                    account_type=tga,
+                    transaction_type="Withdrawals",
+                    today=d["gross_withdrawals"] - d["debt_redemptions"],
+                    fytd=lines_fytd if i == last else 0,
+                ),
+                dw_row(
+                    day,
+                    ex["fiscal_year"],
+                    account_type=tga,
+                    transaction_type="Withdrawals",
+                    transaction_catg=ex["debt_line"],
+                    today=d["debt_redemptions"],
+                    fytd=cols["debt_redemptions"] if i == last else 0,
+                ),
+            ],
+            ignore_index=True,
+        )
+
+    frames = [day_rows(i, d) for i, d in enumerate(ex["days"])]
+    one_day = calculate_daily_net_transfers(frames[-1], ex["date"])
+    assert one_day["total_withdrawals_fytd"] == cols["total_withdrawals"]
+    series = net_transfer_series(pd.concat(frames, ignore_index=True))
+    assert len(series) == ex["day_of_fiscal_year"]
+    assert series[-1]["total_withdrawals_fytd"] == ex["fytd_total_withdrawals"]
+    assert ex["shortfall"] == ex["fytd_total_withdrawals"] - cols["total_withdrawals"]
 
 
 @pytest.mark.parametrize("key", ["yoy", "yoy_negative_base"])

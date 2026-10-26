@@ -8,7 +8,7 @@ import duckdb
 import pandas as pd
 
 from app.ingest.insert import insert_frame, utc_now_naive
-from app.utils.deposits_withdrawals import calculate_daily_net_transfers
+from app.utils.deposits_withdrawals import net_transfer_series
 
 logger = logging.getLogger(__name__)
 
@@ -50,31 +50,26 @@ def compute_daily_records(
     """
     if fy_df.empty:
         return []
-    fy_df = fy_df.assign(
-        _date_str=pd.to_datetime(fy_df["record_date"]).dt.strftime("%Y-%m-%d")
+    dates = sorted(
+        pd.to_datetime(fy_df["record_date"]).dt.strftime("%Y-%m-%d").unique()
     )
+    day_numbers = {day: n for n, day in enumerate(dates, start=1)}
+    series = net_transfer_series(fy_df)
+    for day in sorted(set(dates) - {m["date"] for m in series}):
+        logger.warning("FY %d: no metrics for %s, skipping", fiscal_year, day)
     now = utc_now_naive()
-    records: list[dict[str, Any]] = []
-    groups = fy_df.groupby("_date_str", sort=True)
-    total = groups.ngroups
-    for day_no, (date_str, day_df) in enumerate(groups, start=1):
-        metrics = calculate_daily_net_transfers(day_df, date_str)
-        if metrics is None:
-            logger.warning("FY %d: no metrics for %s, skipping", fiscal_year, date_str)
-        else:
-            records.append(
-                {
-                    "record_date": date_str,
-                    "record_fiscal_year": fiscal_year,
-                    "day_of_fiscal_year": day_no,
-                    **{field: metrics[field] for field in METRIC_FIELDS},
-                    "created_at": now,
-                    "updated_at": now,
-                }
-            )
-        if day_no % 50 == 0:
-            logger.info("FY %d: %d/%d dates processed", fiscal_year, day_no, total)
-    logger.info("FY %d: %d rows from %d dates", fiscal_year, len(records), total)
+    records = [
+        {
+            "record_date": m["date"],
+            "record_fiscal_year": fiscal_year,
+            "day_of_fiscal_year": day_numbers[m["date"]],
+            **{field: m[field] for field in METRIC_FIELDS},
+            "created_at": now,
+            "updated_at": now,
+        }
+        for m in series
+    ]
+    logger.info("FY %d: %d rows from %d dates", fiscal_year, len(records), len(dates))
     return records
 
 

@@ -68,7 +68,7 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
       { term: 'FYTD', meaning: 'Fiscal year to date' },
     ],
     pitfalls: [
-      'The Treasury publishes all three columns; the app reads them rather than adding up days itself.',
+      'From April 18, 2022 the app reads the Treasury’s own total rows. For older statements it adds up the days itself, because some lines were printed only on days they had activity.',
       'A FYTD figure grows all year, so compare it only with a FYTD figure from the same point of another year.',
     ],
     source: 'Every Daily Treasury Statement table',
@@ -123,6 +123,8 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
     ],
     pitfalls: [
       'Borrowing is removed so that a day of heavy debt sales does not look like a day of high tax receipts.',
+      'Until September 9, 2022 the borrowing line was named “Public Debt Cash Issues (Table III-B)”. It is removed under both names.',
+      'Until FY2013 taxes often landed in Tax and Loan Note Accounts before moving to the Federal Reserve Account. Both accounts count; the moves between them do not.',
     ],
     source: DEPOSITS_TABLE,
   },
@@ -146,6 +148,7 @@ export const FORMULAS: Record<FormulaId, FormulaDef> = {
     ],
     pitfalls: [
       'Interest on the debt stays in withdrawals; only the repayment of principal is removed.',
+      'Until September 9, 2022 the repayment line was named “Public Debt Cash Redemp. (Table III-B)”. It is removed under both names.',
     ],
     source: DEPOSITS_TABLE,
   },
